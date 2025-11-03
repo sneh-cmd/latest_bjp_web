@@ -21,6 +21,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
   const [error, setError] = useState(null)
   const [selectedAddress, setSelectedAddress] = useState('')
   const [addresses, setAddresses] = useState([])
+  const [reDevelopmentAddresses, setReDevelopmentAddresses] = useState([]) // Addresses with redevelopment notes
   const [selectedFilter, setSelectedFilter] = useState('total') // 'total', 'visited', 'unavailable', 'remaining'
   const [showAddBuildingHeadModal, setShowAddBuildingHeadModal] = useState(false)
   const [showAddCoInchargeModal, setShowAddCoInchargeModal] = useState(false)
@@ -62,11 +63,60 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         setBuildingPramukh(response.buildingPramukh)
         setVoters(response.voters || [])
         
-        // Extract unique addresses from voters
-        const uniqueAddresses = [...new Set((response.voters || []).map(voter => voter.eng_localityid).filter(Boolean))]
-        setAddresses(uniqueAddresses)
-        if (uniqueAddresses.length > 0) {
-          setSelectedAddress(uniqueAddresses[0])
+        // Extract unique addresses from voters and separate regular and redevelopment
+        const allAddresses = (response.voters || []).map(voter => ({
+          address: voter.eng_localityid || '',
+          voters: [voter],
+          note: voter.re_development_note || voter.note || voter.add_add || ''
+        })).filter(item => item.address)
+        
+        // Group by address
+        const addressMap = new Map()
+        allAddresses.forEach(item => {
+          if (addressMap.has(item.address)) {
+            addressMap.get(item.address).voters.push(item.voters[0])
+            // Keep note if exists
+            if (item.note && !addressMap.get(item.address).note) {
+              addressMap.get(item.address).note = item.note
+            }
+          } else {
+            addressMap.set(item.address, { address: item.address, voters: item.voters, note: item.note })
+          }
+        })
+        
+        // Separate regular addresses and redevelopment addresses
+        const regularAddrs = []
+        const reDevAddrs = []
+        
+        addressMap.forEach((value, key) => {
+          const addressData = {
+            address: key,
+            voterCount: value.voters.length,
+            note: value.note || ''
+          }
+          
+          // Only add to redevelopment if explicitly marked (note contains "re development" keywords)
+          const addressLower = key.toLowerCase()
+          const noteLower = (value.note || '').toLowerCase()
+          const isReDevelopment = addressLower.includes('re development') || 
+                                 addressLower.includes('redevelopment') || 
+                                 noteLower.includes('re development') || 
+                                 noteLower.includes('redevelopment') ||
+                                 (value.note && value.note.trim() !== '')
+          
+          if (isReDevelopment) {
+            reDevAddrs.push(addressData)
+          } else {
+            regularAddrs.push(key)
+          }
+        })
+        
+        setAddresses(regularAddrs)
+        setReDevelopmentAddresses(reDevAddrs)
+        if (regularAddrs.length > 0) {
+          setSelectedAddress(regularAddrs[0])
+        } else if (reDevAddrs.length > 0) {
+          setSelectedAddress(reDevAddrs[0].address)
         }
         
         // Use co-incharge data directly from API response (already extracted in apidata.jsx)
@@ -683,7 +733,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         {/* Main Container */}
         <div className="relative z-10 h-full flex flex-col">
           {/* Header */}
-          <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#103a94'}}>
+          <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
             <div className="flex items-center justify-between">
               <button onClick={handleBack} className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -700,7 +750,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="px-4 py-2 flex-shrink-0" style={{backgroundColor: '#103a94'}}>
+          <div className="px-4 py-2 flex-shrink-0" style={{backgroundColor: '#102463'}}>
             <div className="flex justify-center space-x-4">
               <button 
                 onClick={() => setActiveTab('organization')} 
@@ -711,6 +761,16 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                 }`}
               >
                 संगठन
+              </button>
+              <button 
+                onClick={() => setActiveTab('address')} 
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'address' 
+                    ? 'bg-white text-blue-600' 
+                    : 'text-white hover:bg-white/20'
+                }`}
+              >
+                पता
               </button>
               <button 
                 onClick={() => setActiveTab('voter')} 
@@ -727,7 +787,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
 
           {/* Main Content - Dynamic based on active tab */}
           {activeTab === 'organization' ? (
-            <div className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
+            <div className="flex-1 px-4 py-4 space-y-4 overflow-y-auto" style={{ backgroundColor: '#e5e8ff' }}>
               {loading ? (
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
@@ -756,7 +816,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                 <>
                   {/* Building Head Section */}
                   <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div className="bg-blue-800 text-white px-4 py-3 flex items-center justify-between">
+                    <div className="text-white px-4 py-3 flex items-center justify-between" style={{ backgroundColor: '#102463' }}>
                       <h2 className="font-semibold text-lg">बिल्डिंग प्रमुख</h2>
                       <button
                         onClick={handleAddBuildingHead}
@@ -923,6 +983,120 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                         </div>
                       )}
                     </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : activeTab === 'address' ? (
+            <div className="flex-1 px-4 py-4 space-y-4 overflow-y-auto" style={{ backgroundColor: '#e5e8ff' }}>
+              {loading ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800 mx-auto mb-4"></div>
+                    <p className="text-gray-600">डेटा लोड हो रहा है...</p>
+                  </div>
+                </div>
+              ) : error ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="text-red-500 mb-4">
+                      <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <p className="text-red-600 mb-4">त्रुटि: {error}</p>
+                    <button 
+                      onClick={() => window.location.reload()}
+                      className="bg-blue-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors"
+                    >
+                      पुनः प्रयास करें
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {/* Regular Addresses Section */}
+                    {addresses && addresses.length > 0 && (
+                      <div className="space-y-2">
+                        {addresses.map((address, index) => {
+                          const voterCount = voters.filter(v => v.eng_localityid === address).length
+                          return (
+                            <div 
+                              key={index}
+                              className="bg-white rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                              onClick={() => setSelectedAddress(address)}
+                            >
+                              <div className="flex items-start">
+                                <span className="text-gray-900 font-bold text-sm mr-2">{index + 1}.</span>
+                                <div className="flex-1">
+                                  <p className="text-gray-900 font-medium text-xs leading-relaxed uppercase">
+                                    {address}
+                                  </p>
+                                  <p className="text-gray-600 text-xs mt-1">
+                                    टोटल मतदाता : {voterCount}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Re Development Section */}
+                    {reDevelopmentAddresses && reDevelopmentAddresses.length > 0 && (
+                      <div className="space-y-2">
+                        {/* Re Development Header */}
+                        <div className="bg-gray-200 px-4 py-2">
+                          <h3 className="font-bold text-black text-sm">Re Development</h3>
+                        </div>
+
+                        {/* Re Development Address Items */}
+                        {reDevelopmentAddresses.map((addrData, index) => {
+                          const voterCount = voters.filter(v => v.eng_localityid === addrData.address).length
+                          return (
+                            <div key={index} className="space-y-0">
+                              <div 
+                                className="bg-gray-200 rounded-md p-3 cursor-pointer hover:bg-gray-250 transition-colors"
+                                onClick={() => setSelectedAddress(addrData.address)}
+                              >
+                                <div className="flex items-start">
+                                  <span className="text-gray-900 font-bold text-sm mr-2">{index + 1}.</span>
+                                  <div className="flex-1">
+                                    <p className="text-gray-900 font-medium text-xs leading-relaxed uppercase">
+                                      {addrData.address}
+                                    </p>
+                                    <p className="text-gray-600 text-xs mt-1">
+                                      टोटल मतदाता : {voterCount}
+                                    </p>
+                                    {addrData.note && (
+                                      <p className="text-gray-700 text-xs mt-1">
+                                        <span className="font-semibold">नोट :</span> {addrData.note}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Green Separator Line */}
+                              {index < reDevelopmentAddresses.length - 1 && (
+                                <div className="h-px bg-green-500 mx-4"></div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Empty State */}
+                    {(!addresses || addresses.length === 0) && (!reDevelopmentAddresses || reDevelopmentAddresses.length === 0) && (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                          <div className="text-gray-400 text-4xl mb-4">📍</div>
+                          <p className="text-gray-600 font-medium">कोई पता नहीं मिला</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -1124,23 +1298,33 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
           )}
 
           {/* Footer with dynamic counts */}
-          <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#103a94'}}>
+          <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
             <div className="flex items-center space-x-4 sm:space-x-6 text-white">
-              <div className="text-center">
-                <div className="text-base sm:text-lg font-bold">
-                  {activeTab === 'organization' && (current && current.name && current.name !== '—' ? 1 : 0)}
-                  {activeTab === 'voter' && voters.length}
+              {activeTab === 'address' ? (
+                <div className="bg-white rounded-lg px-3 py-2">
+                  <span className="text-blue-800 text-sm font-medium">
+                    टोटल पता : {addresses.length + reDevelopmentAddresses.length}
+                  </span>
                 </div>
-                <div className="text-xs">
-                  {activeTab === 'organization' && 'बिल्डिंग प्रमुख'}
-                  {activeTab === 'voter' && 'मतदाता'}
-                </div>
-              </div>
-              {activeTab === 'organization' && (
-                <div className="text-center">
-                  <div className="text-base sm:text-lg font-bold">{coInchargeData.length}</div>
-                  <div className="text-xs">बिल्डिंग सह इनचार्ज</div>
-                </div>
+              ) : (
+                <>
+                  <div className="text-center">
+                    <div className="text-base sm:text-lg font-bold">
+                      {activeTab === 'organization' && (current && current.name && current.name !== '—' ? 1 : 0)}
+                      {activeTab === 'voter' && voters.length}
+                    </div>
+                    <div className="text-xs">
+                      {activeTab === 'organization' && 'बिल्डिंग प्रमुख'}
+                      {activeTab === 'voter' && 'मतदाता'}
+                    </div>
+                  </div>
+                  {activeTab === 'organization' && (
+                    <div className="text-center">
+                      <div className="text-base sm:text-lg font-bold">{coInchargeData.length}</div>
+                      <div className="text-xs">बिल्डिंग सह इनचार्ज</div>
+                    </div>
+                  )}
+                </>
               )}
               {activeTab === 'voter' && (
                 <>

@@ -736,10 +736,10 @@ const ShaktiKendraDetailSlide = ({
     }
 
     return (
-      <div className="flex-1 px-4 py-4 space-y-4">
+      <div className="flex-1 px-4 py-4 space-y-4" style={{ backgroundColor: '#e5e8ff' }}>
         {/* Main Shakti Kendra Pramukh Section */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="bg-blue-800 text-white px-4 py-3 flex items-center justify-between">
+          <div className="text-white px-4 py-3 flex items-center justify-between" style={{ backgroundColor: '#102463' }}>
             <h2 className="font-semibold text-lg">शक्ति केन्द्र प्रमुख</h2>
             <div className="w-8"></div>
           </div>
@@ -891,7 +891,7 @@ const ShaktiKendraDetailSlide = ({
       {/* Main Container */}
       <div className="relative z-10 h-full flex flex-col">
       {/* Header */}
-      <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#103a94'}}>
+      <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
         <div className="flex items-center justify-between mb-2 sm:mb-4">
           <button
             onClick={onClose}
@@ -965,7 +965,7 @@ const ShaktiKendraDetailSlide = ({
       </div>
 
       {/* Navigation Tabs */}
-      <div className="px-4 py-2 flex-shrink-0" style={{backgroundColor: '#103a94'}}>
+      <div className="px-4 py-2 flex-shrink-0" style={{backgroundColor: '#102463'}}>
         <div className="flex justify-center space-x-4">
           <button 
             onClick={() => setActiveTab('organization')}
@@ -1006,7 +1006,7 @@ const ShaktiKendraDetailSlide = ({
       {activeTab === 'voter' && renderVoterView()}
 
       {/* Footer with dynamic counts */}
-      <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#103a94'}}>
+      <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
         <div className="flex items-center space-x-4 sm:space-x-6 text-white">
           <div className="text-center">
             <div className="text-base sm:text-lg font-bold">

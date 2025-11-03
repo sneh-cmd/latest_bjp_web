@@ -221,7 +221,7 @@ const BuildingPramukh = ({ navigation }) => {
       <div className="relative z-10 h-full flex flex-col">
 
         {/* Header */}
-        <div className="px-4 py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#103a94'}}>
+        <div className="px-4 py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
           <div className="flex items-center justify-between">
             <button
               onClick={handleBack}
@@ -263,7 +263,8 @@ const BuildingPramukh = ({ navigation }) => {
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto px-4 py-2" style={{
           scrollbarWidth: 'thin',
-          scrollbarColor: '#d1d5db #f3f4f6'
+          scrollbarColor: '#d1d5db #f3f4f6',
+          backgroundColor: '#e5e8ff'
         }}>
           <div className="space-y-3">
             {loading ? (
@@ -383,7 +384,7 @@ const BuildingPramukh = ({ navigation }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-4 flex-shrink-0 shadow-lg" style={{backgroundColor: '#103a94'}}>
+        <div className="px-4 py-4 flex-shrink-0 shadow-lg" style={{backgroundColor: '#102463'}}>
           <div className="flex items-center justify-between">
             <div className="bg-black rounded px-3 py-2">
               <span className="text-white text-sm font-medium">टोटल : {totalPramukhs}</span>

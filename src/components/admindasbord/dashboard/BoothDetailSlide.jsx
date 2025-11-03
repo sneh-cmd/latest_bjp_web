@@ -528,7 +528,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
         {/* Main Container */}
         <div className="relative z-10 h-full flex flex-col">
           {/* Header */}
-          <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#103a94'}}>
+          <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
             <div className="flex items-center justify-between mb-2 sm:mb-4">
               <button
                 onClick={handleBack}
@@ -556,7 +556,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
           </div>
 
           {/* Tab Navigation */}
-          <div className="px-4 py-2 flex-shrink-0" style={{backgroundColor: '#103a94'}}>
+          <div className="px-4 py-2 flex-shrink-0" style={{backgroundColor: '#102463'}}>
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => setActiveTab('organization')}
@@ -582,7 +582,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto bg-gray-100 px-4 py-4">
+          <div className="flex-1 overflow-y-auto bg-gray-100 px-4 py-4" style={{ backgroundColor: '#e5e8ff' }}>
             {isLoading ? (
               <div className="flex-1 px-4 py-4 flex items-center justify-center">
                 <div className="text-center">
@@ -594,7 +594,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
               <div className="space-y-4">
                 {/* Booth Head Section */}
                 <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between p-4 bg-blue-800 rounded-t-lg">
+                  <div className="flex items-center justify-between p-4 rounded-t-lg" style={{ backgroundColor: '#102463' }}>
                     <h3 className="text-white font-medium">बूथ प्रमुख</h3>
                     <div className="w-8"></div>
                   </div>
@@ -963,7 +963,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
           </div>
 
           {/* Footer with dynamic counts */}
-          <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#103a94'}}>
+          <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
             <div className="flex items-center space-x-4 sm:space-x-6 text-white">
               {activeTab === 'organization' && (
                 <>

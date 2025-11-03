@@ -404,7 +404,7 @@ const BoothPramukh = ({ navigation }) => {
       <div className="relative z-10 h-full flex flex-col">
 
         {/* Header */}
-        <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#103a94'}}>
+        <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
           <div className="flex items-center justify-between mb-2 sm:mb-4">
             <button
               onClick={handleBack}
@@ -467,7 +467,8 @@ const BoothPramukh = ({ navigation }) => {
         {/* Booth Grid - Same as PanelSelectionSlide */}
         <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-3 sm:py-6" style={{
           scrollbarWidth: 'thin',
-          scrollbarColor: '#d1d5db #f3f4f6'
+          scrollbarColor: '#d1d5db #f3f4f6',
+          backgroundColor: '#e5e8ff'
         }}>
           <div className="min-h-full">
             <div className="max-w-4xl mx-auto">
@@ -508,7 +509,7 @@ const BoothPramukh = ({ navigation }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#103a94'}}>
+        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
           <div className="flex items-center space-x-4 sm:space-x-6 text-white">
             <div className="text-center">
               <div className="text-base sm:text-lg font-bold">{totalBooths}</div>

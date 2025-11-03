@@ -557,7 +557,7 @@ const ShaktiKendraPramukh = ({ navigation }) => {
       <div className="relative z-10 h-full flex flex-col">
 
         {/* Header - matches the image design */}
-        <div className="bg-blue-800 px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0">
+        <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0" style={{ backgroundColor: '#102463' }}>
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <button
               onClick={handleBack}
@@ -603,7 +603,7 @@ const ShaktiKendraPramukh = ({ navigation }) => {
         </div>
 
         {/* Shakti Kendra Pramukh List */}
-        <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-3 sm:py-4">
+        <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-3 sm:py-4" style={{ backgroundColor: '#e5e8ff' }}>
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
@@ -643,7 +643,7 @@ const ShaktiKendraPramukh = ({ navigation }) => {
         </div>
 
         {/* Footer - matches the image design */}
-        <div className="bg-blue-800 px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 space-y-2 sm:space-y-0">
+        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 space-y-2 sm:space-y-0" style={{ backgroundColor: '#102463' }}>
           <div className="bg-white px-2 sm:px-3 py-1 sm:py-2 rounded-lg">
             <span className="text-blue-800 text-xs sm:text-sm font-medium">
               टोटल शक्ति केन्द्र प्रमुख : {filteredPramukhs.length}
