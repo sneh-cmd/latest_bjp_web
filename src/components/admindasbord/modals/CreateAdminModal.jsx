@@ -37,7 +37,40 @@ const CreateAdminModal = ({ isOpen, onClose, onSubmit, editData = null, mode = '
     })
   }
 
+  const handleMobileChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '') // Remove non-digits
+    if (value.length <= 10) {
+      setMobile(value)
+    }
+  }
+
+  const validateMobile = (mobileNumber) => {
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      return false
+    }
+    const firstDigit = mobileNumber.charAt(0)
+    return firstDigit === '6' || firstDigit === '9'
+  }
+
   const handleSubmit = async () => {
+    // Validate name first
+    if (!name.trim()) {
+      alert('Name is required')
+      return
+    }
+    
+    // Validate mobile number exists
+    if (!mobile.trim()) {
+      alert('Mobile number is required')
+      return
+    }
+    
+    // Validate mobile number format
+    if (!validateMobile(mobile)) {
+      alert('Invalid mobile number')
+      return
+    }
+
     // Convert photo to base64 if present
     let photoBase64 = ''
     let photoName = ''
@@ -121,8 +154,9 @@ const CreateAdminModal = ({ isOpen, onClose, onSubmit, editData = null, mode = '
             <input
               type="tel"
               value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
+              onChange={handleMobileChange}
               placeholder="Enter mobile number"
+              maxLength={10}
               className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-sm sm:text-base"
               style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
               onFocus={(e) => e.target.style.borderColor = '#103a94'}

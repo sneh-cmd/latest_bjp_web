@@ -6,6 +6,7 @@ import CreateSubAdminModal from '../modals/CreateSubAdminModal'
 import SubAdminDetailModal from '../modals/SubAdminDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
+import * as XLSX from 'xlsx'
 
 const SubAdmin = ({ navigation }) => {
   const { navigate } = navigation
@@ -240,6 +241,56 @@ const SubAdmin = ({ navigation }) => {
       alert(err.message || 'Failed to create sub-admin')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleExport = () => {
+    try {
+      // Filter sub-admins based on search query (same logic as filteredSubAdmins)
+      const filteredData = subAdminData.filter(subAdmin =>
+        subAdmin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        subAdmin.phoneNumber.includes(searchQuery)
+      )
+      
+      if (filteredData.length === 0) {
+        alert('No data to export')
+        return
+      }
+
+      // Transform data to Excel format with headers
+      const excelData = filteredData.map((subAdmin, index) => ({
+        'Sr. No.': index + 1,
+        'Name': subAdmin.name || '',
+        'Phone Number': subAdmin.phoneNumber || '',
+        'Status': subAdmin.status === 'active' ? 'Active' : 'Inactive'
+      }))
+
+      // Create a new workbook
+      const wb = XLSX.utils.book_new()
+      
+      // Create a worksheet from the data
+      const ws = XLSX.utils.json_to_sheet(excelData)
+      
+      // Set column widths for better readability
+      const colWidths = [
+        { wch: 8 },   // Sr. No.
+        { wch: 25 },  // Name
+        { wch: 15 },  // Phone Number
+        { wch: 12 }   // Status
+      ]
+      ws['!cols'] = colWidths
+      
+      // Add the worksheet to the workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Sub-Admins')
+      
+      // Generate Excel file and download
+      const fileName = `Sub_Admin_List_${new Date().toISOString().split('T')[0]}.xlsx`
+      XLSX.writeFile(wb, fileName)
+      
+      console.log('Export successful:', fileName)
+    } catch (error) {
+      console.error('Error exporting data:', error)
+      alert('Failed to export data. Please try again.')
     }
   }
 
@@ -488,64 +539,69 @@ const SubAdmin = ({ navigation }) => {
       <div className="relative z-10 h-full flex flex-col">
 
         {/* Header */}
-        <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <button
-              onClick={handleBack}
-              className="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+        <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
+          {/* First Row: Arrow + Title (left) | Search icon (right) */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <button
+                onClick={handleBack}
+                className="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <h1 className="text-white text-base sm:text-lg font-semibold">सब ऐडमिन</h1>
+            </div>
             
-            <h1 className="text-white text-base sm:text-lg font-semibold">सब ऐडमिन</h1>
-            
-            {/* View Toggle Switch */}
-            <div className="rounded-lg p-1 flex shadow-sm" style={{backgroundColor: 'rgba(255, 255, 255, 0.2)'}}>
+            <div className="search-box">
+              <input
+                type="text"
+                placeholder="Search sub-admins..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                type="reset"
+                onClick={() => setSearchQuery('')}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="bg-white px-2 sm:px-4 py-2 sm:py-3 border-b border-amber-100 flex-shrink-0 shadow-sm">
+          <div className="flex items-center justify-end gap-2 sm:gap-3">
+            {/* View Mode Toggle - Right side */}
+            <div className="rounded-lg p-1 flex" style={{backgroundColor: '#102463'}}>
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-medium transition-all flex items-center ${
+                className={`px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-all ${
                   viewMode === 'list' 
-                    ? 'bg-white shadow-sm' 
+                    ? 'bg-white text-amber-600' 
                     : 'text-white hover:bg-white/10'
                 }`}
-                style={viewMode === 'list' ? {color: '#103a94'} : {}}
               >
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                 </svg>
                 <span className="hidden sm:inline">List</span>
               </button>
               <button
                 onClick={() => setViewMode('grid')}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-medium transition-all flex items-center ${
+                className={`px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-all ${
                   viewMode === 'grid' 
-                    ? 'bg-white shadow-sm' 
+                    ? 'bg-white text-amber-600' 
                     : 'text-white hover:bg-white/10'
                 }`}
-                style={viewMode === 'grid' ? {color: '#103a94'} : {}}
               >
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
                 <span className="hidden sm:inline">Grid</span>
               </button>
             </div>
-          </div>
-
-          {/* Search Bar */}
-          <div className="flex justify-center">
-            <input
-              type="text"
-              placeholder="Search sub-admins..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg px-3 py-2 sm:py-1.5 rounded-md border focus:outline-none focus:bg-white transition-all text-gray-800 placeholder-gray-500 text-sm"
-              style={{backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: 'rgba(255, 255, 255, 0.2)'}}
-              onFocus={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)'}
-            />
           </div>
         </div>
 
@@ -600,18 +656,36 @@ const SubAdmin = ({ navigation }) => {
             </span>
           </div>
           
-          <button 
-            onClick={handleCreateSubAdmin}
-            className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
-            style={{backgroundColor: '#0d2f7a'}}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#0a2563'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#0d2f7a'}
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <span className="text-white text-xs sm:text-sm font-medium">सब ऐडमिन बनाएं</span>
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Export Button */}
+            <button 
+              onClick={handleExport}
+              className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
+              style={{backgroundColor: 'rgba(220, 38, 38, 0.87)'}}
+              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(185, 28, 28, 0.85)'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(220, 38, 38, 0.87)'}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1.8 18H6.2v-1.4h9.6V20zm0-2.8H6.2v-1.4h9.6v1.4zm0-2.8H6.2v-1.4h9.6v1.4zM13 9V3.5L18.5 9H13z"/>
+                <path d="M9 12h6v1.5H9V12zm0 2.5h6V16H9v-1.5zm0 2.5h6V18.5H9V17z"/>
+              </svg>
+              <span className="text-white text-xs sm:text-sm font-medium">Export</span>
+            </button>
+
+            {/* Create Sub-Admin Button */}
+            <button 
+              onClick={handleCreateSubAdmin}
+              className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
+              style={{backgroundColor: '#0d2f7a'}}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#0a2563'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span className="text-white text-xs sm:text-sm font-medium">सब ऐडमिन बनाएं</span>
+            </button>
+          </div>
         </div>
 
         {/* SubAdmin Detail Modal */}

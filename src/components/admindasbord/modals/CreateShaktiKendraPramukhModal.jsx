@@ -46,7 +46,40 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
     })
   }
 
+  const handleMobileChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '') // Remove non-digits
+    if (value.length <= 10) {
+      setMobile(value)
+    }
+  }
+
+  const validateMobile = (mobileNumber) => {
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      return false
+    }
+    const firstDigit = mobileNumber.charAt(0)
+    return firstDigit === '6' || firstDigit === '9'
+  }
+
   const handleSubmit = async () => {
+    // Validate name first
+    if (!name.trim()) {
+      alert('Name is required')
+      return
+    }
+    
+    // Validate mobile number exists
+    if (!mobile.trim()) {
+      alert('Mobile number is required')
+      return
+    }
+    
+    // Validate mobile number format
+    if (!validateMobile(mobile)) {
+      alert('Invalid mobile number')
+      return
+    }
+
     const booth_javabdari = selectedBooths.join(',')
     
     // Convert photo to base64 if present
@@ -184,7 +217,8 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
             <input
               type="tel"
               value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
+              onChange={handleMobileChange}
+              maxLength={10}
               className="w-full px-3 py-2 rounded-md border bg-white"
               placeholder="मोबाइल नं."
             />

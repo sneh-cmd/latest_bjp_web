@@ -57,64 +57,88 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         if (!mainAdminId) {
           throw new Error('No building ID provided')
         }
-        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId)
+        
+        // Get panel API URL from localStorage
+        const userData = localStorageManager.getUserData()
+        const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
+        
+        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId, panelApiUrl)
 
         console.log('📦 Building data response:', response)
-        setBuildingPramukh(response.buildingPramukh)
-        setVoters(response.voters || [])
+        setBuildingPramukh(response.buildingPramukh || null)
         
-        // Extract unique addresses from voters and separate regular and redevelopment
-        const allAddresses = (response.voters || []).map(voter => ({
-          address: voter.eng_localityid || '',
-          voters: [voter],
-          note: voter.re_development_note || voter.note || voter.add_add || ''
-        })).filter(item => item.address)
+        // Ensure voters is an array
+        const votersList = Array.isArray(response.voters) ? response.voters : []
+        setVoters(votersList)
         
-        // Group by address
-        const addressMap = new Map()
-        allAddresses.forEach(item => {
-          if (addressMap.has(item.address)) {
-            addressMap.get(item.address).voters.push(item.voters[0])
-            // Keep note if exists
-            if (item.note && !addressMap.get(item.address).note) {
-              addressMap.get(item.address).note = item.note
-            }
-          } else {
-            addressMap.set(item.address, { address: item.address, voters: item.voters, note: item.note })
-          }
-        })
-        
-        // Separate regular addresses and redevelopment addresses
+        // Extract addresses from result3 (addressData) - use remark field to determine category
         const regularAddrs = []
         const reDevAddrs = []
         
-        addressMap.forEach((value, key) => {
-          const addressData = {
-            address: key,
-            voterCount: value.voters.length,
-            note: value.note || ''
-          }
+        // Check if addressData is available from result3
+        if (response.addressData && Array.isArray(response.addressData)) {
+          response.addressData.forEach((item, index) => {
+            if (!item || !item.address) return
+            
+            const address = String(item.address).trim()
+            if (address === '') return
+            
+            const addressInfo = {
+              address: address,
+              voterCount: item.total_voter || 0,
+              note: (item.note && typeof item.note === 'string') ? item.note.trim() : ''
+            }
+            
+            // Check remark field - if it's "Re-Development" or "Re Development", add to redevelopment section
+            const remark = (item.remark && typeof item.remark === 'string') ? item.remark.trim() : ''
+            const isReDevelopment = remark === 'Re-Development' || remark === 'Re Development' || remark.toLowerCase().includes('re-development') || remark.toLowerCase().includes('redevelopment')
+            
+            if (isReDevelopment) {
+              reDevAddrs.push(addressInfo)
+            } else {
+              // For regular addresses, store as object with voterCount for consistency
+              regularAddrs.push({
+                address: address,
+                voterCount: item.total_voter || 0
+              })
+            }
+          })
+        } else {
+          // Fallback: If result3 is not available, extract from voters (backward compatibility)
+          const addressMap = new Map()
           
-          // Only add to redevelopment if explicitly marked (note contains "re development" keywords)
-          const addressLower = key.toLowerCase()
-          const noteLower = (value.note || '').toLowerCase()
-          const isReDevelopment = addressLower.includes('re development') || 
-                                 addressLower.includes('redevelopment') || 
-                                 noteLower.includes('re development') || 
-                                 noteLower.includes('redevelopment') ||
-                                 (value.note && value.note.trim() !== '')
+          votersList.forEach(voter => {
+            if (!voter || typeof voter !== 'object') return
+            
+            const address = voter.eng_localityid
+            if (address && (typeof address === 'string' || typeof address === 'number')) {
+              const addressKey = String(address).trim()
+              if (addressKey !== '') {
+                if (!addressMap.has(addressKey)) {
+                  const voterCount = votersList.filter(v => {
+                    const vAddress = v.eng_localityid
+                    return vAddress && String(vAddress).trim() === addressKey
+                  }).length
+                  addressMap.set(addressKey, voterCount)
+                }
+              }
+            }
+          })
           
-          if (isReDevelopment) {
-            reDevAddrs.push(addressData)
-          } else {
-            regularAddrs.push(key)
-          }
-        })
+          addressMap.forEach((voterCount, key) => {
+            regularAddrs.push({
+              address: key,
+              voterCount: voterCount
+            })
+          })
+        }
         
         setAddresses(regularAddrs)
         setReDevelopmentAddresses(reDevAddrs)
+        
+        // Set initial selected address
         if (regularAddrs.length > 0) {
-          setSelectedAddress(regularAddrs[0])
+          setSelectedAddress(typeof regularAddrs[0] === 'string' ? regularAddrs[0] : regularAddrs[0].address)
         } else if (reDevAddrs.length > 0) {
           setSelectedAddress(reDevAddrs[0].address)
         }
@@ -158,46 +182,89 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
     setTimeout(() => navigate('/building-pramukh'), 300)
   }
 
-  // Helper function to check if voter_status1 is not empty
-  const isVoterStatus1NotEmpty = (voter) => {
-    return voter.voter_status1 && voter.voter_status1.toString().trim() !== ''
+  // Helper function to check if voter is visited (voter_available === 1)
+  const isVoterVisited = (voter) => {
+    return voter.voter_available === 1 || voter.voter_available === '1'
   }
 
   // Helper function to check if voter is unavailable
-  // Unavailable voters are those who were visited (voter_status1 is set) but marked as unavailable
+  // Unavailable: voter_available === 0 and not_available_status is not empty
   const isVoterUnavailable = (voter) => {
-    // Check if voter was visited (has voter_status1)
-    const hasStatus = isVoterStatus1NotEmpty(voter)
-    if (!hasStatus) return false
+    const voterAvailable = voter.voter_available === 0 || voter.voter_available === '0'
+    const notAvailableStatus = (voter.not_available_status || '').toString().trim()
+    return voterAvailable && notAvailableStatus !== ''
+  }
+
+  // Helper function to check if voter visit is remaining
+  // Remaining: voter_available === 0 and not_available_status is empty
+  const isVoterRemaining = (voter) => {
+    const voterAvailable = voter.voter_available === 0 || voter.voter_available === '0'
+    const notAvailableStatus = (voter.not_available_status || '').toString().trim()
+    return voterAvailable && notAvailableStatus === ''
+  }
+
+  // Helper function to get voter status text and badge color
+  const getVoterStatus = (voter) => {
+    const voterAvailable = voter.voter_available === 1 || voter.voter_available === '1'
     
-    // Check if status indicates unavailable
-    const status = (voter.voter_status || voter.voter_status1 || '').toString().toLowerCase().trim()
-    // Status 'u' means unavailable
-    return status === 'u'
+    if (!voterAvailable) {
+      // If voter_available is 0, show not_available_status
+      const notAvailableStatus = (voter.not_available_status || '').toString().trim()
+      return {
+        text: notAvailableStatus || '',
+        color: 'bg-red-500' // Red for unavailable status
+      }
+    } else {
+      // If voter_available is 1, map voter_status1
+      const status = (voter.voter_status1 || '').toString().toLowerCase().trim()
+      let statusText = ''
+      let statusColor = 'bg-gray-500'
+      
+      switch (status) {
+        case 'p':
+          statusText = 'पॉजिटिव'
+          statusColor = 'bg-green-500'
+          break
+        case 'n':
+          statusText = 'नेगेटिव'
+          statusColor = 'bg-red-500'
+          break
+        case 'c':
+          statusText = "Can't Say"
+          statusColor = 'bg-yellow-500'
+          break
+        case 'd':
+          statusText = 'Doubtful'
+          statusColor = 'bg-orange-500'
+          break
+        default:
+          statusText = ''
+          statusColor = 'bg-gray-500'
+      }
+      
+      return {
+        text: statusText,
+        color: statusColor
+      }
+    }
   }
 
   // Calculate voter statistics
   const totalVoters = voters.length
-  const visitedVoters = voters.filter(voter => {
-    const hasStatus = isVoterStatus1NotEmpty(voter)
-    return hasStatus && !isVoterUnavailable(voter)
-  }).length
+  const visitedVoters = voters.filter(voter => isVoterVisited(voter)).length
   const unavailableVoters = voters.filter(voter => isVoterUnavailable(voter)).length
-  const remainingVisits = voters.filter(voter => !isVoterStatus1NotEmpty(voter)).length
+  const remainingVisits = voters.filter(voter => isVoterRemaining(voter)).length
 
   // Filter voters by selected address and summary card filter
   let filteredVoters = voters
 
   // Apply summary card filter
   if (selectedFilter === 'visited') {
-    filteredVoters = filteredVoters.filter(voter => {
-      const hasStatus = isVoterStatus1NotEmpty(voter)
-      return hasStatus && !isVoterUnavailable(voter)
-    })
+    filteredVoters = filteredVoters.filter(voter => isVoterVisited(voter))
   } else if (selectedFilter === 'unavailable') {
     filteredVoters = filteredVoters.filter(voter => isVoterUnavailable(voter))
   } else if (selectedFilter === 'remaining') {
-    filteredVoters = filteredVoters.filter(voter => !isVoterStatus1NotEmpty(voter))
+    filteredVoters = filteredVoters.filter(voter => isVoterRemaining(voter))
   }
 
   // Apply address filter
@@ -231,7 +298,9 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
     const mainAdminId = buildingData?.id || buildingId
     if (mainAdminId) {
       try {
-        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId)
+        const userData = localStorageManager.getUserData()
+        const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
+        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId, panelApiUrl)
         setBuildingPramukh(response.buildingPramukh)
       } catch (err) {
         console.error('Error refreshing building head:', err)
@@ -292,7 +361,9 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         const refreshData = async () => {
           try {
             setLoading(true)
-            const response = await displayBuildingPramukhCadreWithVoter(savedBuildingId)
+            const userData = localStorageManager.getUserData()
+            const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
+            const response = await displayBuildingPramukhCadreWithVoter(savedBuildingId, panelApiUrl)
             console.log('🔄 Refresh response for building:', savedBuildingId, {
               buildingPramukhCadreCount: response.buildingPramukhCadre?.length || 0,
               coInchargeCount: response.coIncharge?.length || 0,
@@ -350,7 +421,9 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
     const mainAdminId = buildingPramukh?.id || buildingData?.id || buildingId
     if (mainAdminId) {
       try {
-        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId)
+        const userData = localStorageManager.getUserData()
+        const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
+        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId, panelApiUrl)
         if (response.coIncharge && Array.isArray(response.coIncharge) && response.coIncharge.length > 0) {
           setCoInchargeData(response.coIncharge.map(item => {
             const lastLogin = item.lastLogin || item.last_login || ''
@@ -485,7 +558,9 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
       // Refresh data from API after successful deletion
       const mainAdminId = buildingPramukh?.id || buildingData?.id || buildingId
       if (mainAdminId) {
-        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId)
+        const userData = localStorageManager.getUserData()
+        const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
+        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId, panelApiUrl)
         if (response.coIncharge && Array.isArray(response.coIncharge) && response.coIncharge.length > 0) {
           setCoInchargeData(response.coIncharge.map(item => {
             const lastLogin = item.lastLogin || item.last_login || ''
@@ -637,7 +712,9 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
     const mainAdminId = buildingPramukh?.id || buildingData?.id || buildingId
     if (mainAdminId) {
       try {
-        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId)
+        const userData = localStorageManager.getUserData()
+        const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
+        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId, panelApiUrl)
         setBuildingPramukh(response.buildingPramukh)
         setVoters(response.voters || [])
       } catch (err) {
@@ -1016,21 +1093,26 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
               ) : (
                 <>
                   <div className="space-y-3">
-                    {/* Regular Addresses Section */}
+                    {/* Regular Addresses Section - White Cards */}
                     {addresses && addresses.length > 0 && (
                       <div className="space-y-2">
-                        {addresses.map((address, index) => {
-                          const voterCount = voters.filter(v => v.eng_localityid === address).length
+                        {addresses.map((addrItem, index) => {
+                          // Handle both string (backward compatibility) and object format
+                          const address = typeof addrItem === 'string' ? addrItem : addrItem.address
+                          const voterCount = typeof addrItem === 'string' 
+                            ? voters.filter(v => v && v.eng_localityid && String(v.eng_localityid).trim() === String(address).trim()).length
+                            : (addrItem.voterCount || 0)
+                          
                           return (
                             <div 
-                              key={index}
-                              className="bg-white rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                              key={`regular-${index}`}
+                              className="bg-white rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
                               onClick={() => setSelectedAddress(address)}
                             >
                               <div className="flex items-start">
-                                <span className="text-gray-900 font-bold text-sm mr-2">{index + 1}.</span>
-                                <div className="flex-1">
-                                  <p className="text-gray-900 font-medium text-xs leading-relaxed uppercase">
+                                <span className="text-gray-900 font-bold text-sm mr-2 flex-shrink-0">{index + 1}.</span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-gray-900 font-medium text-xs leading-relaxed uppercase break-words">
                                     {address}
                                   </p>
                                   <p className="text-gray-600 text-xs mt-1">
@@ -1048,40 +1130,37 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                     {reDevelopmentAddresses && reDevelopmentAddresses.length > 0 && (
                       <div className="space-y-2">
                         {/* Re Development Header */}
-                        <div className="bg-gray-200 px-4 py-2">
+                        <div className="px-4 py-2">
                           <h3 className="font-bold text-black text-sm">Re Development</h3>
                         </div>
 
-                        {/* Re Development Address Items */}
+                        {/* Re Development Address Items - Light Gray Cards */}
                         {reDevelopmentAddresses.map((addrData, index) => {
-                          const voterCount = voters.filter(v => v.eng_localityid === addrData.address).length
+                          // Use voterCount from addressData (result3), fallback to counting from voters if not available
+                          const voterCount = addrData.voterCount || voters.filter(v => v && v.eng_localityid && String(v.eng_localityid).trim() === String(addrData.address).trim()).length
+                          
                           return (
-                            <div key={index} className="space-y-0">
-                              <div 
-                                className="bg-gray-200 rounded-md p-3 cursor-pointer hover:bg-gray-250 transition-colors"
-                                onClick={() => setSelectedAddress(addrData.address)}
-                              >
-                                <div className="flex items-start">
-                                  <span className="text-gray-900 font-bold text-sm mr-2">{index + 1}.</span>
-                                  <div className="flex-1">
-                                    <p className="text-gray-900 font-medium text-xs leading-relaxed uppercase">
-                                      {addrData.address}
+                            <div 
+                              key={`redev-${index}`}
+                              className="bg-gray-200 rounded-md p-3 cursor-pointer hover:bg-gray-300 transition-colors"
+                              onClick={() => setSelectedAddress(addrData.address)}
+                            >
+                              <div className="flex items-start">
+                                <span className="text-gray-900 font-bold text-sm mr-2 flex-shrink-0">{index + 1}.</span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-gray-900 font-medium text-xs leading-relaxed uppercase break-words">
+                                    {addrData.address}
+                                  </p>
+                                  <p className="text-gray-600 text-xs mt-1">
+                                    टोटल मतदाता : {voterCount}
+                                  </p>
+                                  {addrData.note && (
+                                    <p className="text-gray-700 text-xs mt-1">
+                                      <span className="font-semibold">नोट :</span> {addrData.note}
                                     </p>
-                                    <p className="text-gray-600 text-xs mt-1">
-                                      टोटल मतदाता : {voterCount}
-                                    </p>
-                                    {addrData.note && (
-                                      <p className="text-gray-700 text-xs mt-1">
-                                        <span className="font-semibold">नोट :</span> {addrData.note}
-                                      </p>
-                                    )}
-                                  </div>
+                                  )}
                                 </div>
                               </div>
-                              {/* Green Separator Line */}
-                              {index < reDevelopmentAddresses.length - 1 && (
-                                <div className="h-px bg-green-500 mx-4"></div>
-                              )}
                             </div>
                           )
                         })}
@@ -1158,11 +1237,15 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                     onChange={(e) => setSelectedAddress(e.target.value)}
                     className="bg-transparent text-gray-700 font-medium focus:outline-none"
                   >
-                    {addresses.map((address, index) => (
-                      <option key={index} value={address}>
-                        {address.length > 50 ? `${address.substring(0, 50)}...` : address}
-                      </option>
-                    ))}
+                    {addresses.map((addrItem, index) => {
+                      // Handle both string (backward compatibility) and object format
+                      const address = typeof addrItem === 'string' ? addrItem : addrItem.address
+                      return (
+                        <option key={index} value={address}>
+                          {address.length > 50 ? `${address.substring(0, 50)}...` : address}
+                        </option>
+                      )
+                    })}
                   </select>
                   <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -1178,9 +1261,28 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredVoters.map((voter, index) => (
-                    <div key={voter.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                      <div className="space-y-3">
+                  {filteredVoters.map((voter, index) => {
+                    const surveyBy = (voter.survey_by || '').toString().trim()
+                    const shouldShowSurveySection = surveyBy !== ' - ' && surveyBy !== '-'
+                    const voterStatus = getVoterStatus(voter)
+                    
+                    return (
+                    <div key={voter.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                      {/* Survey Taker Section - Green Header Bar */}
+                      {shouldShowSurveySection && (
+                        <div className="bg-green-100 px-4 py-2 flex items-center justify-between">
+                          <div className="text-black text-sm font-medium">
+                            सर्वे लेनेवाला: {surveyBy}
+                          </div>
+                          {voterStatus.text && (
+                            <span className={`${voterStatus.color} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
+                              {voterStatus.text}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div className="p-4 space-y-3">
                         {/* Header */}
                         <div className="flex items-center justify-between">
                           <div className="text-lg font-bold text-gray-900">
@@ -1289,7 +1391,8 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
                 </>

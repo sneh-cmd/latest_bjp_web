@@ -23,13 +23,33 @@ const CreateKaryakartaModal = ({ isOpen, onClose, onSubmit }) => {
     })
   }
 
+  const handleMobileChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '') // Remove non-digits
+    if (value.length <= 10) {
+      setMobile(value)
+    }
+  }
+
+  const validateMobile = (mobileNumber) => {
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      return false
+    }
+    const firstDigit = mobileNumber.charAt(0)
+    return firstDigit === '6' || firstDigit === '9'
+  }
+
   const handleSave = async () => {
     if (!name.trim()) {
-      alert('कृपया नाम दर्ज करें')
+      alert('Name is required')
       return
     }
     if (!mobile.trim()) {
-      alert('कृपया मोबाइल नंबर दर्ज करें')
+      alert('Mobile number is required')
+      return
+    }
+    // Validate mobile number
+    if (!validateMobile(mobile)) {
+      alert('Invalid mobile number')
       return
     }
 
@@ -223,7 +243,8 @@ const CreateKaryakartaModal = ({ isOpen, onClose, onSubmit }) => {
             <input 
               type="tel" 
               value={mobile} 
-              onChange={(e) => setMobile(e.target.value)} 
+              onChange={handleMobileChange}
+              maxLength={10}
               className="w-full px-3 py-3 rounded-lg border bg-white focus:outline-none focus:border-blue-500 transition-colors" 
               placeholder="मोबाइल नंबर दर्ज करें"
             />

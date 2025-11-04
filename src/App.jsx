@@ -38,6 +38,9 @@ import CasteWiseSurvey from './components/admindasbord/dashboard/report/CasteWis
 import CasteDetailSlide from './components/admindasbord/dashboard/report/CasteDetailSlide'
 import EducationProfessionWiseSurvey from './components/admindasbord/dashboard/report/EducationProfessionWiseSurvey'
 import EducationProfessionDetailSlide from './components/admindasbord/dashboard/report/EducationProfessionDetailSlide'
+import RedevelopmentBuilding from './components/admindasbord/dashboard/report/RedevelopmentBuilding'
+import DeathSurvey from './components/admindasbord/dashboard/report/DeathSurvey'
+import TransferredSurvey from './components/admindasbord/dashboard/report/TransferredSurvey'
 import BoothSurveyDetailSlide from './components/admindasbord/dashboard/report/BoothDetailSlide'
 import './App.css'
 
@@ -355,6 +358,30 @@ function EducationProfessionDetailSlideWrapper() {
   )
 }
 
+function RedevelopmentBuildingWrapper() {
+  return (
+    <NavigationProvider>
+      <RedevelopmentBuilding />
+    </NavigationProvider>
+  )
+}
+
+function DeathSurveyWrapper() {
+  return (
+    <NavigationProvider>
+      <DeathSurvey />
+    </NavigationProvider>
+  )
+}
+
+function TransferredSurveyWrapper() {
+  return (
+    <NavigationProvider>
+      <TransferredSurvey />
+    </NavigationProvider>
+  )
+}
+
 function CasteDetailSlideWrapper() {
   return (
     <NavigationProvider>
@@ -450,6 +477,9 @@ function App() {
           <Route path="/caste-detail" element={<CasteDetailSlideWrapper />} />
           <Route path="/education-profession-wise-survey" element={<EducationProfessionWiseSurveyWrapper />} />
           <Route path="/education-profession-detail" element={<EducationProfessionDetailSlideWrapper />} />
+          <Route path="/redevelopment-building" element={<RedevelopmentBuildingWrapper />} />
+          <Route path="/death-survey" element={<DeathSurveyWrapper />} />
+          <Route path="/transferred-survey" element={<TransferredSurveyWrapper />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

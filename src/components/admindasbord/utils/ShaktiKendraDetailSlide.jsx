@@ -6,6 +6,7 @@ import CreateOrganizationMemberModal from '../modals/CreateOrganizationMemberMod
 import ShaktiKendraPramukhDetailModal from '../modals/ShaktiKendraPramukhDetailModal'
 import CreateShaktiKendraPramukhModal from '../modals/CreateShaktiKendraPramukhModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
+import AddBoothHeadModal from '../modals/AddBoothHeadModal'
 
 const ShaktiKendraDetailSlide = ({ 
   isVisible, 
@@ -154,6 +155,8 @@ const ShaktiKendraDetailSlide = ({
   const [pramukhToEdit, setPramukhToEdit] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [pramukhToDelete, setPramukhToDelete] = useState(null)
+  const [showAddBoothHeadModal, setShowAddBoothHeadModal] = useState(false)
+  const [selectedBoothForHead, setSelectedBoothForHead] = useState(null)
 
   const handleCall = (pramukh) => {
     window.open(`tel:${pramukh.mobileNo || pramukh.phoneNumber}`, '_self')
@@ -325,6 +328,7 @@ const ShaktiKendraDetailSlide = ({
   }
 
   const handleBoothClick = (booth) => {
+    // Original function - only works for assigned booths (for booth section)
     if (booth.assigned) {
       // Prepare booth data in the format expected by BoothDetailSlide
       const boothNumber = booth.number || booth.id
@@ -351,6 +355,55 @@ const ShaktiKendraDetailSlide = ({
         }
       })
     }
+  }
+
+  // Separate function for voter section - works for both assigned and unassigned booths
+  const handleVoterBoothClick = (booth) => {
+    // Prepare booth data in the format expected by BoothDetailSlide
+    // This function works for both assigned and unassigned booths
+    const boothNumber = booth.number || booth.id
+    const boothDataForNavigation = {
+      id: booth.id,
+      boothNumber: boothNumber,
+      voters: booth.voters || 0,
+      heads: booth.totalBoothPramukh || 0,
+      assigned: booth.assigned || false,
+      profileImage: booth.photoPath || null,
+      photoPath: booth.photoPath || null,
+      isPhoto: Boolean(booth.photoPath && booth.photoPath.trim() !== ''),
+      name: booth.assigned ? `Booth Head ${boothNumber}` : 'Unassigned',
+      phoneNumber: '',
+      status: booth.assigned ? 'active' : 'inactive'
+    }
+    
+    // Navigate to booth detail page with return path
+    navigate(`/booth-detail?boothId=${boothNumber}`, {
+      state: { 
+        boothData: boothDataForNavigation,
+        returnPath: '/shakti-kendra-pramukh',
+        from: 'shakti-kendra-detail'
+      }
+    })
+  }
+
+  // Handle opening Add Booth Head Modal
+  const handleOpenAddBoothHeadModal = (booth) => {
+    const boothNumber = booth.number || booth.id
+    setSelectedBoothForHead(boothNumber)
+    setShowAddBoothHeadModal(true)
+  }
+
+  // Handle closing Add Booth Head Modal
+  const handleCloseAddBoothHeadModal = () => {
+    setShowAddBoothHeadModal(false)
+    setSelectedBoothForHead(null)
+  }
+
+  // Handle successful booth head creation/update
+  const handleBoothHeadSave = async () => {
+    // Refresh booth data after successful save
+    await fetchBoothData()
+    handleCloseAddBoothHeadModal()
   }
 
   // Filter booths based on search query
@@ -460,7 +513,7 @@ const ShaktiKendraDetailSlide = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      // Handle assign booth head
+                      handleOpenAddBoothHeadModal(booth)
                     }}
                     className="w-full bg-red-500 text-white font-medium py-1 sm:py-2 rounded text-xs sm:text-sm hover:bg-red-600 transition-colors duration-200"
                   >
@@ -568,7 +621,7 @@ const ShaktiKendraDetailSlide = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      // Handle assign booth head
+                      handleOpenAddBoothHeadModal(booth)
                     }}
                     className="px-3 sm:px-4 py-1 sm:py-2 bg-red-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-600 transition-colors"
                   >
@@ -687,14 +740,36 @@ const ShaktiKendraDetailSlide = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {voterData.map((voter) => (
-            <div key={voter.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <div className="text-center">
-                <h3 className="font-bold text-gray-800 text-lg mb-2">बूथ नं. {voter.boothNumber}</h3>
-                <p className="text-gray-600 text-sm">टोटल मतदाता {voter.totalVoters}</p>
+          {voterData.map((voter) => {
+            // Find corresponding booth data from boothData array
+            const boothInfo = boothData.find(booth => 
+              (booth.number || booth.id) === voter.boothNumber || 
+              booth.id === voter.id
+            )
+            
+            // Create booth object for handleBoothClick
+            const boothForClick = {
+              id: boothInfo?.id || voter.id,
+              number: voter.boothNumber,
+              voters: voter.totalVoters,
+              assigned: boothInfo?.assigned || false,
+              totalBoothPramukh: boothInfo?.totalBoothPramukh || 0,
+              photoPath: boothInfo?.photoPath || null
+            }
+            
+            return (
+              <div 
+                key={voter.id} 
+                className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-200"
+                onClick={() => handleVoterBoothClick(boothForClick)}
+              >
+                <div className="text-center">
+                  <h3 className="font-bold text-gray-800 text-lg mb-2">बूथ नं. {voter.boothNumber}</h3>
+                  <p className="text-gray-600 text-sm">टोटल मतदाता {voter.totalVoters}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
@@ -1080,6 +1155,15 @@ const ShaktiKendraDetailSlide = ({
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         admin={pramukhToDelete}
+      />
+      
+      {/* Add Booth Head Modal */}
+      <AddBoothHeadModal
+        isOpen={showAddBoothHeadModal}
+        onClose={handleCloseAddBoothHeadModal}
+        boothNumber={selectedBoothForHead}
+        onSave={handleBoothHeadSave}
+        mode="create"
       />
       
       {/* Custom CSS for Scrollbar */}

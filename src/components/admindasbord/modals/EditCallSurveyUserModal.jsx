@@ -79,7 +79,40 @@ const EditCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers = 
 
   if (!isOpen || !user) return null
 
+  const handleMobileChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '') // Remove non-digits
+    if (value.length <= 10) {
+      setMobile(value)
+    }
+  }
+
+  const validateMobile = (mobileNumber) => {
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      return false
+    }
+    const firstDigit = mobileNumber.charAt(0)
+    return firstDigit === '6' || firstDigit === '9'
+  }
+
   const handleSubmit = async () => {
+    // Validate name first
+    if (!name.trim()) {
+      alert('Name is required')
+      return
+    }
+    
+    // Validate mobile number exists
+    if (!mobile.trim()) {
+      alert('Mobile number is required')
+      return
+    }
+    
+    // Validate mobile number format
+    if (!validateMobile(mobile)) {
+      alert('Invalid mobile number')
+      return
+    }
+
     try {
       setIsSubmitting(true)
       const cleaned = (boothNumbersText || '').replace(/\s/g, '')
@@ -158,21 +191,44 @@ const EditCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers = 
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-2">मोबाइल नं.</label>
-              <input value={mobile} onChange={(e)=>setMobile(e.target.value)} placeholder="" className="w-full h-11 px-3 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+              <input value={mobile} onChange={handleMobileChange} maxLength={10} placeholder="" className="w-full h-11 px-3 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-2">फोटो</label>
-              <div className="flex items-center space-x-4">
-                <label className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border border-gray-300 flex items-center justify-center cursor-pointer">
+              <label className="block text-sm font-semibold mb-2" style={{color: '#103a94'}}>
+                फोटो
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => onSelectPhoto(e.target.files && e.target.files[0])}
+                  className="hidden"
+                  id="edit-callsurvey-photo-upload"
+                />
+                <label
+                  htmlFor="edit-callsurvey-photo-upload"
+                  className="w-full h-24 sm:h-32 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
+                  style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
+                >
                   {photoPreview ? (
-                    <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
+                    <div className="text-center">
+                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <p className="text-xs sm:text-sm text-gray-600">Photo Selected</p>
+                    </div>
                   ) : (
-                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+                    <div className="text-center">
+                      <svg className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <p className="text-xs sm:text-sm" style={{color: '#103a94'}}>Click to upload photo</p>
+                    </div>
                   )}
-                  <input type="file" accept="image/*" className="hidden" onChange={(e)=> onSelectPhoto(e.target.files && e.target.files[0])} />
                 </label>
-                <div className="text-xs text-gray-500">फोटो चुनें</div>
               </div>
             </div>
 

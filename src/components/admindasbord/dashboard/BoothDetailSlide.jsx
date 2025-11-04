@@ -17,10 +17,11 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
   const [voterStats, setVoterStats] = useState({
     total: 0,
     visits: 0,
-    visitsRemaining: 0
+    visitsRemaining: 0,
+    unavailable: 0
   })
   const [selectedSurname, setSelectedSurname] = useState('')
-  const [visitFilter, setVisitFilter] = useState('all') // 'all' | 'visited' | 'remaining'
+  const [visitFilter, setVisitFilter] = useState('all') // 'all' | 'visited' | 'unavailable' | 'remaining'
   const [showAddBoothHeadModal, setShowAddBoothHeadModal] = useState(false)
   const [showAddCoInchargeModal, setShowAddCoInchargeModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -95,22 +96,66 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
         // The new API already returns normalized data, so we can use it directly
         setVoterData(voters)
         
-        // Count visited: voter_status1 is not empty (has a value) = मुलाकात
-        // Count remaining: voter_status1 is empty = मुलाकात बाकी
+        // Count visited: voter_available === 1 = मुलाकात
         const visitedCount = voters.filter(v => {
-          const status = v.voter_status1
-          // Check if voter_status1 has a value (not null, not undefined, not empty string, not whitespace)
-          const hasStatus = status !== null && status !== undefined && status !== '' && String(status).trim() !== ''
-          return hasStatus
+          return v.voter_available === 1 || v.voter_available === '1'
         }).length || 0
         
-        const remainingCount = voters.length - visitedCount
+        // Count unavailable: voter_available === 0 and not_available_status is not empty = अनुपलब्ध
+        const unavailableCount = voters.filter(v => {
+          const voterAvailable = v.voter_available === 0 || v.voter_available === '0'
+          const notAvailableStatus = (v.not_available_status || '').toString().trim()
+          return voterAvailable && notAvailableStatus !== ''
+        }).length || 0
         
+        // Count remaining: 
+        // - voter_available === 0 and not_available_status is empty = मुलाकात बाकी
+        // - voter_available is null/undefined and not_available_status is empty = मुलाकात बाकी
+        // - voter_available field doesn't exist and not_available_status is empty = मुलाकात बाकी
+        const remainingCount = voters.filter(v => {
+          const voterAvailable = v.voter_available
+          const notAvailableStatus = (v.not_available_status || '').toString().trim()
+          
+          // If voter_available is 1, it's visited, not remaining
+          if (voterAvailable === 1 || voterAvailable === '1') {
+            return false
+          }
+          
+          // If not_available_status has value, it's unavailable, not remaining
+          if (notAvailableStatus !== '') {
+            return false
+          }
+          
+          // Remaining: voter_available is 0, null, undefined, empty string, or doesn't exist AND not_available_status is empty
+          const isNotVisited = !(voterAvailable === 1 || voterAvailable === '1')
+          const isNotUnavailable = notAvailableStatus === ''
+          
+          // If voter_available doesn't exist at all, check if voter_status1 is empty (old logic fallback)
+          if (voterAvailable === null || voterAvailable === undefined || voterAvailable === '') {
+            const voterStatus1 = (v.voter_status1 || '').toString().trim()
+            // If voter_status1 is also empty, it's remaining
+            return voterStatus1 === '' && isNotUnavailable
+          }
+          
+          return (voterAvailable === 0 || voterAvailable === '0') && isNotUnavailable
+        }).length || 0
+        
+        // Fallback: Calculate remaining as total - visited - unavailable
+        // Use this if remainingCount seems wrong (too low compared to total)
+        const calculatedRemaining = Math.max(0, voters.length - visitedCount - unavailableCount)
+        
+        // Use calculated remaining if:
+        // 1. remainingCount is 0 but we have voters (likely voter_available field missing)
+        // 2. calculatedRemaining makes more sense (positive value)
+        const finalRemainingCount = (remainingCount === 0 && voters.length > 0 && calculatedRemaining > 0) 
+          ? calculatedRemaining 
+          : remainingCount
         
         setVoterStats({
           total: voters.length,
-          visits: visitedCount, // मुलाकात - when voter_status1 is not empty
-          visitsRemaining: remainingCount // मुलाकात बाकी - when voter_status1 is empty
+          visits: visitedCount, // मुलाकात - when voter_available === 1
+          unavailable: unavailableCount, // अनुपलब्ध - when voter_available === 0 and not_available_status is not empty
+          visitsRemaining: finalRemainingCount // मुलाकात बाकी - when voter_available === 0 and not_available_status is empty
         })
       }
       
@@ -451,23 +496,62 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
   // Get unique surnames for dropdown
   const uniqueSurnames = [...new Set(voterData.map(voter => (voter.surname || voter.last_name || '').trim()).filter(Boolean))]
 
+  // Helper function to check if voter is visited (voter_available === 1)
+  const isVoterVisited = (voter) => {
+    return voter.voter_available === 1 || voter.voter_available === '1'
+  }
+
+  // Helper function to check if voter is unavailable
+  // Unavailable: voter_available === 0 and not_available_status is not empty
+  const isVoterUnavailable = (voter) => {
+    const voterAvailable = voter.voter_available === 0 || voter.voter_available === '0'
+    const notAvailableStatus = (voter.not_available_status || '').toString().trim()
+    return voterAvailable && notAvailableStatus !== ''
+  }
+
+  // Helper function to check if voter visit is remaining
+  // Remaining: voter_available is 0, null, undefined, or empty AND not_available_status is empty
+  const isVoterRemaining = (voter) => {
+    const voterAvailable = voter.voter_available
+    const notAvailableStatus = (voter.not_available_status || '').toString().trim()
+    
+    // If voter_available is 1, it's visited, not remaining
+    if (voterAvailable === 1 || voterAvailable === '1') {
+      return false
+    }
+    
+    // If not_available_status has value, it's unavailable, not remaining
+    if (notAvailableStatus !== '') {
+      return false
+    }
+    
+    // If voter_available doesn't exist at all, check voter_status1 (old logic fallback)
+    if (voterAvailable === null || voterAvailable === undefined || voterAvailable === '') {
+      const voterStatus1 = (voter.voter_status1 || '').toString().trim()
+      // If voter_status1 is also empty, it's remaining
+      return voterStatus1 === ''
+    }
+    
+    // Remaining: voter_available is 0 or '0' AND not_available_status is empty
+    return (voterAvailable === 0 || voterAvailable === '0')
+  }
+
   // Filter voters by surname and visit status
   const filteredVoters = voterData.filter(voter => {
     const surnameMatches = selectedSurname
       ? (voter.surname || voter.last_name) === selectedSurname
       : true
     
-    // Check if voter_status1 is not empty (has a value)
-    // If voter_status1 is not empty = मुलाकात (visited)
-    // If voter_status1 is empty = मुलाकात बाकी (remaining)
-    const status = voter.voter_status1
-    const isVisited = status !== null && status !== undefined && status !== '' && String(status).trim() !== ''
-    
-    const visitMatches = visitFilter === 'all'
-      ? true
-      : visitFilter === 'visited'
-        ? isVisited // Show only visited (voter_status1 not empty)
-        : !isVisited // Show only remaining (voter_status1 empty)
+    // Apply visit filter based on voter_available and not_available_status
+    let visitMatches = true
+    if (visitFilter === 'visited') {
+      visitMatches = isVoterVisited(voter)
+    } else if (visitFilter === 'unavailable') {
+      visitMatches = isVoterUnavailable(voter)
+    } else if (visitFilter === 'remaining') {
+      visitMatches = isVoterRemaining(voter)
+    }
+    // If visitFilter === 'all', visitMatches remains true
     
     return surnameMatches && visitMatches
   })
@@ -767,16 +851,20 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
             ) : (
               <div className="space-y-4">
                 {/* Voter Statistics */}
-                <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="grid grid-cols-4 gap-2 mb-3">
                   <button onClick={() => setVisitFilter('all')} className={`bg-gray-200 rounded-lg px-2 py-1.5 text-center transition-colors ${visitFilter === 'all' ? 'ring-2 ring-blue-900' : ''}`}>
                     <div className="text-xs font-bold text-gray-800">टोटल</div>
                     <div className="text-lg font-bold text-gray-900">{voterStats.total}</div>
                   </button>
-                  <button onClick={() => setVisitFilter('visited')} className={`bg-gray-200 rounded-lg px-2 py-1.5 text-center transition-colors ${visitFilter === 'visited' ? 'ring-2 ring-blue-900' : ''}`}>
+                  <button onClick={() => setVisitFilter('visited')} className={`bg-white rounded-lg px-2 py-1.5 text-center transition-colors ${visitFilter === 'visited' ? 'ring-2 ring-blue-900' : ''}`}>
                     <div className="text-xs font-bold text-gray-800">मुलाकात</div>
                     <div className="text-lg font-bold text-gray-900">{voterStats.visits}</div>
                   </button>
-                  <button onClick={() => setVisitFilter('remaining')} className={`bg-gray-200 rounded-lg px-2 py-1.5 text-center transition-colors ${visitFilter === 'remaining' ? 'ring-2 ring-blue-900' : ''}`}>
+                  <button onClick={() => setVisitFilter('unavailable')} className={`bg-white rounded-lg px-2 py-1.5 text-center transition-colors ${visitFilter === 'unavailable' ? 'ring-2 ring-blue-900' : ''}`}>
+                    <div className="text-xs font-bold text-gray-800">अनुपलब्ध</div>
+                    <div className="text-lg font-bold text-gray-900">{voterStats.unavailable}</div>
+                  </button>
+                  <button onClick={() => setVisitFilter('remaining')} className={`bg-white rounded-lg px-2 py-1.5 text-center transition-colors ${visitFilter === 'remaining' ? 'ring-2 ring-blue-900' : ''}`}>
                     <div className="text-xs font-bold text-gray-800">मुलाकात बाकी</div>
                     <div className="text-lg font-bold text-gray-900">{voterStats.visitsRemaining}</div>
                   </button>

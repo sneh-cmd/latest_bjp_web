@@ -29,7 +29,23 @@ const EditBuildingCoInchargeModal = ({ isOpen, onClose, onSuccess, person }) => 
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    if (name === 'phone') {
+      // Only allow digits and max 10 digits
+      const digitsOnly = value.replace(/\D/g, '')
+      if (digitsOnly.length <= 10) {
+        setFormData(prev => ({ ...prev, [name]: digitsOnly }))
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
+  }
+
+  const validateMobile = (mobileNumber) => {
+    if (!mobileNumber || mobileNumber.length !== 10) {
+      return false
+    }
+    const firstDigit = mobileNumber.charAt(0)
+    return firstDigit === '6' || firstDigit === '9'
   }
 
   const handlePhotoChange = (e) => {
@@ -58,13 +74,21 @@ const EditBuildingCoInchargeModal = ({ isOpen, onClose, onSuccess, person }) => 
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Validate required fields
+    // Validate name first
     if (!formData.name.trim()) {
-      alert('कृपया नाम दर्ज करें')
+      alert('Name is required')
       return
     }
+    
+    // Validate mobile number exists
     if (!formData.phone.trim()) {
-      alert('कृपया मोबाइल नंबर दर्ज करें')
+      alert('Mobile number is required')
+      return
+    }
+    
+    // Validate mobile number format
+    if (!validateMobile(formData.phone)) {
+      alert('Invalid mobile number')
       return
     }
     
@@ -148,7 +172,7 @@ const EditBuildingCoInchargeModal = ({ isOpen, onClose, onSuccess, person }) => 
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 p-4">
+        <form onSubmit={handleSubmit} className="space-y-4 p-4" noValidate>
           {/* Name */}
           <div>
             <label className="mb-1 block text-sm font-semibold text-gray-800">नाम</label>
@@ -159,7 +183,6 @@ const EditBuildingCoInchargeModal = ({ isOpen, onClose, onSuccess, person }) => 
               onChange={handleChange}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="नाम दर्ज करें"
-              required
             />
           </div>
 
@@ -171,9 +194,9 @@ const EditBuildingCoInchargeModal = ({ isOpen, onClose, onSuccess, person }) => 
               name="phone"
               value={formData.phone}
               onChange={handleChange}
+              maxLength={10}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="मोबाइल नंबर"
-              required
             />
           </div>
 

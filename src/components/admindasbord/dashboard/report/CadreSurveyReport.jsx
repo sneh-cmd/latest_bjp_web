@@ -730,6 +730,116 @@ const CadreSurveyReport = ({ navigation }) => {
                 </div>
               </div>
             </div>
+
+            {/* पुनर्विकास भवन */}
+            <div 
+              onClick={() => navigate('/redevelopment-building')}
+              className="bg-gradient-to-br from-white to-teal-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-teal-200 hover:border-teal-400 group"
+            >
+              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 md:space-y-3">
+                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#0d9488' }}>
+                  पुनर्विकास भवन
+                </div>
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Computer monitor */}
+                    <rect x="20" y="25" width="60" height="40" rx="3" fill="#0d9488" stroke="#0f766e" strokeWidth="2.5"/>
+                    <rect x="25" y="30" width="50" height="30" rx="2" fill="#134e4a" opacity="0.8"/>
+                    {/* Browser window */}
+                    <rect x="28" y="33" width="44" height="24" rx="1.5" fill="#14b8a6" opacity="0.6"/>
+                    <rect x="28" y="33" width="44" height="6" rx="1.5" fill="#0d9488"/>
+                    <circle cx="32" cy="36" r="1.5" fill="#fbbf24"/>
+                    <circle cx="37" cy="36" r="1.5" fill="#ef4444"/>
+                    <circle cx="42" cy="36" r="1.5" fill="#22c55e"/>
+                    {/* Code lines */}
+                    <line x1="32" y1="43" x2="42" y2="43" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="32" y1="48" x2="38" y2="48" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="32" y1="53" x2="45" y2="53" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
+                    {/* Gear icon */}
+                    <circle cx="65" cy="45" r="8" fill="#0d9488" stroke="#0f766e" strokeWidth="2"/>
+                    <path d="M65 37 L67 39 L71 37 L69 41 L73 41 L71 43 L73 47 L69 47 L67 51 L65 49 L63 51 L61 47 L57 47 L59 43 L57 41 L61 41 L63 37 Z" fill="#fbbf24" opacity="0.9"/>
+                    {/* Monitor stand */}
+                    <rect x="45" y="65" width="10" height="4" rx="1" fill="#0f766e"/>
+                    <rect x="38" y="69" width="24" height="3" rx="1.5" fill="#0f766e"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* मृत्यु सर्वेक्षण */}
+            <div 
+              onClick={() => navigate('/death-survey')}
+              className="bg-gradient-to-br from-white to-gray-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-gray-200 hover:border-gray-400 group"
+            >
+              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 md:space-y-3">
+                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#4b5563' }}>
+                  मृत्यु सर्वेक्षण
+                </div>
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Tombstone base */}
+                    <rect x="35" y="45" width="30" height="40" rx="2" fill="#6b7280" stroke="#4b5563" strokeWidth="2.5"/>
+                    {/* Tombstone top arch */}
+                    <path d="M35 45 Q50 35 65 45" stroke="#4b5563" strokeWidth="2.5" fill="#6b7280"/>
+                    {/* R.I.P text */}
+                    <text x="50" y="68" textAnchor="middle" fontSize="12" fill="#ffffff" fontWeight="bold" fontFamily="Arial, sans-serif">R.I.P</text>
+                    {/* Cross on top */}
+                    <line x1="50" y1="25" x2="50" y2="45" stroke="#4b5563" strokeWidth="3" strokeLinecap="round"/>
+                    <line x1="42" y1="35" x2="58" y2="35" stroke="#4b5563" strokeWidth="3" strokeLinecap="round"/>
+                    {/* Decorative elements */}
+                    <circle cx="42" cy="55" r="2" fill="#9ca3af" opacity="0.6"/>
+                    <circle cx="58" cy="55" r="2" fill="#9ca3af" opacity="0.6"/>
+                    <circle cx="42" cy="75" r="2" fill="#9ca3af" opacity="0.6"/>
+                    <circle cx="58" cy="75" r="2" fill="#9ca3af" opacity="0.6"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* स्थानांतरित सर्वेक्षण */}
+            <div 
+              onClick={() => navigate('/transferred-survey')}
+              className="bg-gradient-to-br from-white to-blue-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-blue-200 hover:border-blue-400 group"
+            >
+              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 md:space-y-3">
+                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#2563eb' }}>
+                  स्थानांतरित सर्वेक्षण
+                </div>
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Moving truck */}
+                    <rect x="25" y="50" width="45" height="25" rx="3" fill="#2563eb" stroke="#1d4ed8" strokeWidth="2.5"/>
+                    {/* Truck cabin */}
+                    <rect x="25" y="40" width="20" height="15" rx="2" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="2.5"/>
+                    {/* Truck window */}
+                    <rect x="28" y="42" width="14" height="10" rx="1.5" fill="#dbeafe" opacity="0.8"/>
+                    {/* Truck cargo area lines */}
+                    <line x1="48" y1="50" x2="48" y2="75" stroke="#1d4ed8" strokeWidth="2"/>
+                    <line x1="52" y1="55" x2="65" y2="55" stroke="#1e40af" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="52" y1="62" x2="65" y2="62" stroke="#1e40af" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="52" y1="68" x2="62" y2="68" stroke="#1e40af" strokeWidth="1.5" strokeLinecap="round"/>
+                    {/* Wheels */}
+                    <circle cx="35" cy="78" r="6" fill="#1e293b" stroke="#0f172a" strokeWidth="2"/>
+                    <circle cx="35" cy="78" r="3.5" fill="#64748b"/>
+                    <circle cx="55" cy="78" r="6" fill="#1e293b" stroke="#0f172a" strokeWidth="2"/>
+                    <circle cx="55" cy="78" r="3.5" fill="#64748b"/>
+                    {/* House on truck */}
+                    <rect x="50" y="45" width="18" height="12" rx="1" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1.5"/>
+                    {/* House roof */}
+                    <path d="M50 45 L59 38 L68 45 Z" fill="#f59e0b" stroke="#d97706" strokeWidth="1.5"/>
+                    {/* House door */}
+                    <rect x="56" y="52" width="4" height="5" rx="0.5" fill="#78350f"/>
+                    {/* House window */}
+                    <rect x="52" y="50" width="3" height="3" rx="0.5" fill="#3b82f6" opacity="0.7"/>
+                    <rect x="61" y="50" width="3" height="3" rx="0.5" fill="#3b82f6" opacity="0.7"/>
+                    {/* Motion lines */}
+                    <line x1="15" y1="60" x2="22" y2="60" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+                    <line x1="15" y1="65" x2="22" y2="65" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+                    <line x1="15" y1="70" x2="22" y2="70" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

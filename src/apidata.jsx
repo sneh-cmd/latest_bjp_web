@@ -264,6 +264,12 @@ export const apiService = {
         resultTag = 'dis_user_wise_survey_voterResult';
       } else if (soapAction === 'dis_designation') {
         resultTag = 'dis_designationResult';
+      } else if (soapAction === 'dis_redevelopment_building') {
+        resultTag = 'dis_redevelopment_buildingResult';
+      } else if (soapAction === 'dis_death_voter') {
+        resultTag = 'dis_death_voterResult';
+      } else if (soapAction === 'dis_shifted_out_voter') {
+        resultTag = 'dis_shifted_out_voterResult';
       }
       
       const jsonMatch = xmlText.match(new RegExp(`<${resultTag}>(.*?)<\/${resultTag}>`, 's'));
@@ -341,6 +347,21 @@ export const apiService = {
         
         // Special handling for designation endpoint
         if (soapAction === 'dis_designation') {
+          return parsedData.result;
+        }
+        
+        // Special handling for redevelopment building endpoint
+        if (soapAction === 'dis_redevelopment_building') {
+          return parsedData.result;
+        }
+        
+        // Special handling for death survey endpoint
+        if (soapAction === 'dis_death_voter') {
+          return parsedData.result;
+        }
+        
+        // Special handling for shifted out voter endpoint
+        if (soapAction === 'dis_shifted_out_voter') {
           return parsedData.result;
         }
         
@@ -1475,14 +1496,27 @@ export const apiService = {
               survey_by: voter.survey_by,
               voter_status1: voter.voter_status1,
               lat_long: voter.lat_long,
-              visit_location: voter.visit_location
+              visit_location: voter.visit_location,
+              voter_available: voter.voter_available,
+              not_available_status: voter.not_available_status || ''
             })) : [];
+
+            // Extract address data from result3 (addresses with notes and remarks)
+            const addressData = parsedData.result3 && Array.isArray(parsedData.result3) 
+              ? parsedData.result3.map(item => ({
+                  address: item.add || '',
+                  total_voter: item.total_voter || 0,
+                  note: item.note || '',
+                  remark: item.remark || ''
+                }))
+              : [];
 
             return {
               buildingPramukh,
               coIncharge,
               buildingPramukhCadre: parsedData.result || [], // Keep raw data for backward compatibility
-              voters
+              voters,
+              addressData // Add address data from result3
             };
 
           } else if (soapAction === 'dis_booth_pramukh_wise_voter') {
@@ -1504,6 +1538,7 @@ export const apiService = {
                 secondAddress: voter.add_add && voter.add_add.trim() && voter.add_add !== '-' ? voter.add_add : '-',
                 mobile: voter.contact_no && voter.contact_no.trim() && voter.contact_no !== '-' ? voter.contact_no : '-',
                 surname: voter.eng_surname || voter.f_eng_surname || '',
+                last_name: voter.eng_surname || voter.f_eng_surname || '',
                 sex: voter.sex || '',
                 voterStatus: voter.voter_status || '',
                 surveyId: voter.survey_id || '',
@@ -1514,7 +1549,9 @@ export const apiService = {
                 visitLocation: voter.visit_location || '',
                 note: voter.note || '',
                 visited: isVisited,
-                is_visited: isVisited
+                is_visited: isVisited,
+                voter_available: voter.voter_available,
+                not_available_status: voter.not_available_status || ''
               };
             });
 
@@ -1529,6 +1566,10 @@ export const apiService = {
             }));
           }
         } else {
+          // Handle Success="0" for display_booth_pramukh_cadre - return empty array instead of error
+          if (soapAction === 'display_booth_pramukh_cadre' && parsedData.Success === "0") {
+            return [];
+          }
           throw new Error(`API returned unsuccessful response: ${JSON.stringify(parsedData)}`);
         }
       }
@@ -2561,7 +2602,53 @@ export const displayUserWiseSurveyVoter = async function(adminId, surveyFrom = '
   );
 };
 
+// Redevelopment building - fetch redevelopment building addresses
+export const displayRedevelopmentBuilding = async function(panelApiUrl) {
+  const soapBody = `<dis_redevelopment_building xmlns="http://tempuri.org/" />`;
 
+  // Use helper function to get admin endpoint
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_redevelopment_building',
+    soapBody,
+    true // use admin auth header
+  );
+};
+
+// Death survey - fetch death survey voters
+export const displayDeathSurvey = async function(panelApiUrl) {
+  const soapBody = `<dis_death_voter xmlns="http://tempuri.org/" />`;
+
+  // Use helper function to get admin endpoint
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_death_voter',
+    soapBody,
+    true // use admin auth header
+  );
+};
+
+// Shifted out voter (Transferred survey) - fetch transferred voters
+export const displayShiftedOutVoter = async function(panelApiUrl) {
+  const soapBody = `<dis_shifted_out_voter xmlns="http://tempuri.org/" />`;
+
+  // Use helper function to get admin endpoint
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_shifted_out_voter',
+    soapBody,
+    true // use admin auth header
+  );
+};
 
 // Utility function to get house number from voter data
 export const getHouseNumber = (voterData) => {

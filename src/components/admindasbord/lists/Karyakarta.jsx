@@ -7,6 +7,7 @@ import CreateAdminModal from '../modals/CreateAdminModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import CreateKaryakartaModal from '../modals/CreateKaryakartaModal.jsx'
 import LastLoginModal from '../modals/LastLoginModal'
+import * as XLSX from 'xlsx'
 
 const Karyakarta = ({ navigation }) => {
   const { navigate } = navigation
@@ -227,6 +228,58 @@ const Karyakarta = ({ navigation }) => {
       alert(err.message || 'Failed to create karyakarta')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleExport = () => {
+    try {
+      // Filter karyakartas based on search query (same logic as filteredKaryakartas)
+      const filteredData = karyakartaData.filter(karyakarta =>
+        karyakarta.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        karyakarta.phoneNumber.includes(searchQuery) ||
+        karyakarta.booth.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        karyakarta.area.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      
+      if (filteredData.length === 0) {
+        alert('No data to export')
+        return
+      }
+
+      // Transform data to Excel format with headers
+      const excelData = filteredData.map((karyakarta, index) => ({
+        'Sr. No.': index + 1,
+        'Name': karyakarta.name || '',
+        'Phone Number': karyakarta.phoneNumber || '',
+        'Status': karyakarta.status === 'active' ? 'Active' : 'Inactive'
+      }))
+
+      // Create a new workbook
+      const wb = XLSX.utils.book_new()
+      
+      // Create a worksheet from the data
+      const ws = XLSX.utils.json_to_sheet(excelData)
+      
+      // Set column widths for better readability
+      const colWidths = [
+        { wch: 8 },   // Sr. No.
+        { wch: 25 },  // Name
+        { wch: 15 },  // Phone Number
+        { wch: 12 }   // Status
+      ]
+      ws['!cols'] = colWidths
+      
+      // Add the worksheet to the workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Karyakartas')
+      
+      // Generate Excel file and download
+      const fileName = `Karyakarta_List_${new Date().toISOString().split('T')[0]}.xlsx`
+      XLSX.writeFile(wb, fileName)
+      
+      console.log('Export successful:', fileName)
+    } catch (error) {
+      console.error('Error exporting data:', error)
+      alert('Failed to export data. Please try again.')
     }
   }
 
@@ -490,32 +543,42 @@ const Karyakarta = ({ navigation }) => {
       <div className="relative z-10 h-full flex flex-col">
 
         {/* Header */}
-        <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <button
-              onClick={handleBack}
-              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+        <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
+          {/* First Row: Arrow + Title (left) | Search icon (right) */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <button
+                onClick={handleBack}
+                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <h1 className="text-white text-base sm:text-lg font-semibold">कार्यकर्ता</h1>
+            </div>
             
-            <h1 className="text-white text-base sm:text-lg font-semibold">कार्यकर्ता</h1>
-            
-            <button
-              onClick={() => setSearchQuery('')}
-              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
+            <div className="search-box">
+              <input
+                type="text"
+                placeholder="Search karyakartas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                type="reset"
+                onClick={() => setSearchQuery('')}
+              />
+            </div>
           </div>
+        </div>
 
-          {/* View Mode Toggle */}
-          <div className="flex items-center justify-center space-x-1 sm:space-x-2">
-            <div className="bg-white/20 rounded-lg p-1 flex backdrop-blur-sm">
+        {/* Search Bar */}
+        <div className="bg-white px-2 sm:px-4 py-2 sm:py-3 border-b border-amber-100 flex-shrink-0 shadow-sm">
+          <div className="flex items-center justify-end gap-2 sm:gap-3">
+            {/* View Mode Toggle - Right side */}
+            <div className="rounded-lg p-1 flex" style={{backgroundColor: '#102463'}}>
               <button
                 onClick={() => setViewMode('list')}
                 className={`px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-all ${
@@ -543,22 +606,6 @@ const Karyakarta = ({ navigation }) => {
                 <span className="hidden sm:inline">Grid</span>
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="bg-white px-2 sm:px-4 py-2 sm:py-3 border-b border-amber-100 flex-shrink-0 shadow-sm">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search karyakartas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2 pl-8 sm:pl-10 bg-amber-50 rounded-lg border border-amber-200 focus:outline-none focus:border-amber-500 focus:bg-white transition-all duration-300 text-sm sm:text-base"
-            />
-            <svg className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
           </div>
         </div>
 
@@ -613,18 +660,36 @@ const Karyakarta = ({ navigation }) => {
             </span>
           </div>
           
-          <button 
-            onClick={() => setShowCreateModal(true)}
-            className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md" 
-            style={{backgroundColor: '#0d2f7a'}} 
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#0a2563'} 
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#0d2f7a'}
-          >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <span className="text-white text-xs sm:text-sm font-medium">कार्यकर्ता बनाएं</span>
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Export Button */}
+            <button 
+              onClick={handleExport}
+              className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
+              style={{backgroundColor: 'rgba(220, 38, 38, 0.87)'}}
+              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(185, 28, 28, 0.85)'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(220, 38, 38, 0.87)'}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1.8 18H6.2v-1.4h9.6V20zm0-2.8H6.2v-1.4h9.6v1.4zm0-2.8H6.2v-1.4h9.6v1.4zM13 9V3.5L18.5 9H13z"/>
+                <path d="M9 12h6v1.5H9V12zm0 2.5h6V16H9v-1.5zm0 2.5h6V18.5H9V17z"/>
+              </svg>
+              <span className="text-white text-xs sm:text-sm font-medium">Export</span>
+            </button>
+
+            {/* Create Karyakarta Button */}
+            <button 
+              onClick={() => setShowCreateModal(true)}
+              className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md" 
+              style={{backgroundColor: '#0d2f7a'}} 
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#0a2563'} 
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+            >
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span className="text-white text-xs sm:text-sm font-medium">कार्यकर्ता बनाएं</span>
+            </button>
+          </div>
         </div>
 
         {/* Karyakarta Detail Modal */}
