@@ -1165,35 +1165,37 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
 
           {/* Footer with dynamic counts */}
           <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
-            <div className="flex items-center space-x-4 sm:space-x-6 text-white">
-              {activeTab === 'organization' && (
-                <>
-                  <div className="text-center">
-                    <div className="text-base sm:text-lg font-bold">{boothHeadData.length}</div>
-                    <div className="text-xs">बूथ प्रमुख</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-base sm:text-lg font-bold">{coInchargeData.length}</div>
-                    <div className="text-xs">बुथ सह इनचार्ज</div>
-                  </div>
-                </>
-              )}
-              {activeTab === 'voter' && (
-                <>
-                  <div className="text-center">
-                    <div className="text-base sm:text-lg font-bold">{voterStats.total}</div>
-                    <div className="text-xs">टोटल</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-base sm:text-lg font-bold">{voterStats.visits}</div>
-                    <div className="text-xs">मुलाकात</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-base sm:text-lg font-bold">{voterStats.visitsRemaining}</div>
-                    <div className="text-xs">मुलाकात बाकी</div>
-                  </div>
-                </>
-              )}
+            <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg" style={{backgroundColor: '#ffffff'}}>
+              <div className="flex items-center space-x-4 sm:space-x-6" style={{color: '#102463'}}>
+                {activeTab === 'organization' && (
+                  <>
+                    <div className="text-center">
+                      <div className="text-base sm:text-lg font-bold">{boothHeadData.length}</div>
+                      <div className="text-xs">बूथ प्रमुख</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-base sm:text-lg font-bold">{coInchargeData.length}</div>
+                      <div className="text-xs">बुथ सह इनचार्ज</div>
+                    </div>
+                  </>
+                )}
+                {activeTab === 'voter' && (
+                  <>
+                    <div className="text-center">
+                      <div className="text-base sm:text-lg font-bold">{voterStats.total}</div>
+                      <div className="text-xs">टोटल</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-base sm:text-lg font-bold">{voterStats.visits}</div>
+                      <div className="text-xs">मुलाकात</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-base sm:text-lg font-bold">{voterStats.visitsRemaining}</div>
+                      <div className="text-xs">मुलाकात बाकी</div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

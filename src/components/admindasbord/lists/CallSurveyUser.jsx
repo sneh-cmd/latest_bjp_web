@@ -502,14 +502,14 @@ const CallSurveyUser = ({ navigation }) => {
             <button 
               onClick={handleCreateUser}
               className="px-3 sm:px-4 py-2 rounded-lg flex items-center space-x-2 transition-all shadow-sm hover:shadow-md w-full sm:w-auto justify-center"
-              style={{backgroundColor: '#0d2f7a'}}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#0a2563'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+              style={{backgroundColor: '#ffffff'}}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
             >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" style={{color: '#102463'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              <span className="text-white text-xs sm:text-sm font-medium">कॉल सेन्टर यूज़र बनाए</span>
+              <span className="text-xs sm:text-sm font-medium" style={{color: '#102463'}}>कॉल सेन्टर यूज़र बनाए</span>
             </button>
           </div>
         </div>

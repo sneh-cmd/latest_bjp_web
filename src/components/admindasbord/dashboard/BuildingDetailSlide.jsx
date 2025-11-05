@@ -1573,45 +1573,45 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
 
           {/* Footer with dynamic counts */}
           <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
-            <div className="flex items-center space-x-4 sm:space-x-6 text-white">
-              {activeTab === 'address' ? (
-                <div className="bg-white rounded-lg px-3 py-2">
-                  <span className="text-blue-800 text-sm font-medium">
-                    टोटल पता : {addresses.length + reDevelopmentAddresses.length}
-                  </span>
-                </div>
-              ) : (
-                <>
+            <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg" style={{backgroundColor: '#ffffff'}}>
+              <div className="flex items-center space-x-4 sm:space-x-6" style={{color: '#102463'}}>
+                {activeTab === 'address' ? (
                   <div className="text-center">
-                    <div className="text-base sm:text-lg font-bold">
-                      {activeTab === 'organization' && (current && current.name && current.name !== '—' ? 1 : 0)}
-                      {activeTab === 'voter' && voters.length}
-                    </div>
-                    <div className="text-xs">
-                      {activeTab === 'organization' && 'बिल्डिंग प्रमुख'}
-                      {activeTab === 'voter' && 'मतदाता'}
-                    </div>
+                    <div className="text-xs">पता :  {addresses.length + reDevelopmentAddresses.length}</div>
                   </div>
-                  {activeTab === 'organization' && (
+                ) : (
+                  <>
                     <div className="text-center">
-                      <div className="text-base sm:text-lg font-bold">{coInchargeData.length}</div>
-                      <div className="text-xs">बिल्डिंग सह इनचार्ज</div>
+                      <div className="text-base sm:text-lg font-bold">
+                        {activeTab === 'organization' && (current && current.name && current.name !== '—' ? 1 : 0)}
+                        {activeTab === 'voter' && voters.length}
+                      </div>
+                      <div className="text-xs">
+                        {activeTab === 'organization' && 'बिल्डिंग प्रमुख'}
+                        {activeTab === 'voter' && 'मतदाता'}
+                      </div>
                     </div>
-                  )}
-                </>
-              )}
-              {activeTab === 'voter' && (
-                <>
-                  <div className="text-center">
-                    <div className="text-base sm:text-lg font-bold">{visitedVoters}</div>
-                    <div className="text-xs">मुलाकात</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-base sm:text-lg font-bold">{remainingVisits}</div>
-                    <div className="text-xs">मुलाकात बाकी</div>
-                  </div>
-                </>
-              )}
+                    {activeTab === 'organization' && (
+                      <div className="text-center">
+                        <div className="text-base sm:text-lg font-bold">{coInchargeData.length}</div>
+                        <div className="text-xs">बिल्डिंग सह इनचार्ज</div>
+                      </div>
+                    )}
+                  </>
+                )}
+                {activeTab === 'voter' && (
+                  <>
+                    <div className="text-center">
+                      <div className="text-base sm:text-lg font-bold">{visitedVoters}</div>
+                      <div className="text-xs">मुलाकात</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-base sm:text-lg font-bold">{remainingVisits}</div>
+                      <div className="text-xs">मुलाकात बाकी</div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

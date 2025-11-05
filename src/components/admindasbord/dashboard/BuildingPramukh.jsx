@@ -4,6 +4,7 @@ import AddBuildingPramukhModal from '../modals/AddBuildingPramukhModal.jsx'
 import BuildingPramukhDetailModal from '../modals/BuildingPramukhDetailModal.jsx'
 import EditBuildingPramukhModal from '../modals/EditBuildingPramukhModal.jsx'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal.jsx'
+import LastLoginModal from '../modals/LastLoginModal'
 import localStorageManager from '../../../utils/localStorage.js'
 import * as XLSX from 'xlsx'
 
@@ -11,6 +12,7 @@ const BuildingPramukh = ({ navigation }) => {
   const { navigate } = navigation
   const [isVisible, setIsVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [viewMode, setViewMode] = useState('grid') // 'list', 'grid'
   const [buildingData, setBuildingData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -22,6 +24,8 @@ const BuildingPramukh = ({ navigation }) => {
   const [buildingToEdit, setBuildingToEdit] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [buildingToDelete, setBuildingToDelete] = useState(null)
+  const [showLastLoginModal, setShowLastLoginModal] = useState(false)
+  const [selectedUserForLastLogin, setSelectedUserForLastLogin] = useState(null)
 
   const [summary, setSummary] = useState({ total_address: 0, matched_address: 0 })
 
@@ -38,7 +42,11 @@ const BuildingPramukh = ({ navigation }) => {
       setLoading(true)
       setError(null)
 
-      const resp = await displayBuildingPramukh()
+      // Get panel API URL from localStorage
+      const userData = localStorageManager.getUserData()
+      const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
+
+      const resp = await displayBuildingPramukh(panelApiUrl)
       setBuildingData(resp.list || [])
       setSummary(resp.summary || { total_address: 0, matched_address: 0 })
       setLoading(false)
@@ -260,6 +268,234 @@ const BuildingPramukh = ({ navigation }) => {
     }
   }
 
+  // List View Render
+  const renderListView = () => (
+    <div className="space-y-3">
+      {filteredBuildings.map((building, index) => (
+        <div key={building.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 cursor-pointer" onClick={() => handleCardClick(building)}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              {/* Profile Image */}
+              {renderProfileImage(building, 'w-12 h-12')}
+              
+              {/* Building Info */}
+              <div className="flex-1">
+                <h3 className="text-gray-900 font-bold text-base">
+                  {index + 1}. {building.name}
+                </h3>
+                
+                {/* Address Count */}
+                <div className="flex items-center space-x-2 mb-1">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleAddressExpansion(building.id) }}
+                    className="text-blue-600 font-medium text-sm hover:text-blue-800 transition-colors"
+                  >
+                    पता : {building.addressCount}
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleAddressExpansion(building.id) }}
+                    className="text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    {expandedCards.has(building.id) ? (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 14l5-5 5 5z"/>
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M7 10l5 5 5-5z"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Voter Count */}
+                <p className="text-gray-800 text-sm">
+                  मतदाता : {building.voters}
+                </p>
+                
+                {/* Expanded Address Details */}
+                {expandedCards.has(building.id) && (
+                  <div className="mt-2 space-y-1">
+                    {building.addresses.map((address, addrIndex) => (
+                      <p key={addrIndex} className="text-gray-600 text-xs leading-relaxed">
+                        {address}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleCall(building) }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{backgroundColor: '#103a94'}}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
+                >
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </button>
+                
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleMoreOptions(building) }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{backgroundColor: '#ea580c'}}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#c2410c'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#ea580c'}
+                >
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                  </svg>
+                </button>
+              </div>
+              
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const lastLogin = building.last_login || building.lastLogin || ''
+                  if (lastLogin && lastLogin.toString().trim() !== '') {
+                    setSelectedUserForLastLogin({
+                      name: building.name,
+                      lastLogin: lastLogin
+                    })
+                    setShowLastLoginModal(true)
+                  }
+                }}
+                className={`px-3 py-1 rounded text-xs font-medium text-white w-full ${
+                  (building.last_login && building.last_login.toString().trim() !== '') || 
+                  (building.lastLogin && building.lastLogin.toString().trim() !== '')
+                    ? 'bg-green-500 hover:bg-green-600 cursor-pointer'
+                    : 'bg-red-500 hover:bg-red-600'
+                } transition-colors`}
+              >
+                {(building.last_login && building.last_login.toString().trim() !== '') || 
+                 (building.lastLogin && building.lastLogin.toString().trim() !== '')
+                  ? 'Active' : 'inactive'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
+  // Grid View Render
+  const renderGridView = () => (
+    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+      {filteredBuildings.map((building, index) => (
+        <div
+          key={building.id}
+          onClick={() => handleCardClick(building)}
+          className="bg-white rounded-xl p-3 sm:p-4 border transition-all duration-300 cursor-pointer group"
+          style={{borderColor: '#e6f0ff'}}
+          onMouseEnter={(e) => {
+            e.target.style.borderColor = '#103a94'
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.borderColor = '#e6f0ff'
+          }}
+        >
+          <div className="flex flex-col items-center space-y-2 sm:space-y-3">
+            {/* Profile Image with Number Badge */}
+            <div className="relative">
+              {renderProfileImage(building, 'w-12 h-12 sm:w-16 sm:h-16')}
+              <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 text-white text-xs font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center" style={{backgroundColor: '#0d2f7a'}}>
+                {index + 1}
+              </div>
+            </div>
+            
+            {/* Building Info */}
+            <div className="text-center w-full">
+              <h3 className="font-bold text-xs sm:text-sm truncate transition-colors mb-1" style={{color: '#1a1a1a'}} onMouseEnter={(e) => e.target.style.color = '#103a94'} onMouseLeave={(e) => e.target.style.color = '#1a1a1a'}>
+                {building.name}
+              </h3>
+              <div className="text-xs mb-2 sm:mb-3 space-y-1">
+                <p className="text-gray-600">
+                  पता : {building.addressCount}
+                </p>
+                <p className="text-gray-600">
+                  मतदाता : {building.voters}
+                </p>
+              </div>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-col items-center space-y-1 sm:space-y-2 w-full">
+              <div className="flex items-center justify-center space-x-2 w-full">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleCall(building)
+                  }}
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{backgroundColor: '#103a94'}}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleMoreOptions(building)
+                  }}
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{backgroundColor: '#ea580c'}}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#c2410c'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#ea580c'}
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                  </svg>
+                </button>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const lastLogin = building.last_login || building.lastLogin || ''
+                  if (lastLogin && lastLogin.toString().trim() !== '') {
+                    setSelectedUserForLastLogin({
+                      name: building.name,
+                      lastLogin: lastLogin
+                    })
+                    setShowLastLoginModal(true)
+                  }
+                }}
+                className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-semibold transition-all w-full text-white"
+                style={{
+                  backgroundColor: ((building.last_login && building.last_login.toString().trim() !== '') || 
+                                   (building.lastLogin && building.lastLogin.toString().trim() !== ''))
+                    ? '#059669' : '#dc2626'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = ((building.last_login && building.last_login.toString().trim() !== '') || 
+                                                   (building.lastLogin && building.lastLogin.toString().trim() !== ''))
+                    ? '#047857' : '#b91c1c'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = ((building.last_login && building.last_login.toString().trim() !== '') || 
+                                                   (building.lastLogin && building.lastLogin.toString().trim() !== ''))
+                    ? '#059669' : '#dc2626'
+                }}
+              >
+                {(building.last_login && building.last_login.toString().trim() !== '') || 
+                 (building.lastLogin && building.lastLogin.toString().trim() !== '')
+                  ? 'Active' : 'inactive'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+
   return (
     <>
     <div className={`relative w-screen h-screen overflow-hidden transition-all duration-700 ${
@@ -312,7 +548,35 @@ const BuildingPramukh = ({ navigation }) => {
                 टोटल : {filteredBuildings.length}
               </span>
             </div>
-            {/* Placeholder for future view toggle if needed */}
+            {/* View Mode Toggle - Right side */}
+            <div className="rounded-lg p-1 flex" style={{backgroundColor: '#102463'}}>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                  viewMode === 'list' 
+                    ? 'bg-white text-amber-600' 
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+                <span className="hidden sm:inline">List</span>
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                  viewMode === 'grid' 
+                    ? 'bg-white text-amber-600' 
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span className="hidden sm:inline">Grid</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -323,129 +587,42 @@ const BuildingPramukh = ({ navigation }) => {
           scrollbarColor: '#d1d5db #f3f4f6',
           backgroundColor: '#e5e8ff'
         }}>
-          <div className="space-y-3">
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                  <p className="text-gray-600 font-medium">Loading building pramukhs...</p>
-                </div>
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                <p className="text-gray-600 font-medium">Loading building pramukhs...</p>
               </div>
-            ) : error ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                  <p className="text-red-600 font-medium mb-2">Error loading data</p>
-                  <p className="text-gray-600 text-sm mb-4">{error}</p>
-                </div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="text-red-500 text-6xl mb-4">⚠️</div>
+                <p className="text-red-600 font-medium mb-2">Error loading data</p>
+                <p className="text-gray-600 text-sm mb-4">{error}</p>
               </div>
-            ) : filteredBuildings.length === 0 ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="text-gray-400 text-6xl mb-4">🏢</div>
-                  <p className="text-gray-600 font-medium">No building pramukhs found</p>
-                  <p className="text-gray-500 text-sm">Try adjusting your search term</p>
-                </div>
+            </div>
+          ) : filteredBuildings.length === 0 ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="text-gray-400 text-6xl mb-4">🏢</div>
+                <p className="text-gray-600 font-medium">No building pramukhs found</p>
+                <p className="text-gray-500 text-sm">Try adjusting your search term</p>
               </div>
-            ) : (
-              filteredBuildings.map((building, index) => (
-                <div key={building.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 cursor-pointer" onClick={() => handleCardClick(building)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {/* Profile Image */}
-                      {renderProfileImage(building, 'w-12 h-12')}
-                      
-                      {/* Building Info */}
-                      <div className="flex-1">
-                        <h3 className="text-gray-900 font-bold text-base">
-                          {index + 1}. {building.name}
-                        </h3>
-                        
-                        {/* Address Count */}
-                        <div className="flex items-center space-x-2 mb-1">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); toggleAddressExpansion(building.id) }}
-                            className="text-blue-600 font-medium text-sm hover:text-blue-800 transition-colors"
-                          >
-                            पता : {building.addressCount}
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); toggleAddressExpansion(building.id) }}
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
-                          >
-                            {expandedCards.has(building.id) ? (
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M7 14l5-5 5 5z"/>
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M7 10l5 5 5-5z"/>
-                              </svg>
-                            )}
-                          </button>
-                        </div>
-                        
-                        {/* Voter Count */}
-                        <p className="text-gray-800 text-sm">
-                          मतदाता : {building.voters}
-                        </p>
-                        
-                        {/* Expanded Address Details */}
-                        {expandedCards.has(building.id) && (
-                          <div className="mt-2 space-y-1">
-                            {building.addresses.map((address, addrIndex) => (
-                              <p key={addrIndex} className="text-gray-600 text-xs leading-relaxed">
-                                {address}
-                              </p>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleCall(building) }}
-                        className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                        </svg>
-                      </button>
-                      
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleMoreOptions(building) }}
-                        className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center hover:bg-orange-600 transition-colors"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                        </svg>
-                      </button>
-                      
-                      <button
-                        className={`px-3 py-1 rounded text-xs font-medium text-white ${
-                          building.last_login && building.last_login.trim() !== ''
-                            ? 'bg-green-500 hover:bg-green-600'
-                            : 'bg-red-500 hover:bg-red-600'
-                        } transition-colors`}
-                      >
-                        {building.last_login && building.last_login.trim() !== '' ? 'Active' : 'inactive'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+            </div>
+          ) : viewMode === 'list' ? (
+            renderListView()
+          ) : (
+            renderGridView()
+          )}
         </div>
 
         {/* Footer */}
         <div className="px-4 py-4 flex-shrink-0 shadow-lg" style={{backgroundColor: '#102463'}}>
           <div className="flex items-center justify-between">
             {/* Summary Statistics - Left side */}
-            <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-sm" style={{backgroundColor: '#0d2f7a'}}>
-              <div className="flex items-center space-x-4 sm:space-x-6 text-white">
+            <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg" style={{backgroundColor: '#ffffff'}}>
+              <div className="flex items-center space-x-4 sm:space-x-6" style={{color: '#102463'}}>
                 <div className="text-center">
                   <div className="text-base sm:text-lg font-bold">{totalAddresses}</div>
                   <div className="text-xs">पता</div>
@@ -482,14 +659,14 @@ const BuildingPramukh = ({ navigation }) => {
               <button 
                 onClick={() => setShowAddModal(true)}
                 className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
-                style={{backgroundColor: '#0d2f7a'}}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#0a2563'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+                style={{backgroundColor: '#ffffff'}}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" style={{color: '#102463'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                <span className="text-white text-xs sm:text-sm font-medium">बिल्डिंग प्रमुख बनाए</span>
+                <span className="text-xs sm:text-sm font-medium" style={{color: '#102463'}}>बिल्डिंग प्रमुख बनाए</span>
               </button>
             </div>
           </div>
@@ -556,6 +733,18 @@ const BuildingPramukh = ({ navigation }) => {
       onConfirm={handleDeleteConfirm}
       admin={buildingToDelete}
     />
+
+    {/* Last Login Modal */}
+    {showLastLoginModal && selectedUserForLastLogin && (
+      <LastLoginModal
+        userName={selectedUserForLastLogin.name}
+        lastLogin={selectedUserForLastLogin.lastLogin}
+        onClose={() => {
+          setShowLastLoginModal(false)
+          setSelectedUserForLastLogin(null)
+        }}
+      />
+    )}
     </>
   )
 }

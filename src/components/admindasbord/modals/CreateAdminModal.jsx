@@ -4,6 +4,10 @@ const CreateAdminModal = ({ isOpen, onClose, onSubmit, editData = null, mode = '
   const [name, setName] = useState('')
   const [mobile, setMobile] = useState('')
   const [photo, setPhoto] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
+  const [photoRemoved, setPhotoRemoved] = useState(false)
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
 
   // Update form when editData changes
   useEffect(() => {
@@ -11,21 +15,88 @@ const CreateAdminModal = ({ isOpen, onClose, onSubmit, editData = null, mode = '
       setName(editData.name || '')
       setMobile(editData.phoneNumber || editData.mobile || '')
       setPhoto(null) // Reset photo, user can upload new one if needed
+      // Load existing photo if available
+      const existingPhoto = editData.profileImage || editData.photoPath || editData.photo
+      // Check if it's a valid photo URL (starts with http or /, or contains image extensions)
+      const isValidPhotoUrl = existingPhoto && 
+                              existingPhoto.trim() !== '' && 
+                              (existingPhoto.startsWith('http') || 
+                               existingPhoto.startsWith('/') || 
+                               existingPhoto.includes('.jpg') || 
+                               existingPhoto.includes('.jpeg') || 
+                               existingPhoto.includes('.png') ||
+                               existingPhoto.includes('.gif'))
+      
+      if (isValidPhotoUrl) {
+        setExistingPhotoUrl(existingPhoto)
+        setPhotoPreview(existingPhoto)
+      } else {
+        setExistingPhotoUrl(null)
+        setPhotoPreview(null)
+      }
+      setPhotoRemoved(false)
     } else {
       // Reset form for create mode
       setName('')
       setMobile('')
       setPhoto(null)
+      setPhotoPreview(null)
+      setExistingPhotoUrl(null)
+      setPhotoRemoved(false)
     }
   }, [editData, mode, isOpen])
+
+  // Cleanup photo preview URL when component unmounts or photo changes
+  useEffect(() => {
+    return () => {
+      // Only revoke blob URLs (created from file uploads), not server URLs
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview)
+      }
+    }
+  }, [photoPreview])
 
   if (!isOpen) return null
 
   const handlePhotoUpload = (event) => {
     const file = event.target.files[0]
     if (file) {
+      // Clean up old preview URL if exists (only blob URLs)
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview)
+      }
       setPhoto(file)
+      setPhotoRemoved(false) // Reset photoRemoved when new photo is uploaded
+      setExistingPhotoUrl(null) // Clear existing photo URL when new one is uploaded
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file)
+      setPhotoPreview(previewUrl)
     }
+  }
+
+  const handleRemovePhotoClick = () => {
+    setShowRemoveConfirm(true)
+  }
+
+  const handleRemovePhotoConfirm = () => {
+    // Clean up object URL if it was created from file upload
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview)
+    }
+    setPhoto(null)
+    setPhotoPreview(null)
+    setExistingPhotoUrl(null)
+    setPhotoRemoved(true)
+    // Reset file input
+    const fileInput = document.getElementById('photo-upload')
+    if (fileInput) {
+      fileInput.value = ''
+    }
+    setShowRemoveConfirm(false)
+  }
+
+  const handleRemovePhotoCancel = () => {
+    setShowRemoveConfirm(false)
   }
 
   const convertFileToBase64 = (file) => {
@@ -74,7 +145,14 @@ const CreateAdminModal = ({ isOpen, onClose, onSubmit, editData = null, mode = '
     // Convert photo to base64 if present
     let photoBase64 = ''
     let photoName = ''
-    if (photo) {
+    
+    // If photo was removed in edit mode, send empty strings
+    if (photoRemoved && mode === 'edit') {
+      photoBase64 = ''
+      photoName = ''
+    } 
+    // If new photo is uploaded, convert it to base64
+    else if (photo) {
       try {
         const base64String = await convertFileToBase64(photo)
         // Remove data URL prefix if present (data:image/...;base64,)
@@ -86,12 +164,19 @@ const CreateAdminModal = ({ isOpen, onClose, onSubmit, editData = null, mode = '
         return
       }
     }
+    // If in edit mode and no new photo uploaded and photo not removed, keep existing photo
+    else if (mode === 'edit' && existingPhotoUrl && !photoRemoved) {
+      // Keep existing photo - don't send base64, server will keep existing
+      photoName = editData.photo || ''
+      photoBase64 = '' // Empty base64 means keep existing photo on server
+    }
 
     const payload = { 
       name, 
       mobile, 
       photo: photoName,
       base64: photoBase64,
+      photoRemoved: photoRemoved && mode === 'edit', // Flag to indicate photo was removed
       ...(mode === 'edit' && editData ? { adminId: editData.adminId, id: editData.id, admin_id: editData.adminId } : {})
     }
     if (onSubmit) onSubmit(payload)
@@ -177,29 +262,48 @@ const CreateAdminModal = ({ isOpen, onClose, onSubmit, editData = null, mode = '
                 className="hidden"
                 id="photo-upload"
               />
-              <label
-                htmlFor="photo-upload"
-                className="w-full h-24 sm:h-32 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
-                style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
-              >
-                {photo ? (
-                  <div className="text-center">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              {photoPreview ? (
+                <div className="relative">
+                  <label
+                    htmlFor="photo-upload"
+                    className="block w-full h-32 sm:h-40 rounded-lg border overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer transition-all hover:bg-gray-100"
+                    style={{borderColor: '#103a94'}}
+                    onMouseEnter={(e) => e.target.style.borderColor = '#0d2f7a'}
+                    onMouseLeave={(e) => e.target.style.borderColor = '#103a94'}
+                  >
+                    <img
+                      src={photoPreview}
+                      alt="Photo preview - Click to change"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleRemovePhotoClick}
+                    className="mt-2 text-red-600 text-xs sm:text-sm hover:text-red-700 transition-colors flex items-center space-x-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    <p className="text-xs sm:text-sm text-gray-600">Photo Selected</p>
-                  </div>
-                ) : (
+                    <span>Remove Photo</span>
+                  </button>
+                </div>
+              ) : (
+                <label
+                  htmlFor="photo-upload"
+                  className="w-full h-24 sm:h-32 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
+                  style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
+                >
                   <div className="text-center">
                     <svg className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <p className="text-xs sm:text-sm" style={{color: '#103a94'}}>Click to upload photo</p>
                   </div>
-                )}
-              </label>
+                </label>
+              )}
             </div>
           </div>
 
@@ -223,6 +327,51 @@ const CreateAdminModal = ({ isOpen, onClose, onSubmit, editData = null, mode = '
           </div>
         </div>
       </div>
+
+      {/* Remove Photo Confirmation Modal */}
+      {showRemoveConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">पुष्टीकरण</h2>
+                <button
+                  onClick={handleRemovePhotoCancel}
+                  className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 sm:p-6">
+              <p className="text-gray-700 text-sm sm:text-base mb-4">
+                क्या आप वाकई इन्हें रद करना चाहते हैं?
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleRemovePhotoCancel}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-all flex items-center justify-center text-sm sm:text-base"
+                >
+                  नहीं
+                </button>
+                <button
+                  onClick={handleRemovePhotoConfirm}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-all flex items-center justify-center text-sm sm:text-base"
+                >
+                  हाँ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

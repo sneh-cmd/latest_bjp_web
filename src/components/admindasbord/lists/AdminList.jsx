@@ -259,8 +259,8 @@ const AdminList = ({ navigation }) => {
         sub_type: 'A',
         name: data.name || '',
         mobile_no: data.mobile || '',
-        photo: '',
-        base64: '',
+        photo: data.photo || '',
+        base64: data.base64 || '',
         idcard_no: '',
         booth_javabdari: '0',
         page_javabdari: '',
@@ -310,15 +310,24 @@ const AdminList = ({ navigation }) => {
       const adminToUpdate = adminToEdit || adminData.find(admin => admin.id === data.adminId || admin.adminId === data.admin_id)
       
       // Prepare payload for update_admin API
-      // If no new photo is provided, preserve existing photo (empty strings will keep existing photo on server)
+      // If photo was explicitly removed, send empty strings
+      // If no new photo is provided and photo wasn't removed, preserve existing photo
+      const photoValue = data.photoRemoved 
+        ? '' // Photo was removed, send empty string
+        : (data.photo || adminToUpdate?.photo || '') // Keep existing or use new photo
+      
+      const base64Value = data.photoRemoved 
+        ? '' // Photo was removed, send empty base64
+        : (data.base64 || '') // Use new base64 if provided, otherwise empty (keeps existing)
+      
       const payload = {
         admin_id: data.admin_id || data.adminId || adminToUpdate?.adminId || adminToUpdate?.id,
         type: adminToUpdate?.type || 'A',
         sub_type: adminToUpdate?.subType || adminToUpdate?.sub_type || 'A',
         name: data.name || '',
         mobile_no: data.mobile || '',
-        photo: data.photo || adminToUpdate?.photo || '',
-        base64: data.base64 || '', // Only send base64 if a new photo was uploaded
+        photo: photoValue,
+        base64: base64Value,
         idcard_no: adminToUpdate?.idcardNo || '',
         booth_javabdari: '0',
         page_javabdari: '',
@@ -514,7 +523,15 @@ const AdminList = ({ navigation }) => {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  toggleStatus(admin.id)
+                  if (admin.status === 'active' && admin.lastLogin) {
+                    setSelectedUserForLastLogin({
+                      name: admin.name,
+                      lastLogin: admin.lastLogin
+                    })
+                    setShowLastLoginModal(true)
+                  } else {
+                    toggleStatus(admin.id)
+                  }
                 }}
                 className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-semibold transition-all w-full text-white"
                 style={{
@@ -688,14 +705,14 @@ const AdminList = ({ navigation }) => {
           <button 
             onClick={handleCreateAdmin}
             className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
-            style={{backgroundColor: '#0d2f7a'}}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#0a2563'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+            style={{backgroundColor: '#ffffff'}}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" style={{color: '#102463'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span className="text-white text-xs sm:text-sm font-medium">एडमिन बनाएं</span>
+            <span className="text-xs sm:text-sm font-medium" style={{color: '#102463'}}>एडमिन बनाएं</span>
           </button>
         </div>
         </div>

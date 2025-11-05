@@ -1396,7 +1396,8 @@ export const apiService = {
                 status: (Number(item.building_count || 0) > 0) ? 'active' : 'inactive',
                 phoneNumber: item.mobile_no || '',
                 profileImage: item.photo_path && item.photo ? `${item.photo_path}${item.photo}` : null,
-                lastLogin: item.last_login || ''
+                lastLogin: item.last_login || '',
+                last_login: item.last_login || '' // Include both camelCase and snake_case for compatibility
               };
             });
             const summaryRow = (parsedData.result2 && parsedData.result2[0]) ? parsedData.result2[0] : { total_address: 0, matched_address: 0 };

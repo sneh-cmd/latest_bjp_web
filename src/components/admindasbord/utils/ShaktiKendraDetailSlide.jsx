@@ -664,7 +664,7 @@ const ShaktiKendraDetailSlide = ({
 
   // Booth View Component - matches the booth image
   const renderBoothView = () => {
-    return (
+      return (
       <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-3 sm:py-4" style={{ backgroundColor: '#e5e8ff' }}>
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12">
@@ -679,16 +679,16 @@ const ShaktiKendraDetailSlide = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <h3 className="text-red-800 font-semibold">Error Loading Data</h3>
-              </div>
+        </div>
               <p className="text-red-700 text-sm mb-4">{error}</p>
-              <button
-                onClick={fetchBoothData}
+            <button 
+              onClick={fetchBoothData}
                 className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              >
-                Retry
-              </button>
-            </div>
+            >
+              Retry
+            </button>
           </div>
+        </div>
         ) : boothData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
@@ -697,9 +697,9 @@ const ShaktiKendraDetailSlide = ({
               </svg>
               <h3 className="text-gray-800 font-semibold mb-2">No Booths Found</h3>
               <p className="text-gray-600 text-sm">कोई बूथ डेटा नहीं मिला</p>
-            </div>
-          </div>
-        ) : filteredBooths.length === 0 ? (
+                </div>
+              </div>
+            ) : filteredBooths.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
               <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -707,14 +707,14 @@ const ShaktiKendraDetailSlide = ({
               </svg>
               <h3 className="text-gray-800 font-semibold mb-2">No Booths Found</h3>
               <p className="text-gray-600 text-sm">Try adjusting your search term</p>
-            </div>
-          </div>
-        ) : (
+                </div>
+              </div>
+            ) : (
           <>
             {viewMode === 'list' && renderListView()}
             {viewMode === 'grid' && renderGridView()}
           </>
-        )}
+            )}
       </div>
     )
   }
@@ -1005,15 +1005,15 @@ const ShaktiKendraDetailSlide = ({
         {/* First Row: Arrow + Title (left) | Search icon (right) */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <button
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
             <h1 className="text-white text-base sm:text-lg font-semibold">शक्ति केन्द्र प्रमुख</h1>
           </div>
           
@@ -1024,7 +1024,7 @@ const ShaktiKendraDetailSlide = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button
+              <button
               type="reset"
               onClick={() => setSearchQuery('')}
             />
@@ -1051,8 +1051,8 @@ const ShaktiKendraDetailSlide = ({
                   style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
                 >
                   संगठन
-                </button>
-                <button 
+              </button>
+              <button
                   onClick={() => setActiveTab('booth')}
                   className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
                     activeTab === 'booth' 
@@ -1062,7 +1062,7 @@ const ShaktiKendraDetailSlide = ({
                   style={activeTab === 'booth' ? {backgroundColor: '#102463'} : {}}
                 >
                   बूथ
-                </button>
+              </button>
                 <button 
                   onClick={() => setActiveTab('voter')}
                   className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
@@ -1073,57 +1073,57 @@ const ShaktiKendraDetailSlide = ({
                   style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
                 >
                   मतदाता
-                </button>
+            </button>
               </div>
-            </div>
-            
+        </div>
+
             {/* Desktop: Total Count (only for booth tab) */}
-            {activeTab === 'booth' && (
+        {activeTab === 'booth' && (
               <div className="hidden sm:block">
                 <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg inline-block">
                   <span className="text-sm sm:text-base font-bold" style={{color: '#102463'}}>
                     टोटल : {filteredBooths.length}
                   </span>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
+        )}
+      </div>
 
           {/* Desktop: Center - Navigation Tabs */}
           <div className="hidden sm:flex space-x-2 sm:space-x-4 bg-white rounded-lg p-1">
-            <button 
-              onClick={() => setActiveTab('organization')}
+          <button 
+            onClick={() => setActiveTab('organization')}
               className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
-                activeTab === 'organization' 
+              activeTab === 'organization' 
                   ? 'text-white' 
                   : 'text-gray-700 hover:bg-gray-100'
-              }`}
+            }`}
               style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
-            >
-              संगठन
-            </button>
-            <button 
-              onClick={() => setActiveTab('booth')}
+          >
+            संगठन
+          </button>
+          <button 
+            onClick={() => setActiveTab('booth')}
               className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
-                activeTab === 'booth' 
+              activeTab === 'booth' 
                   ? 'text-white' 
                   : 'text-gray-700 hover:bg-gray-100'
-              }`}
+            }`}
               style={activeTab === 'booth' ? {backgroundColor: '#102463'} : {}}
-            >
-              बूथ
-            </button>
-            <button 
-              onClick={() => setActiveTab('voter')}
+          >
+            बूथ
+          </button>
+          <button 
+            onClick={() => setActiveTab('voter')}
               className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
-                activeTab === 'voter' 
+              activeTab === 'voter' 
                   ? 'text-white' 
                   : 'text-gray-700 hover:bg-gray-100'
-              }`}
+            }`}
               style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
-            >
-              मतदाता
-            </button>
+          >
+            मतदाता
+          </button>
           </div>
 
           {/* Desktop: Right side - View Mode Toggle | Mobile: Below navigation tabs */}
@@ -1211,7 +1211,8 @@ const ShaktiKendraDetailSlide = ({
 
       {/* Footer with dynamic counts */}
       <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
-        <div className="flex items-center space-x-4 sm:space-x-6 text-white">
+        <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg" style={{backgroundColor: '#ffffff'}}>
+          <div className="flex items-center space-x-4 sm:space-x-6" style={{color: '#102463'}}>
           <div className="text-center">
             <div className="text-base sm:text-lg font-bold">
               {activeTab === 'organization' && (mainPramukhData ? 1 : 0)}
@@ -1242,6 +1243,7 @@ const ShaktiKendraDetailSlide = ({
               </div>
             </>
           )}
+          </div>
         </div>
       </div>
       </div>

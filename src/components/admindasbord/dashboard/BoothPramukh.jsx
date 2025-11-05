@@ -3,6 +3,7 @@ import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import AddBoothHeadModal from '../modals/AddBoothHeadModal.jsx'
+import BoothPramukhListModal from '../modals/BoothPramukhListModal.jsx'
 import { useNavigate } from 'react-router-dom'
 import * as XLSX from 'xlsx'
 
@@ -21,6 +22,8 @@ const BoothPramukh = ({ navigation }) => {
   const [error, setError] = useState(null)
   const [showAddBoothHeadModal, setShowAddBoothHeadModal] = useState(false)
   const [selectedBoothNumber, setSelectedBoothNumber] = useState(null)
+  const [showBoothPramukhListModal, setShowBoothPramukhListModal] = useState(false)
+  const [selectedBoothForList, setSelectedBoothForList] = useState(null)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -83,6 +86,62 @@ const BoothPramukh = ({ navigation }) => {
   const handleCall = (booth) => {
     if (booth.phoneNumber) {
       window.open(`tel:${booth.phoneNumber}`, '_self')
+    }
+  }
+
+  const handleWhatsApp = (booth) => {
+    // If there are more than 1 booth heads, show the list modal
+    if (booth.heads > 1) {
+      setSelectedBoothForList(booth)
+      setShowBoothPramukhListModal(true)
+      return
+    }
+
+    // If only 1 booth head, open WhatsApp directly
+    if (!booth.phoneNumber) {
+      alert('Phone number not available')
+      return
+    }
+
+    // Remove all non-digit characters (spaces, dashes, +, etc.)
+    let phoneNumber = booth.phoneNumber.replace(/\D/g, '')
+    
+    // Remove leading zeros
+    phoneNumber = phoneNumber.replace(/^0+/, '')
+    
+    // If number already starts with country code 91, use it as is
+    if (phoneNumber.startsWith('91')) {
+      // Remove the 91 prefix temporarily to check the actual number length
+      const actualNumber = phoneNumber.substring(2)
+      if (actualNumber.length === 10) {
+        // Valid format: 91XXXXXXXXXX
+        window.open(`https://wa.me/${phoneNumber}`, '_blank')
+        return
+      }
+    }
+    
+    // If number is exactly 10 digits, add country code 91
+    if (phoneNumber.length === 10) {
+      const formattedNumber = '91' + phoneNumber
+      window.open(`https://wa.me/${formattedNumber}`, '_blank')
+      return
+    }
+    
+    // If number is 12 digits and starts with 91, use as is
+    if (phoneNumber.length === 12 && phoneNumber.startsWith('91')) {
+      window.open(`https://wa.me/${phoneNumber}`, '_blank')
+      return
+    }
+    
+    // Invalid format
+    alert('Invalid phone number format. Please ensure it is a valid 10-digit Indian number.')
+  }
+
+  const handleShowBoothCadre = () => {
+    if (selectedBoothForList) {
+      navigate(`/booth-detail?boothId=${selectedBoothForList.boothNumber}`, {
+        state: { boothData: selectedBoothForList }
+      })
     }
   }
 
@@ -288,7 +347,7 @@ const BoothPramukh = ({ navigation }) => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      // WhatsApp functionality
+                      handleWhatsApp(booth)
                     }}
                     className="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors duration-200"
                   >
@@ -441,6 +500,16 @@ const BoothPramukh = ({ navigation }) => {
 
   return (
     <>
+      <BoothPramukhListModal
+        isOpen={showBoothPramukhListModal}
+        onClose={() => {
+          setShowBoothPramukhListModal(false)
+          setSelectedBoothForList(null)
+        }}
+        boothNumber={selectedBoothForList?.boothNumber}
+        onShowCadre={handleShowBoothCadre}
+      />
+
       <AddBoothHeadModal
         isOpen={showAddBoothHeadModal}
         onClose={() => setShowAddBoothHeadModal(false)}
@@ -576,8 +645,8 @@ const BoothPramukh = ({ navigation }) => {
 
         {/* Footer */}
         <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
-          <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-sm" style={{backgroundColor: '#0d2f7a'}}>
-            <div className="flex items-center space-x-4 sm:space-x-6 text-white">
+          <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg" style={{backgroundColor: '#ffffff'}}>
+            <div className="flex items-center space-x-4 sm:space-x-6" style={{color: '#102463'}}>
               <div className="text-center">
                 <div className="text-base sm:text-lg font-bold">{totalBooths}</div>
                 <div className="text-xs">बूथ</div>
