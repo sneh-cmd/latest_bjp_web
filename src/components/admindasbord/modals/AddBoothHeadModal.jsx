@@ -297,74 +297,10 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
 
           {/* Photo Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold mb-2" style={{color: '#103a94'}}>
               फोटो
             </label>
-            <div className="w-full border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 p-4">
-              {formData.photo ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center">
-                    <img
-                      src={URL.createObjectURL(formData.photo)}
-                      alt="Preview"
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-green-600 font-medium mb-2">{formData.photo.name}</p>
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        type="button"
-                        onClick={handlePhotoButtonClick}
-                        className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                      >
-                        बदलें
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleRemovePhoto}
-                        className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                      >
-                        हटाएं
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : existingPhotoUrl ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center">
-                    <img
-                      src={existingPhotoUrl}
-                      alt="Current"
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 font-medium mb-2">वर्तमान फोटो</p>
-                    <button
-                      type="button"
-                      onClick={handlePhotoButtonClick}
-                      className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                    >
-                      बदलें
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                  </svg>
-                  <p className="text-sm text-gray-500 mb-3">फोटो अपलोड करने के लिए बटन पर क्लिक करें</p>
-                  <button
-                    type="button"
-                    onClick={handlePhotoButtonClick}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    फोटो चुनें
-                  </button>
-                </div>
-              )}
+            <div className="relative">
               <input
                 id="photo-input"
                 type="file"
@@ -372,6 +308,29 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
                 onChange={handlePhotoChange}
                 className="hidden"
               />
+              <label
+                htmlFor="photo-input"
+                className="w-full h-24 sm:h-32 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
+                style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
+              >
+                {formData.photo || existingPhotoUrl ? (
+                  <div className="text-center">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p className="text-xs sm:text-sm text-gray-600">Photo Selected</p>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <p className="text-xs sm:text-sm" style={{color: '#103a94'}}>Click to upload photo</p>
+                  </div>
+                )}
+              </label>
             </div>
           </div>
 

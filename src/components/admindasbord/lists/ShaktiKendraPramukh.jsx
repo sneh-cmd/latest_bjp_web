@@ -622,16 +622,14 @@ const ShaktiKendraPramukh = ({ navigation }) => {
               </button>
               
               <div className="flex items-center">
-                <span className="text-white text-base sm:text-lg font-bold mr-2 sm:mr-3">1</span>
-                <div className="w-px h-4 sm:h-6 bg-white mr-2 sm:mr-3"></div>
-                <h1 className="text-white text-sm sm:text-lg font-semibold truncate">शक्ति केन्द्र प्रमुख - 1</h1>
+                <h1 className="text-white text-sm sm:text-lg font-semibold truncate">शक्ति केन्द्र प्रमुख</h1>
               </div>
             </div>
             
             <div className="search-box">
               <input
                 type="text"
-                placeholder="Search Shakti Kendra Pramukh..."
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -644,8 +642,14 @@ const ShaktiKendraPramukh = ({ navigation }) => {
         </div>
 
         {/* Search Bar */}
-        <div className="bg-white px-2 sm:px-4 py-2 sm:py-3 border-b border-amber-100 flex-shrink-0 shadow-sm">
-          <div className="flex items-center justify-end gap-2 sm:gap-3">
+        <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            {/* Total Count - Left side */}
+            <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-sm" style={{backgroundColor: '#0d2f7a'}}>
+              <span className="text-white text-xs sm:text-sm font-medium">
+                टोटल : {filteredPramukhs.length}
+              </span>
+            </div>
             {/* Placeholder for future view toggle if needed */}
           </div>
         </div>
@@ -691,13 +695,7 @@ const ShaktiKendraPramukh = ({ navigation }) => {
         </div>
 
         {/* Footer - matches the image design */}
-        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 space-y-2 sm:space-y-0" style={{ backgroundColor: '#102463' }}>
-          <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-sm" style={{backgroundColor: '#0d2f7a'}}>
-            <span className="text-white text-xs sm:text-sm font-medium">
-              टोटल शक्ति केन्द्र प्रमुख : {filteredPramukhs.length}
-            </span>
-          </div>
-          
+        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-end flex-shrink-0 space-y-2 sm:space-y-0" style={{ backgroundColor: '#102463' }}>
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Export Button */}
             <button 

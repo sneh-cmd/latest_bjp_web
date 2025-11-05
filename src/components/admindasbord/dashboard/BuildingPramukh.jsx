@@ -291,7 +291,7 @@ const BuildingPramukh = ({ navigation }) => {
             <div className="search-box">
               <input
                 type="text"
-                placeholder="Search buildings..."
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -304,29 +304,18 @@ const BuildingPramukh = ({ navigation }) => {
         </div>
 
         {/* Search Bar */}
-        <div className="bg-white px-2 sm:px-4 py-2 sm:py-3 border-b border-amber-100 flex-shrink-0 shadow-sm">
-          <div className="flex items-center justify-end gap-2 sm:gap-3">
+        <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            {/* Total Count - Left side */}
+            <div className="px-2 py-1 rounded-lg inline-block">
+              <span className="text-sm font-bold" style={{color: '#102463'}}>
+                टोटल : {filteredBuildings.length}
+              </span>
+            </div>
             {/* Placeholder for future view toggle if needed */}
           </div>
         </div>
 
-        {/* Summary Statistics */}
-        <div className="px-4 py-4 flex-shrink-0">
-          <div className="flex justify-center space-x-4">
-            <div className="bg-white rounded-lg p-3 shadow-sm text-center min-w-[80px]">
-              <div className="text-lg font-bold text-gray-800">473</div>
-              <div className="text-xs text-gray-600">पता</div>
-            </div>
-            <div className="bg-white rounded-lg p-3 shadow-sm text-center min-w-[80px]">
-              <div className="text-lg font-bold text-gray-800">3</div>
-              <div className="text-xs text-gray-600">प्रमुख</div>
-            </div>
-            <div className="bg-white rounded-lg p-3 shadow-sm text-center min-w-[80px]">
-              <div className="text-lg font-bold text-gray-800">457</div>
-              <div className="text-xs text-gray-600">बाकी पता</div>
-            </div>
-          </div>
-        </div>
 
         {/* Main Content Area */}
         <div className="flex-1 overflow-y-auto px-4 py-2" style={{
@@ -454,12 +443,25 @@ const BuildingPramukh = ({ navigation }) => {
         {/* Footer */}
         <div className="px-4 py-4 flex-shrink-0 shadow-lg" style={{backgroundColor: '#102463'}}>
           <div className="flex items-center justify-between">
+            {/* Summary Statistics - Left side */}
             <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-sm" style={{backgroundColor: '#0d2f7a'}}>
-              <span className="text-white text-xs sm:text-sm font-medium">
-                टोटल : {totalPramukhs}
-              </span>
+              <div className="flex items-center space-x-4 sm:space-x-6 text-white">
+                <div className="text-center">
+                  <div className="text-base sm:text-lg font-bold">{totalAddresses}</div>
+                  <div className="text-xs">पता</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-base sm:text-lg font-bold">{totalPramukhs}</div>
+                  <div className="text-xs">प्रमुख</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-base sm:text-lg font-bold">{remainingAddresses}</div>
+                  <div className="text-xs">बाकी पता</div>
+                </div>
+              </div>
             </div>
             
+            {/* Buttons - Right side */}
             <div className="flex items-center gap-2 sm:gap-3">
               {/* Export Button */}
               <button 

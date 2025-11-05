@@ -22,6 +22,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
   })
   const [selectedSurname, setSelectedSurname] = useState('')
   const [visitFilter, setVisitFilter] = useState('all') // 'all' | 'visited' | 'unavailable' | 'remaining'
+  const [searchQuery, setSearchQuery] = useState('')
   const [showAddBoothHeadModal, setShowAddBoothHeadModal] = useState(false)
   const [showAddCoInchargeModal, setShowAddCoInchargeModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -536,7 +537,27 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
     return (voterAvailable === 0 || voterAvailable === '0')
   }
 
-  // Filter voters by surname and visit status
+  // Filter booth head data based on search query
+  const filteredBoothHeadData = boothHeadData.filter(person => {
+    if (!searchQuery.trim()) return true
+    return (
+      person.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      person.phone?.includes(searchQuery) ||
+      person.role?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })
+
+  // Filter co-incharge data based on search query
+  const filteredCoInchargeData = coInchargeData.filter(person => {
+    if (!searchQuery.trim()) return true
+    return (
+      person.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      person.phone?.includes(searchQuery) ||
+      person.role?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })
+
+  // Filter voters by surname, visit status, and search query
   const filteredVoters = voterData.filter(voter => {
     const surnameMatches = selectedSurname
       ? (voter.surname || voter.last_name) === selectedSurname
@@ -553,7 +574,18 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
     }
     // If visitFilter === 'all', visitMatches remains true
     
-    return surnameMatches && visitMatches
+    // Apply search query filter
+    const searchMatches = !searchQuery.trim() || (
+      voter.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      voter.fatherHusband?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      voter.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      voter.mobile?.includes(searchQuery) ||
+      voter.voterId?.includes(searchQuery) ||
+      voter.serialNo?.toString().includes(searchQuery) ||
+      voter.boothNo?.toString().includes(searchQuery)
+    )
+    
+    return surnameMatches && visitMatches && searchMatches
   })
 
   return (
@@ -612,56 +644,101 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
         {/* Main Container */}
         <div className="relative z-10 h-full flex flex-col">
           {/* Header */}
-          <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
-            <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <button
-                onClick={handleBack}
-                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              
-              <div className="flex items-center">
-                <span className="text-white text-lg font-bold mr-3">{boothData?.boothNumber || boothId || '1'}</span>
-                <div className="w-px h-6 bg-white/30 mr-3"></div>
-                <h1 className="text-white text-base sm:text-lg font-semibold">
-                  बूथ नं. - {boothData?.boothNumber || boothId || '1'}
-                </h1>
+          <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
+            {/* First Row: Arrow + Title (left) | Search icon (right) */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <button
+                  onClick={handleBack}
+                  className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                <h1 className="text-white text-base sm:text-lg font-semibold">बूथ नं. {boothData?.boothNumber || boothId || '1'}</h1>
               </div>
               
-              <button className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button
+                  type="reset"
+                  onClick={() => setSearchQuery('')}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="px-4 py-2 flex-shrink-0" style={{backgroundColor: '#102463'}}>
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={() => setActiveTab('organization')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === 'organization'
-                    ? 'bg-white text-blue-600'
-                    : 'text-white hover:bg-white/20'
-                }`}
-              >
-                संगठन
-              </button>
-              <button
-                onClick={() => setActiveTab('voter')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === 'voter'
-                    ? 'bg-white text-blue-600'
-                    : 'text-white hover:bg-white/20'
-                }`}
-              >
-                मतदाता
-              </button>
+          {/* Navigation Tabs and Search Bar Section */}
+          <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
+            {/* Desktop: Row layout (unchanged) | Mobile: Column layout */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
+              {/* Mobile: Navigation Tabs First | Desktop: Left side - Empty space */}
+              <div className="flex-1 sm:flex-1 w-full sm:w-auto">
+                {/* Mobile: Show navigation tabs */}
+                <div className="flex justify-center sm:hidden mb-2">
+                  <div className="flex space-x-2 bg-white rounded-lg p-1">
+                    <button 
+                      onClick={() => setActiveTab('organization')}
+                      className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                        activeTab === 'organization' 
+                          ? 'text-white' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
+                    >
+                      संगठन
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('voter')}
+                      className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                        activeTab === 'voter' 
+                          ? 'text-white' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
+                    >
+                      मतदाता
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop: Center - Navigation Tabs */}
+              <div className="hidden sm:flex space-x-2 sm:space-x-4 bg-white rounded-lg p-1">
+                <button 
+                  onClick={() => setActiveTab('organization')}
+                  className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                    activeTab === 'organization' 
+                      ? 'text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
+                >
+                  संगठन
+                </button>
+                <button 
+                  onClick={() => setActiveTab('voter')}
+                  className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                    activeTab === 'voter' 
+                      ? 'text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
+                >
+                  मतदाता
+                </button>
+              </div>
+
+              {/* Right side - Empty space for consistency */}
+              <div className="flex-1 sm:flex-1 flex justify-end w-full sm:w-auto">
+              </div>
             </div>
           </div>
 
@@ -685,8 +762,9 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                   
                   <div className="p-4">
                     {boothHeadData.length > 0 ? (
-                      <div className="space-y-3">
-                        {boothHeadData.map((person) => (
+                      filteredBoothHeadData.length > 0 ? (
+                        <div className="space-y-3">
+                          {filteredBoothHeadData.map((person) => (
                           <div key={person.id} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
                             <div className="flex items-center space-x-3">
                               {/* Profile Image */}
@@ -750,8 +828,19 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                               </button>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+                            <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
+                            <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+                          </div>
+                        </div>
+                      )
                     ) : (
                       <div className="p-4 text-center text-gray-500">
                         <p>कोई बूथ प्रमुख नहीं मिला</p>
@@ -774,8 +863,9 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                   
                   <div className="p-4">
                     {coInchargeData.length > 0 ? (
-                      <div className="space-y-3">
-                        {coInchargeData.map((person) => (
+                      filteredCoInchargeData.length > 0 ? (
+                        <div className="space-y-3">
+                          {filteredCoInchargeData.map((person) => (
                           <div key={person.id} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
                             <div className="flex items-center space-x-3">
                               <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
@@ -838,8 +928,19 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                               </button>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+                            <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
+                            <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+                          </div>
+                        </div>
+                      )
                     ) : (
                       <div className="p-4 text-center text-gray-500">
                         <p>कोई बुथ सह इनचार्ज नहीं मिला</p>
@@ -885,8 +986,19 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                 </div>
 
                 {/* Voter Cards */}
-                <div className="space-y-4">
-                  {filteredVoters.map((voter) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {filteredVoters.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+                        <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
+                        <p className="text-gray-600 text-sm">Try adjusting your search term or filters</p>
+                      </div>
+                    </div>
+                  ) : (
+                    filteredVoters.map((voter) => (
                     <div key={voter.id} className="bg-white border border-gray-200 rounded-lg p-4">
                       {/* Voter Header */}
                       <div className="flex items-center justify-between mb-3">
@@ -1044,7 +1156,8 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                         </button>
                       </div>
                     </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             )}

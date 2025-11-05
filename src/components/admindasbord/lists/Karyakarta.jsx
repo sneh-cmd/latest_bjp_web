@@ -14,7 +14,7 @@ const Karyakarta = ({ navigation }) => {
   const [isVisible, setIsVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedKaryakarta, setSelectedKaryakarta] = useState(null)
-  const [viewMode, setViewMode] = useState('list') // 'list', 'grid'
+  const [viewMode, setViewMode] = useState('grid') // 'list', 'grid'
   const [karyakartaData, setKaryakartaData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -562,7 +562,7 @@ const Karyakarta = ({ navigation }) => {
             <div className="search-box">
               <input
                 type="text"
-                placeholder="Search karyakartas..."
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -575,8 +575,14 @@ const Karyakarta = ({ navigation }) => {
         </div>
 
         {/* Search Bar */}
-        <div className="bg-white px-2 sm:px-4 py-2 sm:py-3 border-b border-amber-100 flex-shrink-0 shadow-sm">
-          <div className="flex items-center justify-end gap-2 sm:gap-3">
+        <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            {/* Total Count - Left side */}
+            <div className="px-2 py-1 rounded-lg inline-block">
+              <span className="text-sm font-bold" style={{color: '#102463'}}>
+                टोटल : {filteredKaryakartas.length}
+              </span>
+            </div>
             {/* View Mode Toggle - Right side */}
             <div className="rounded-lg p-1 flex" style={{backgroundColor: '#102463'}}>
               <button
@@ -653,13 +659,7 @@ const Karyakarta = ({ navigation }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
-          <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-sm" style={{backgroundColor: '#0d2f7a'}}>
-            <span className="text-white text-xs sm:text-sm font-medium">
-              टोटल : {filteredKaryakartas.length}
-            </span>
-          </div>
-          
+        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-end flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Export Button */}
             <button 

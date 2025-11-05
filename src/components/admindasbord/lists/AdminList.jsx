@@ -567,7 +567,7 @@ const AdminList = ({ navigation }) => {
             <div className="search-box">
               <input
                 type="text"
-                placeholder="Search admins..."
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -580,8 +580,14 @@ const AdminList = ({ navigation }) => {
         </div>
 
         {/* Search Bar */}
-        <div className="bg-white px-2 sm:px-4 py-2 sm:py-3 border-b border-amber-100 flex-shrink-0 shadow-sm">
-          <div className="flex items-center justify-end gap-2 sm:gap-3">
+        <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            {/* Total Count - Left side */}
+            <div className="px-2 py-1 rounded-lg inline-block">
+              <span className="text-sm font-bold" style={{color: '#102463'}}>
+                टोटल : {filteredAdmins.length}
+              </span>
+            </div>
             {/* View Mode Toggle - Right side */}
             <div className="rounded-lg p-1 flex" style={{backgroundColor: '#102463'}}>
               <button
@@ -660,13 +666,7 @@ const AdminList = ({ navigation }) => {
 
 
         {/* Footer */}
-        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{ backgroundColor: '#102463' }}>
-        <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg shadow-sm" style={{backgroundColor: '#0d2f7a'}}>
-          <span className="text-white text-xs sm:text-sm font-medium">
-            टोटल : {filteredAdmins.length}
-          </span>
-        </div>
-        
+        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-end flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{ backgroundColor: '#102463' }}>
         <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full sm:w-auto">
 
           {/* Export Button */}

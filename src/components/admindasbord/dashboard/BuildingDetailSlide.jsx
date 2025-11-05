@@ -39,6 +39,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [showLastLoginModal, setShowLastLoginModal] = useState(false)
   const [selectedUserForLastLogin, setSelectedUserForLastLogin] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const t = setTimeout(() => setIsVisible(true), 100)
@@ -255,7 +256,41 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
   const unavailableVoters = voters.filter(voter => isVoterUnavailable(voter)).length
   const remainingVisits = voters.filter(voter => isVoterRemaining(voter)).length
 
-  // Filter voters by selected address and summary card filter
+  // Filter building pramukh data based on search query
+  const shouldShowBuildingPramukh = buildingPramukh && (
+    !searchQuery.trim() ||
+    buildingPramukh.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    buildingPramukh.phoneNumber?.includes(searchQuery) ||
+    buildingPramukh.designation?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Filter co-incharge data based on search query
+  const filteredCoInchargeData = coInchargeData.filter(person => {
+    if (!searchQuery.trim()) return true
+    return (
+      person.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      person.phone?.includes(searchQuery) ||
+      person.role?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })
+
+  // Filter addresses based on search query
+  const filteredAddresses = addresses.filter(addrItem => {
+    if (!searchQuery.trim()) return true
+    const address = typeof addrItem === 'string' ? addrItem : addrItem.address
+    return address?.toLowerCase().includes(searchQuery.toLowerCase())
+  })
+
+  // Filter re-development addresses based on search query
+  const filteredReDevelopmentAddresses = reDevelopmentAddresses.filter(addrData => {
+    if (!searchQuery.trim()) return true
+    return (
+      addrData.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      addrData.note?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })
+
+  // Filter voters by selected address, summary card filter, and search query
   let filteredVoters = voters
 
   // Apply summary card filter
@@ -270,6 +305,25 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
   // Apply address filter
   if (selectedAddress) {
     filteredVoters = filteredVoters.filter(voter => voter.eng_localityid === selectedAddress)
+  }
+
+  // Apply search query filter
+  if (searchQuery.trim()) {
+    filteredVoters = filteredVoters.filter(voter => {
+      return (
+        voter.eng_f_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        voter.f_eng_surname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        voter.eng_m_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        voter.eng_localityid?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        voter.contact_no?.includes(searchQuery) ||
+        voter.idcard_no?.includes(searchQuery) ||
+        voter.slnoinpart?.toString().includes(searchQuery) ||
+        voter.booth_no?.toString().includes(searchQuery) ||
+        voter.eng_house_no?.toString().includes(searchQuery) ||
+        voter.eng_polling_location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        voter.add_add?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    })
   }
 
   const handleCall = (phoneNumber) => {
@@ -810,55 +864,120 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         {/* Main Container */}
         <div className="relative z-10 h-full flex flex-col">
           {/* Header */}
-          <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
+          <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
+            {/* First Row: Arrow + Title (left) | Search icon (right) */}
             <div className="flex items-center justify-between">
-              <button onClick={handleBack} className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <h1 className="text-white text-base sm:text-lg font-semibold">बिल्डिंग - {current.name || buildingData?.name || buildingId || '—'}</h1>
-              <button className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <button onClick={handleBack} className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                <h1 className="text-white text-base sm:text-lg font-semibold">बिल्डिंग - {current.name || buildingData?.name || buildingId || '—'}</h1>
+              </div>
+              
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button
+                  type="reset"
+                  onClick={() => setSearchQuery('')}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="px-4 py-2 flex-shrink-0" style={{backgroundColor: '#102463'}}>
-            <div className="flex justify-center space-x-4">
-              <button 
-                onClick={() => setActiveTab('organization')} 
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === 'organization' 
-                    ? 'bg-white text-blue-600' 
-                    : 'text-white hover:bg-white/20'
-                }`}
-              >
-                संगठन
-              </button>
-              <button 
-                onClick={() => setActiveTab('address')} 
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === 'address' 
-                    ? 'bg-white text-blue-600' 
-                    : 'text-white hover:bg-white/20'
-                }`}
-              >
-                पता
-              </button>
-              <button 
-                onClick={() => setActiveTab('voter')} 
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === 'voter' 
-                    ? 'bg-white text-blue-600' 
-                    : 'text-white hover:bg-white/20'
-                }`}
-              >
-                मतदाता
-              </button>
+          {/* Navigation Tabs and Search Bar Section */}
+          <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
+            {/* Desktop: Row layout (unchanged) | Mobile: Column layout */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
+              {/* Mobile: Navigation Tabs First | Desktop: Left side - Empty space */}
+              <div className="flex-1 sm:flex-1 w-full sm:w-auto">
+                {/* Mobile: Show navigation tabs */}
+                <div className="flex justify-center sm:hidden mb-2">
+                  <div className="flex space-x-2 bg-white rounded-lg p-1">
+                    <button 
+                      onClick={() => setActiveTab('organization')}
+                      className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                        activeTab === 'organization' 
+                          ? 'text-white' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
+                    >
+                      संगठन
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('address')}
+                      className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                        activeTab === 'address' 
+                          ? 'text-white' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      style={activeTab === 'address' ? {backgroundColor: '#102463'} : {}}
+                    >
+                      पता
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('voter')}
+                      className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                        activeTab === 'voter' 
+                          ? 'text-white' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
+                    >
+                      मतदाता
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop: Center - Navigation Tabs */}
+              <div className="hidden sm:flex space-x-2 sm:space-x-4 bg-white rounded-lg p-1">
+                <button 
+                  onClick={() => setActiveTab('organization')} 
+                  className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                    activeTab === 'organization' 
+                      ? 'text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
+                >
+                  संगठन
+                </button>
+                <button 
+                  onClick={() => setActiveTab('address')} 
+                  className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                    activeTab === 'address' 
+                      ? 'text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  style={activeTab === 'address' ? {backgroundColor: '#102463'} : {}}
+                >
+                  पता
+                </button>
+                <button 
+                  onClick={() => setActiveTab('voter')} 
+                  className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                    activeTab === 'voter' 
+                      ? 'text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
+                >
+                  मतदाता
+                </button>
+              </div>
+
+              {/* Right side - Empty space for consistency */}
+              <div className="flex-1 sm:flex-1 flex justify-end w-full sm:w-auto">
+              </div>
             </div>
           </div>
 
@@ -905,66 +1024,82 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                 
                     <div className="p-4">
                       {current && current.name && current.name !== '—' ? (
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                              {current.profileImage || current.photo ? (
-                                <img
-                                  src={current.profileImage || current.photo}
-                                  alt={current.name}
-                                  className="w-12 h-12 rounded-full object-cover"
-                                />
-                              ) : (
-                                <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                </svg>
-                              )}
+                        shouldShowBuildingPramukh ? (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                                {current.profileImage || current.photo ? (
+                                  <img
+                                    src={current.profileImage || current.photo}
+                                    alt={current.name}
+                                    className="w-12 h-12 rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                  </svg>
+                                )}
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-gray-800">{current.name}</h3>
+                                {current.phoneNumber && (
+                                  <p className="text-blue-600 text-sm">{current.phoneNumber}</p>
+                                )}
+                                <p className="text-gray-600 text-sm">{current.designation || 'बिल्डिंग प्रमुख'}</p>
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-800">{current.name}</h3>
+                            <div className="flex items-center space-x-2">
                               {current.phoneNumber && (
-                                <p className="text-blue-600 text-sm">{current.phoneNumber}</p>
+                                <button
+                                  onClick={() => handleCall(current.phoneNumber)}
+                                  className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
+                                >
+                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  </svg>
+                                </button>
                               )}
-                              <p className="text-gray-600 text-sm">{current.designation || 'बिल्डिंग प्रमुख'}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {current.phoneNumber && (
                               <button
-                                onClick={() => handleCall(current.phoneNumber)}
-                                className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
+                                onClick={() => handleViewDetails(current)}
+                                className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors"
                               >
                                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                 </svg>
                               </button>
-                            )}
-                            <button
-                              onClick={() => handleViewDetails(current)}
-                              className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors"
-                            >
-                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                              </svg>
-                            </button>
-                            <button 
-                              onClick={() => {
-                                if (current.status === 'active' && (current.last_login || current.lastLogin)) {
-                                  setSelectedUserForLastLogin({
-                                    name: current.name,
-                                    lastLogin: current.last_login || current.lastLogin
-                                  })
-                                  setShowLastLoginModal(true)
-                                }
-                              }}
-                              className={`px-3 py-1 rounded text-sm font-medium ${
-                                current.status === 'active' ? 'bg-green-500 text-white cursor-pointer hover:bg-green-600' : 'bg-red-500 text-white'
-                              }`}
-                            >
-                              {current.status === 'active' ? 'Active' : 'inactive'}
-                            </button>
+                              <button 
+                                onClick={() => {
+                                  if (current.status === 'active' && (current.last_login || current.lastLogin)) {
+                                    setSelectedUserForLastLogin({
+                                      name: current.name,
+                                      lastLogin: current.last_login || current.lastLogin
+                                    })
+                                    setShowLastLoginModal(true)
+                                  }
+                                }}
+                                className={`px-3 py-1 rounded text-sm font-medium ${
+                                  current.status === 'active' ? 'bg-green-500 text-white cursor-pointer hover:bg-green-600' : 'bg-red-500 text-white'
+                                }`}
+                              >
+                                {current.status === 'active' ? 'Active' : 'inactive'}
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        ) : searchQuery.trim() ? (
+                          <div className="flex flex-col items-center justify-center py-12">
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+                              <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                              <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
+                              <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-4 text-center text-gray-500">
+                            <p>कोई बिल्डिंग प्रमुख नहीं मिला</p>
+                          </div>
+                        )
                       ) : (
                         <div className="p-4 text-center text-gray-500">
                           <p>कोई बिल्डिंग प्रमुख नहीं मिला</p>
@@ -987,8 +1122,9 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                 
                     <div className="p-4">
                       {coInchargeData && coInchargeData.length > 0 ? (
-                        <div className="space-y-3">
-                          {coInchargeData.map((person, index) => (
+                        filteredCoInchargeData.length > 0 ? (
+                          <div className="space-y-3">
+                            {filteredCoInchargeData.map((person, index) => (
                             <div key={person.id || person.admin_id} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
                               <div className="flex items-center space-x-3">
                                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
@@ -1052,8 +1188,19 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                                 </button>
                               </div>
                             </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-12">
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+                              <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                              <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
+                              <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+                            </div>
+                          </div>
+                        )
                       ) : (
                         <div className="p-4 text-center text-gray-500">
                           <p>कोई बिल्डिंग सह इनचार्ज नहीं मिला</p>
@@ -1095,8 +1242,9 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                   <div className="space-y-3">
                     {/* Regular Addresses Section - White Cards */}
                     {addresses && addresses.length > 0 && (
-                      <div className="space-y-2">
-                        {addresses.map((addrItem, index) => {
+                      filteredAddresses.length > 0 ? (
+                        <div className="space-y-2">
+                          {filteredAddresses.map((addrItem, index) => {
                           // Handle both string (backward compatibility) and object format
                           const address = typeof addrItem === 'string' ? addrItem : addrItem.address
                           const voterCount = typeof addrItem === 'string' 
@@ -1121,21 +1269,33 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                                 </div>
                               </div>
                             </div>
-                          )
-                        })}
-                      </div>
+                            )
+                          })}
+                        </div>
+                      ) : searchQuery.trim() ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+                            <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
+                            <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+                          </div>
+                        </div>
+                      ) : null
                     )}
 
                     {/* Re Development Section */}
                     {reDevelopmentAddresses && reDevelopmentAddresses.length > 0 && (
-                      <div className="space-y-2">
-                        {/* Re Development Header */}
-                        <div className="px-4 py-2">
-                          <h3 className="font-bold text-black text-sm">Re Development</h3>
-                        </div>
+                      filteredReDevelopmentAddresses.length > 0 ? (
+                        <div className="space-y-2">
+                          {/* Re Development Header */}
+                          <div className="px-4 py-2">
+                            <h3 className="font-bold text-black text-sm">Re Development</h3>
+                          </div>
 
-                        {/* Re Development Address Items - Light Gray Cards */}
-                        {reDevelopmentAddresses.map((addrData, index) => {
+                          {/* Re Development Address Items - Light Gray Cards */}
+                          {filteredReDevelopmentAddresses.map((addrData, index) => {
                           // Use voterCount from addressData (result3), fallback to counting from voters if not available
                           const voterCount = addrData.voterCount || voters.filter(v => v && v.eng_localityid && String(v.eng_localityid).trim() === String(addrData.address).trim()).length
                           
@@ -1162,9 +1322,20 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                                 </div>
                               </div>
                             </div>
-                          )
-                        })}
-                      </div>
+                            )
+                          })}
+                        </div>
+                      ) : searchQuery.trim() ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+                            <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
+                            <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+                          </div>
+                        </div>
+                      ) : null
                     )}
 
                     {/* Empty State */}
@@ -1260,7 +1431,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                   <p>No voters found</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {filteredVoters.map((voter, index) => {
                     const surveyBy = (voter.survey_by || '').toString().trim()
                     const shouldShowSurveySection = surveyBy !== ' - ' && surveyBy !== '-'

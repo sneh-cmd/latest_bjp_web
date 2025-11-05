@@ -252,25 +252,39 @@ const CreateKaryakartaModal = ({ isOpen, onClose, onSubmit }) => {
 
           {/* Photo Field */}
           <div>
-            <label className="block text-sm font-semibold mb-2">फोटो</label>
-            <div className="flex items-center space-x-3">
-              <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border-2 border-gray-300">
+            <label className="block text-sm font-semibold mb-2" style={{color: '#103a94'}}>
+              फोटो
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+                id="karyakarta-photo-upload"
+              />
+              <label
+                htmlFor="karyakarta-photo-upload"
+                className="w-full h-24 sm:h-32 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
+                style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
+              >
                 {photo ? (
-                  <img src={URL.createObjectURL(photo)} alt="preview" className="w-full h-full object-cover" />
+                  <div className="text-center">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p className="text-xs sm:text-sm text-gray-600">Photo Selected</p>
+                  </div>
                 ) : (
-                  <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                  </svg>
+                  <div className="text-center">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <p className="text-xs sm:text-sm" style={{color: '#103a94'}}>Click to upload photo</p>
+                  </div>
                 )}
-              </div>
-              <label className="px-4 py-2 rounded-md text-white cursor-pointer hover:opacity-90 transition-opacity" style={{backgroundColor:'#103a94'}}>
-                Upload
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handlePhotoUpload} 
-                  className="hidden"
-                />
               </label>
             </div>
           </div>

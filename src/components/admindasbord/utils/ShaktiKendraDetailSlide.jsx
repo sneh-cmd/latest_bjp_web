@@ -413,9 +413,35 @@ const ShaktiKendraDetailSlide = ({
            (booth.voters || 0).toString().includes(searchQuery)
   })
 
+  // Filter organization data (main pramukh and co-pramukh) based on search query
+  const shouldShowMainPramukh = mainPramukhData && (
+    !searchQuery.trim() ||
+    mainPramukhData.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    mainPramukhData.mobileNo?.includes(searchQuery) ||
+    mainPramukhData.designation?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const filteredCoPramukhs = coPramukhData.filter(coPramukh => {
+    if (!searchQuery.trim()) return true
+    return (
+      coPramukh.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      coPramukh.mobileNo?.includes(searchQuery) ||
+      coPramukh.designation?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  })
+
+  // Filter voter data based on search query
+  const filteredVoterData = voterData.filter(voter => {
+    if (!searchQuery.trim()) return true
+    return (
+      voter.boothNumber?.toString().includes(searchQuery) ||
+      voter.totalVoters?.toString().includes(searchQuery)
+    )
+  })
+
   // Grid View Render
   const renderGridView = () => (
-    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 pb-6">
+    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5 pb-6">
       {filteredBooths.map((booth) => {
         const boothNumber = booth.number || booth.id
         const isPhoto = Boolean(booth.photoPath && booth.photoPath.trim() !== '')
@@ -423,35 +449,35 @@ const ShaktiKendraDetailSlide = ({
         return (
           <div key={booth.id} className="flex justify-center">
             <div 
-              className={`bg-white rounded-xl overflow-hidden shadow-lg w-full max-w-64 ${
+              className={`bg-white rounded-xl overflow-hidden shadow-lg w-full ${
                 booth.assigned ? 'cursor-pointer hover:shadow-xl transition-all duration-200 hover:scale-105' : ''
               }`}
               onClick={() => handleBoothClick(booth)}
             >
               {/* Top Section - Light Green Background for assigned, White for unassigned */}
-              <div className={`${booth.assigned ? 'bg-green-50' : 'bg-white'} p-2 sm:p-3`}>
+              <div className={`${booth.assigned ? 'bg-green-50' : 'bg-white'} p-3 sm:p-4`}>
                 <div className="flex items-center">
-                  <div className={`w-6 h-6 sm:w-8 sm:h-8 ${booth.assigned ? 'bg-green-100' : 'bg-gray-100'} rounded-full flex items-center justify-center mr-2`}>
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 ${booth.assigned ? 'bg-green-100' : 'bg-gray-100'} rounded-full flex items-center justify-center mr-3`}>
                     {isPhoto && booth.photoPath ? (
                       <img 
                         src={booth.photoPath} 
                         alt="Profile" 
-                        className="w-4 h-4 sm:w-6 sm:h-6 rounded-full object-cover"
+                        className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover"
                         onError={(e) => {
                           e.target.style.display = 'none'
                           e.target.nextSibling.style.display = 'flex'
                         }}
                       />
                     ) : null}
-                    <div className={`w-4 h-4 sm:w-6 sm:h-6 rounded-full flex items-center justify-center ${isPhoto && booth.photoPath ? 'hidden' : 'flex'}`}>
-                      <span className="text-xs font-bold text-gray-600">
+                    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${isPhoto && booth.photoPath ? 'hidden' : 'flex'}`}>
+                      <span className="text-sm sm:text-base font-bold text-gray-600">
                         {boothNumber ? boothNumber.toString().slice(-2) : 'B'}
                       </span>
                     </div>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-gray-800 font-semibold text-xs sm:text-sm">बूथ नं. {boothNumber}</h3>
-                    <p className={`font-medium text-xs sm:text-sm ${booth.assigned ? 'text-green-600' : 'text-gray-800'}`}>
+                    <h3 className="text-gray-800 font-semibold text-sm sm:text-base">बूथ नं. {boothNumber}</h3>
+                    <p className={`font-medium text-sm sm:text-base ${booth.assigned ? 'text-green-600' : 'text-gray-800'}`}>
                       मतदाता : {booth.voters || 0}
                     </p>
                   </div>
@@ -459,30 +485,30 @@ const ShaktiKendraDetailSlide = ({
               </div>
 
               {/* Middle Section - Booth Head Information */}
-              <div className="bg-white p-2 sm:p-3">
+              <div className="bg-white p-3 sm:p-4">
                 {booth.assigned ? (
-                  <div className="w-full text-blue-600 font-medium text-center py-1 sm:py-2 text-xs sm:text-sm">
+                  <div className="w-full text-blue-600 font-medium text-center py-2 sm:py-3 text-sm sm:text-base">
                     {booth.totalBoothPramukh || 0} बूथ प्रमुख
                   </div>
                 ) : (
-                  <div className="w-full text-blue-600 font-medium text-center py-1 sm:py-2 text-xs sm:text-sm">
+                  <div className="w-full text-blue-600 font-medium text-center py-2 sm:py-3 text-sm sm:text-base">
                     जिम्मेदारी सोपी नहीं हैं
                   </div>
                 )}
               </div>
 
               {/* Bottom Section - Contact Icons or Assign Button */}
-              <div className="bg-white p-2 sm:p-3">
+              <div className="bg-white p-3 sm:p-4">
                 {booth.assigned ? (
-                  <div className="flex justify-center space-x-1 sm:space-x-2">
+                  <div className="flex justify-center space-x-2 sm:space-x-3">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleBoothCall(booth)
                       }}
-                      className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-400 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors duration-200"
+                      className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-400 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors duration-200"
                     >
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
                       </svg>
                     </button>
@@ -491,9 +517,9 @@ const ShaktiKendraDetailSlide = ({
                         e.stopPropagation()
                         // WhatsApp functionality
                       }}
-                      className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors duration-200"
+                      className="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors duration-200"
                     >
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
                       </svg>
                     </button>
@@ -502,9 +528,9 @@ const ShaktiKendraDetailSlide = ({
                         e.stopPropagation()
                         // Profile functionality
                       }}
-                      className="w-6 h-6 sm:w-8 sm:h-8 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors duration-200"
+                      className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors duration-200"
                     >
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                       </svg>
                     </button>
@@ -515,7 +541,7 @@ const ShaktiKendraDetailSlide = ({
                       e.stopPropagation()
                       handleOpenAddBoothHeadModal(booth)
                     }}
-                    className="w-full bg-red-500 text-white font-medium py-1 sm:py-2 rounded text-xs sm:text-sm hover:bg-red-600 transition-colors duration-200"
+                    className="w-full bg-red-500 text-white font-medium py-2 sm:py-3 rounded text-sm sm:text-base hover:bg-red-600 transition-colors duration-200"
                   >
                     प्रमुख बनाए
                   </button>
@@ -638,62 +664,57 @@ const ShaktiKendraDetailSlide = ({
 
   // Booth View Component - matches the booth image
   const renderBoothView = () => {
-    if (loading) {
-      return (
-        <div className="flex-1 px-4 py-4 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-gray-600 font-medium">Loading booths...</p>
-          </div>
-        </div>
-      )
-    }
-
-    if (error) {
-      return (
-        <div className="flex-1 px-4 py-4 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <p className="text-red-600 font-medium mb-2">Error loading booths</p>
-            <p className="text-gray-600 text-sm mb-4">{error}</p>
-            <button 
-              onClick={fetchBoothData}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      )
-    }
-
     return (
-      <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-3 sm:py-6" style={{
-        scrollbarWidth: 'thin',
-        scrollbarColor: '#d1d5db #f3f4f6'
-      }}>
-        <div className="min-h-full">
-          <div className="max-w-4xl mx-auto">
-            {boothData.length === 0 ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="text-gray-400 text-6xl mb-4">📋</div>
-                  <p className="text-gray-600 font-medium">कोई बूथ डेटा नहीं मिला</p>
-                </div>
-              </div>
-            ) : filteredBooths.length === 0 ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <div className="text-gray-400 text-6xl mb-4">🔍</div>
-                  <p className="text-gray-600 font-medium">कोई बूथ नहीं मिला</p>
-                  <p className="text-gray-500 text-sm">Try adjusting your search term</p>
-                </div>
-              </div>
-            ) : (
-              viewMode === 'grid' ? renderGridView() : renderListView()
-            )}
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-3 sm:py-4" style={{ backgroundColor: '#e5e8ff' }}>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-600 text-sm">Loading booth data...</p>
           </div>
-        </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md w-full">
+              <div className="flex items-center mb-3">
+                <svg className="w-6 h-6 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="text-red-800 font-semibold">Error Loading Data</h3>
+              </div>
+              <p className="text-red-700 text-sm mb-4">{error}</p>
+              <button
+                onClick={fetchBoothData}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        ) : boothData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+              <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="text-gray-800 font-semibold mb-2">No Booths Found</h3>
+              <p className="text-gray-600 text-sm">कोई बूथ डेटा नहीं मिला</p>
+            </div>
+          </div>
+        ) : filteredBooths.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+              <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <h3 className="text-gray-800 font-semibold mb-2">No Booths Found</h3>
+              <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {viewMode === 'list' && renderListView()}
+            {viewMode === 'grid' && renderGridView()}
+          </>
+        )}
       </div>
     )
   }
@@ -702,7 +723,7 @@ const ShaktiKendraDetailSlide = ({
   const renderVoterView = () => {
     if (loading) {
       return (
-        <div className="flex-1 px-4 py-4 flex items-center justify-center">
+        <div className="flex-1 px-4 py-4 flex items-center justify-center" style={{ backgroundColor: '#e5e8ff' }}>
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800 mx-auto mb-4"></div>
             <p className="text-gray-600">डेटा लोड हो रहा है...</p>
@@ -713,7 +734,7 @@ const ShaktiKendraDetailSlide = ({
 
     if (error) {
       return (
-        <div className="flex-1 px-4 py-4 flex items-center justify-center">
+        <div className="flex-1 px-4 py-4 flex items-center justify-center" style={{ backgroundColor: '#e5e8ff' }}>
           <div className="text-center">
             <div className="text-red-500 mb-4">
               <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -733,14 +754,24 @@ const ShaktiKendraDetailSlide = ({
     }
 
     return (
-    <div className="flex-1 px-4 py-4 space-y-4">
+    <div className="flex-1 px-4 py-4 space-y-4" style={{ backgroundColor: '#e5e8ff' }}>
       {voterData.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600">कोई मतदाता डेटा नहीं मिला</p>
         </div>
+      ) : filteredVoterData.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
+            <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
+            <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {voterData.map((voter) => {
+          {filteredVoterData.map((voter) => {
             // Find corresponding booth data from boothData array
             const boothInfo = boothData.find(booth => 
               (booth.number || booth.id) === voter.boothNumber || 
@@ -818,7 +849,7 @@ const ShaktiKendraDetailSlide = ({
             <h2 className="font-semibold text-lg">शक्ति केन्द्र प्रमुख</h2>
             <div className="w-8"></div>
           </div>
-          {mainPramukhData ? (
+          {shouldShowMainPramukh && mainPramukhData ? (
             <div className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -872,11 +903,15 @@ const ShaktiKendraDetailSlide = ({
                 </div>
               </div>
             </div>
-          ) : (
+          ) : !mainPramukhData ? (
             <div className="p-4 text-center text-gray-500">
               <p>कोई शक्ति केन्द्र प्रमुख नहीं मिला</p>
             </div>
-          )}
+          ) : searchQuery.trim() ? (
+            <div className="p-4 text-center text-gray-500">
+              <p>कोई परिणाम नहीं मिला</p>
+            </div>
+          ) : null}
         </div>
 
         {/* Co-Shakti Kendra Pramukh Section */}
@@ -890,13 +925,13 @@ const ShaktiKendraDetailSlide = ({
               जोड़ें
             </button>
           </div>
-          {coPramukhData.length === 0 ? (
+          {filteredCoPramukhs.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
-              <p>कोई सह शक्ति केन्द्र प्रमुख नहीं मिला</p>
+              <p>{searchQuery.trim() ? 'कोई परिणाम नहीं मिला' : 'कोई सह शक्ति केन्द्र प्रमुख नहीं मिला'}</p>
             </div>
           ) : (
             <div className="p-4 space-y-3">
-              {coPramukhData.map((coPramukh, index) => (
+              {filteredCoPramukhs.map((coPramukh, index) => (
                 <div key={coPramukh.adminId || index} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
@@ -966,112 +1001,206 @@ const ShaktiKendraDetailSlide = ({
       {/* Main Container */}
       <div className="relative z-10 h-full flex flex-col">
       {/* Header */}
-      <div className="px-2 sm:px-4 py-3 sm:py-4 flex-shrink-0 shadow-md" style={{backgroundColor: '#102463'}}>
-        <div className="flex items-center justify-between mb-2 sm:mb-4">
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          
-          <div className="flex items-center">
-            <span className="text-white text-lg font-bold mr-3">1</span>
-            <div className="w-px h-6 bg-white/30 mr-3"></div>
-            <h1 className="text-white text-base sm:text-lg font-semibold">शक्ति केन्द्र प्रमुख - 1</h1>
-          </div>
-          
-          {/* List/Grid Toggle - Only show when booth tab is active */}
-          {activeTab === 'booth' ? (
-            <div className="flex bg-white/20 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('list')}
-                className={`flex items-center px-2 sm:px-3 py-1 rounded-md transition-colors ${
-                  viewMode === 'list' ? 'bg-white text-blue-600' : 'text-white'
-                }`}
-              >
-                <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-                <span className="text-xs font-medium hidden sm:inline">List</span>
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`flex items-center px-2 sm:px-3 py-1 rounded-md transition-colors ${
-                  viewMode === 'grid' ? 'bg-white text-blue-600' : 'text-white'
-                }`}
-              >
-                <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                <span className="text-xs font-medium hidden sm:inline">Grid</span>
-              </button>
-            </div>
-          ) : (
-            <button className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
+      <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
+        {/* First Row: Arrow + Title (left) | Search icon (right) */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <button
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+            >
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-          )}
-        </div>
-
-        {/* Search Bar - Only show when booth tab is active */}
-        {activeTab === 'booth' && (
-          <div className="flex justify-center">
-            <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md">
-              <input
-                type="text"
-                placeholder="Search booths..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-8 sm:pr-10 bg-gray-100 rounded-lg border-0 focus:outline-none text-gray-800 placeholder-gray-500 text-sm sm:text-base"
-              />
-              <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
+            
+            <h1 className="text-white text-base sm:text-lg font-semibold">शक्ति केन्द्र प्रमुख</h1>
           </div>
-        )}
+          
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              type="reset"
+              onClick={() => setSearchQuery('')}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="px-4 py-2 flex-shrink-0" style={{backgroundColor: '#102463'}}>
-        <div className="flex justify-center space-x-4">
-          <button 
-            onClick={() => setActiveTab('organization')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'organization' 
-                ? 'bg-white text-blue-600' 
-                : 'text-white hover:bg-white/20'
-            }`}
-          >
-            संगठन
-          </button>
-          <button 
-            onClick={() => setActiveTab('booth')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'booth' 
-                ? 'bg-white text-blue-600' 
-                : 'text-white hover:bg-white/20'
-            }`}
-          >
-            बूथ
-          </button>
-          <button 
-            onClick={() => setActiveTab('voter')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'voter' 
-                ? 'bg-white text-blue-600' 
-                : 'text-white hover:bg-white/20'
-            }`}
-          >
-            मतदाता
-          </button>
+      {/* Navigation Tabs and Search Bar Section */}
+      <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
+        {/* Desktop: Row layout (unchanged) | Mobile: Column layout */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
+          {/* Mobile: Navigation Tabs First | Desktop: Left side - Total Count */}
+          <div className="flex-1 sm:flex-1 w-full sm:w-auto">
+            {/* Mobile: Show navigation tabs */}
+            <div className="flex justify-center sm:hidden mb-2">
+              <div className="flex space-x-2 bg-white rounded-lg p-1">
+                <button 
+                  onClick={() => setActiveTab('organization')}
+                  className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                    activeTab === 'organization' 
+                      ? 'text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
+                >
+                  संगठन
+                </button>
+                <button 
+                  onClick={() => setActiveTab('booth')}
+                  className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                    activeTab === 'booth' 
+                      ? 'text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  style={activeTab === 'booth' ? {backgroundColor: '#102463'} : {}}
+                >
+                  बूथ
+                </button>
+                <button 
+                  onClick={() => setActiveTab('voter')}
+                  className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                    activeTab === 'voter' 
+                      ? 'text-white' 
+                      : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                  style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
+                >
+                  मतदाता
+                </button>
+              </div>
+            </div>
+            
+            {/* Desktop: Total Count (only for booth tab) */}
+            {activeTab === 'booth' && (
+              <div className="hidden sm:block">
+                <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg inline-block">
+                  <span className="text-sm sm:text-base font-bold" style={{color: '#102463'}}>
+                    टोटल : {filteredBooths.length}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop: Center - Navigation Tabs */}
+          <div className="hidden sm:flex space-x-2 sm:space-x-4 bg-white rounded-lg p-1">
+            <button 
+              onClick={() => setActiveTab('organization')}
+              className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                activeTab === 'organization' 
+                  ? 'text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+              style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
+            >
+              संगठन
+            </button>
+            <button 
+              onClick={() => setActiveTab('booth')}
+              className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                activeTab === 'booth' 
+                  ? 'text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+              style={activeTab === 'booth' ? {backgroundColor: '#102463'} : {}}
+            >
+              बूथ
+            </button>
+            <button 
+              onClick={() => setActiveTab('voter')}
+              className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                activeTab === 'voter' 
+                  ? 'text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+              style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
+            >
+              मतदाता
+            </button>
+          </div>
+
+          {/* Desktop: Right side - View Mode Toggle | Mobile: Below navigation tabs */}
+          <div className="flex-1 sm:flex-1 flex justify-end w-full sm:w-auto">
+            {activeTab === 'booth' && (
+              <>
+                {/* Mobile: Total Count + View Toggle Row */}
+                <div className="flex sm:hidden items-center justify-between gap-2 w-full">
+                  <div className="px-2 py-1 rounded-lg inline-block">
+                    <span className="text-sm font-bold" style={{color: '#102463'}}>
+                      टोटल : {filteredBooths.length}
+                    </span>
+                  </div>
+                  <div className="rounded-lg p-1 flex" style={{backgroundColor: '#102463'}}>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                        viewMode === 'list' 
+                          ? 'bg-white text-amber-600' 
+                          : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <svg className="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                      </svg>
+                      <span className="hidden sm:inline">List</span>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                        viewMode === 'grid' 
+                          ? 'bg-white text-amber-600' 
+                          : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <svg className="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                      <span className="hidden sm:inline">Grid</span>
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Desktop: View Mode Toggle */}
+                <div className="hidden sm:flex">
+                  <div className="rounded-lg p-1 flex" style={{backgroundColor: '#102463'}}>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                        viewMode === 'list' 
+                          ? 'bg-white text-amber-600' 
+                          : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                      </svg>
+                      <span className="hidden sm:inline">List</span>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                        viewMode === 'grid' 
+                          ? 'bg-white text-amber-600' 
+                          : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                      <span className="hidden sm:inline">Grid</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
