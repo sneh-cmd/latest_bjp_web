@@ -16,6 +16,7 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
   const [showBoothPicker, setShowBoothPicker] = useState(false)
   const [booths, setBooths] = useState([])
   const [loadingBooths, setLoadingBooths] = useState(false)
+  const [boothError, setBoothError] = useState('')
 
   // Update form when editData changes
   useEffect(() => {
@@ -29,14 +30,6 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
       // Load existing photo if available
       // Priority: photoPath > profileImage > photo (same as list view)
       const existingPhoto = editData.photoPath || editData.profileImage || editData.photo
-      
-      console.log('Edit mode - Photo data:', {
-        photoPath: editData.photoPath,
-        profileImage: editData.profileImage,
-        photo: editData.photo,
-        isPhoto: editData.isPhoto,
-        existingPhoto: existingPhoto
-      })
       
       // If photo exists and is not empty, use it
       // Don't be too strict with validation - let the browser handle invalid URLs
@@ -61,15 +54,14 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
           }
         }
         
-        console.log('Setting photo preview URL:', photoUrl)
         setExistingPhotoUrl(photoUrl)
         setPhotoPreview(photoUrl)
       } else {
-        console.log('No photo found or photo is empty')
         setExistingPhotoUrl(null)
         setPhotoPreview(null)
       }
       setPhotoRemoved(false)
+      setBoothError('')
     } else {
       // Reset form for create mode
       setName('')
@@ -79,6 +71,7 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
       setPhotoPreview(null)
       setExistingPhotoUrl(null)
       setPhotoRemoved(false)
+      setBoothError('')
     }
   }, [editData, mode, isOpen])
 
@@ -160,6 +153,9 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
   }
 
   const handleSubmit = async () => {
+    // Reset errors
+    setBoothError('')
+    
     // Validate name first
     if (!name.trim()) {
       alert('Name is required')
@@ -175,6 +171,12 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
     // Validate mobile number format
     if (!validateMobile(mobile)) {
       alert('Invalid mobile number')
+      return
+    }
+
+    // Validate booth selection
+    if (!selectedBooths || selectedBooths.length === 0) {
+      setBoothError('कृपया कम से कम एक बूथ चुनें')
       return
     }
 
@@ -258,85 +260,121 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
 
   return (
     <>
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <div className="bg-blue-800 p-4 text-white">
-          <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm">
+      <div className="relative w-full max-w-md sm:max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
+        {/* Modal Header */}
+        <div className="p-3 sm:p-5 text-white" style={{backgroundColor: '#103a94'}}>
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all hover:scale-105"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
-          <h2 className="text-lg font-bold">
-            {mode === 'edit' ? 'शक्ति केन्द्र प्रमुख संपादित करें' : 'शक्ति केन्द्र प्रमुख'}
-          </h2>
+          <div className="flex items-center space-x-3">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold">
+                {mode === 'edit' ? 'शक्ति केन्द्र प्रमुख संपादित करें' : 'शक्ति केन्द्र प्रमुख'}
+              </h2>
+              <p className="text-blue-100 text-xs sm:text-sm">
+                {mode === 'edit' ? 'Edit Shakti Kendra Pramukh' : 'Create New Shakti Kendra Pramukh'}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="p-4 space-y-4">
-          <div className="bg-gray-100 rounded-lg p-3">
-            <p className="text-sm font-semibold mb-2">बूथ की जिम्मेदारी</p>
-            <label className="block text-sm mb-1">बूथ नं.</label>
+        {/* Modal Content */}
+        <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+          {/* Booth Responsibility Field */}
+          <div className="bg-gray-100 rounded-lg p-2.5 sm:p-3">
+            <p className="text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>बूथ की जिम्मेदारी</p>
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>बूथ नं.</label>
             <input
               type="text"
-              value={(selectedBooths.map(n => `${n},`).join(' ')).trim()}
-              onChange={(e) => {
-                const cleaned = e.target.value.replace(/\s/g, '')
-                const parts = cleaned.split(',').filter(Boolean)
-                const nums = []
-                parts.forEach(p => {
-                  const n = parseInt(p, 10)
-                  if (!isNaN(n)) nums.push(n)
-                })
-                setSelectedBooths(Array.from(new Set(nums)))
+              readOnly
+              value={selectedBooths.length > 0 ? selectedBooths.join(', ') : ''}
+              className={`w-full px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-lg border transition-all text-gray-800 text-sm sm:text-base cursor-not-allowed ${
+                boothError ? 'border-red-500' : ''
+              }`}
+              style={{
+                backgroundColor: '#f3f4f6', 
+                borderColor: boothError ? '#ef4444' : '#d1d5db', 
+                color: '#6b7280'
               }}
-              className="w-full px-3 py-2 rounded-md border bg-white"
-              placeholder="बूथ नं."
+              placeholder="बूथ चुनें बटन से बूथ सेलेक्ट करें"
             />
-          <button onClick={async () => {
-            setShowBoothPicker(true)
-            try {
-              setLoadingBooths(true)
-              const userData = localStorageManager.getUserData()
-              const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com'
-              const result = await displayAllBoothForSaktiAllocation('SP', panelApiUrl)
-              const raw = Array.isArray(result) ? result.map((b, idx) => {
-                const n = Number(b.booth_no || b.boothNo || b.number || b)
-                return { id: `${idx}-${n}`, number: n }
-              }).filter(x => !isNaN(x.number)) : []
-              // compute duplicates by frequency and mark them
-              const freq = raw.reduce((m, it) => { const k = it.number; m[k] = (m[k]||0)+1; return m }, {})
-              const mapped = raw.map(it => ({ ...it, isDuplicate: (freq[it.number]||0) > 1 }))
-              setBooths(mapped)
-            } finally {
-              setLoadingBooths(false)
-            }
-          }} className="mt-2 px-3 py-2 rounded-md text-white" style={{backgroundColor:'#103a94'}}>
-            बूथ चुनें
-          </button>
+            {boothError && (
+              <p className="mt-1 text-xs text-red-600">{boothError}</p>
+            )}
+            <button 
+              onClick={async () => {
+                setShowBoothPicker(true)
+                setBoothError('') // Clear error when opening booth picker
+                try {
+                  setLoadingBooths(true)
+                  const userData = localStorageManager.getUserData()
+                  const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com'
+                  const result = await displayAllBoothForSaktiAllocation('SP', panelApiUrl)
+                  const raw = Array.isArray(result) ? result.map((b, idx) => {
+                    const n = Number(b.booth_no || b.boothNo || b.number || b)
+                    return { id: `${idx}-${n}`, number: n }
+                  }).filter(x => !isNaN(x.number)) : []
+                  // compute duplicates by frequency and mark them
+                  const freq = raw.reduce((m, it) => { const k = it.number; m[k] = (m[k]||0)+1; return m }, {})
+                  const mapped = raw.map(it => ({ ...it, isDuplicate: (freq[it.number]||0) > 1 }))
+                  setBooths(mapped)
+                } finally {
+                  setLoadingBooths(false)
+                }
+              }} 
+              className="mt-1.5 sm:mt-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-lg text-white font-semibold transition-all shadow-sm hover:shadow-md text-xs sm:text-sm"
+              style={{backgroundColor: '#103a94'}}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
+            >
+              बूथ चुनें
+            </button>
           </div>
 
+          {/* Name Field */}
           <div>
-            <label className="block text-sm font-semibold mb-1">नाम</label>
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
+              नाम
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-md border bg-white"
-              placeholder="नाम"
+              className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-sm sm:text-base"
+              style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+              onFocus={(e) => e.target.style.borderColor = '#103a94'}
+              onBlur={(e) => e.target.style.borderColor = '#103a94'}
+              placeholder="Enter name"
             />
           </div>
 
+          {/* Mobile Field */}
           <div>
-            <label className="block text-sm font-semibold mb-1">मोबाइल नं.</label>
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
+              मोबाइल नं.
+            </label>
             <input
               type="tel"
               value={mobile}
               onChange={handleMobileChange}
               maxLength={10}
-              className="w-full px-3 py-2 rounded-md border bg-white"
-              placeholder="मोबाइल नं."
+              className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-sm sm:text-base"
+              style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+              onFocus={(e) => e.target.style.borderColor = '#103a94'}
+              onBlur={(e) => e.target.style.borderColor = '#103a94'}
+              placeholder="Enter mobile number"
             />
           </div>
 
+          {/* Photo Field */}
           <div>
-            <label className="block text-sm font-semibold mb-2" style={{color: '#103a94'}}>
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
               फोटो
             </label>
             <div className="relative">
@@ -351,7 +389,7 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
                 <div className="relative">
                   <label
                     htmlFor="shakti-pramukh-photo-upload"
-                    className="block w-full h-32 sm:h-40 rounded-lg border overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer transition-all hover:bg-gray-100"
+                    className="block w-full h-28 sm:h-32 rounded-lg border overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer transition-all hover:bg-gray-100"
                     style={{borderColor: '#103a94'}}
                     onMouseEnter={(e) => e.target.style.borderColor = '#0d2f7a'}
                     onMouseLeave={(e) => e.target.style.borderColor = '#103a94'}
@@ -365,7 +403,7 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
                   <button
                     type="button"
                     onClick={handleRemovePhotoClick}
-                    className="mt-2 text-red-600 text-xs sm:text-sm hover:text-red-700 transition-colors flex items-center space-x-1"
+                    className="mt-1.5 text-red-600 text-xs sm:text-sm hover:text-red-700 transition-colors flex items-center space-x-1"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -376,13 +414,13 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
               ) : (
                 <label
                   htmlFor="shakti-pramukh-photo-upload"
-                  className="w-full h-24 sm:h-32 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
+                  className="w-full h-20 sm:h-28 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
                   style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
                 >
                   <div className="text-center">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
+                    <svg className="w-5 h-5 sm:w-7 sm:h-7 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <p className="text-xs sm:text-sm" style={{color: '#103a94'}}>Click to upload photo</p>
@@ -392,20 +430,41 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
             </div>
           </div>
 
-          <button onClick={handleSubmit} disabled={isSubmitting} className="w-full py-3 rounded-lg text-white font-semibold disabled:opacity-60" style={{backgroundColor:'#0a67c2'}}>
-            {mode === 'edit' ? 'शक्ति केन्द्र प्रमुख अपडेट करें' : 'शक्ति केन्द्र प्रमुख बनाए'}
-          </button>
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
+            <button
+              onClick={onClose}
+              className="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-sm sm:text-base"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex-1 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-sm sm:text-base disabled:opacity-60"
+              style={{backgroundColor: '#103a94'}}
+              onMouseEnter={(e) => !isSubmitting && (e.target.style.backgroundColor = '#0d2f7a')}
+              onMouseLeave={(e) => !isSubmitting && (e.target.style.backgroundColor = '#103a94')}
+            >
+              {mode === 'edit' ? 'शक्ति केन्द्र प्रमुख अपडेट करें' : 'शक्ति केन्द्र प्रमुख बनाए'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
     {showBoothPicker && (
-      <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-3">
+      <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
         <div className="w-full max-w-md bg-white rounded-2xl overflow-hidden shadow-2xl">
-          <div className="bg-blue-800 text-white flex items-center justify-between px-4 py-3">
-            <button onClick={() => setShowBoothPicker(false)} className="w-8 h-8 flex items-center justify-center">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+          <div className="p-4 sm:p-6 text-white flex items-center justify-between" style={{backgroundColor: '#103a94'}}>
+            <button 
+              onClick={() => setShowBoothPicker(false)} 
+              className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all hover:scale-105"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
+              </svg>
             </button>
-            <h3 className="font-bold">बूथ</h3>
+            <h3 className="text-lg sm:text-xl font-bold">बूथ</h3>
             <div className="w-8" />
           </div>
           <div className="p-3 max-h-[60vh] overflow-auto grid grid-cols-4 gap-3">
@@ -414,27 +473,40 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
               const isSelected = num !== null && selectedBooths.includes(num)
               const isDuplicate = !!item.isDuplicate
               const isAlreadyAssigned = num !== null && alreadyAssignedBooths.includes(num)
-              const isDisabled = isSelected || isDuplicate || isAlreadyAssigned || num === null
+              // Only disable if it's duplicate, already assigned, or null - allow unselecting selected booths
+              const isDisabled = isDuplicate || isAlreadyAssigned || num === null
               return (
               <button
                 key={item.id}
                 disabled={isDisabled}
                 onClick={() => {
-                  if (num === null || isDuplicate || isSelected || isAlreadyAssigned) return
+                  if (num === null || isDuplicate || isAlreadyAssigned) return
+                  // Toggle selection - if already selected, remove it; otherwise add it
                   setSelectedBooths(prev => {
                     if (prev.includes(num)) {
-                      return prev.filter(n => n !== num)
-                    }
+                      // Unselect the booth
+                      const newBooths = prev.filter(n => n !== num)
+                      // Clear error if booths are selected, set error if no booths left
+                      if (newBooths.length === 0) {
+                        setBoothError('कृपया कम से कम एक बूथ चुनें')
+                      } else {
+                        setBoothError('')
+                      }
+                      return newBooths
+                    } else {
+                      // Select the booth - clear error when at least one booth is selected
+                      setBoothError('')
                       return [...prev, num].sort((a,b)=>a-b)
+                    }
                   })
                 }}
-                className={`rounded-xl border py-4 text-sm font-semibold ${num===null ? 'animate-pulse opacity-60' : ''}`}
+                className={`rounded-xl border py-4 text-sm font-semibold transition-all ${num===null ? 'animate-pulse opacity-60' : ''} ${isSelected ? 'hover:opacity-80' : ''}`}
                 style={
                   isSelected
-                    ? { backgroundColor: '#103a94', color: '#ffffff', borderColor: '#103a94', cursor: 'not-allowed' }
+                    ? { backgroundColor: '#103a94', color: '#ffffff', borderColor: '#103a94', cursor: 'pointer' }
                     : isDuplicate || isAlreadyAssigned
                       ? { backgroundColor: '#d1d5db', color: '#111827', borderColor: '#d1d5db', cursor: 'not-allowed' }
-                      : { backgroundColor: '#ffffff', color: '#1f2937', borderColor: '#e5e7eb' }
+                      : { backgroundColor: '#ffffff', color: '#1f2937', borderColor: '#e5e7eb', cursor: 'pointer' }
                 }
               >
                 {num===null ? '…' : num}
@@ -442,8 +514,14 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
               )
             })}
           </div>
-          <div className="bg-blue-800 p-3">
-            <button onClick={() => setShowBoothPicker(false)} className="w-full py-3 rounded-lg text-white font-semibold">
+          <div className="p-3 sm:p-4" style={{backgroundColor: '#103a94'}}>
+            <button 
+              onClick={() => setShowBoothPicker(false)} 
+              className="w-full py-3 rounded-lg text-white font-semibold transition-all shadow-sm hover:shadow-md text-sm sm:text-base"
+              style={{backgroundColor: '#103a94'}}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
+            >
               बूथ चुनें
             </button>
           </div>

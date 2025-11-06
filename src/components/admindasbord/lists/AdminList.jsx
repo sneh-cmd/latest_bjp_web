@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
-import CreateAdminModal from '../modals/CreateAdminModal'
+import CreateAdminBaseModal from '../modals/CreateAdminBaseModal.jsx'
 import AdminDetailModal from '../modals/AdminDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
@@ -728,20 +728,48 @@ const AdminList = ({ navigation }) => {
         />
 
         {/* Create Admin Modal */}
-        <CreateAdminModal
+        <CreateAdminBaseModal
           isOpen={showCreateModal}
           onClose={handleCloseCreateModal}
           onSubmit={handleSubmitAdmin}
           mode="create"
+          title={{
+            edit: 'ऐडमिन संपादित करें',
+            create: 'नया ऐडमिन'
+          }}
+          subtitle={{
+            edit: 'Edit Admin',
+            create: 'Create New Admin'
+          }}
+          submitButtonText={{
+            edit: 'अपडेट करें',
+            create: 'ऐडमिन बनाएं'
+          }}
+          inputId="photo-upload"
+          namePlaceholder="Enter admin name"
         />
 
         {/* Edit Admin Modal */}
-        <CreateAdminModal
+        <CreateAdminBaseModal
           isOpen={showEditModal}
           onClose={handleCloseEditModal}
           onSubmit={handleUpdateAdmin}
           editData={adminToEdit}
           mode="edit"
+          title={{
+            edit: 'ऐडमिन संपादित करें',
+            create: 'नया ऐडमिन'
+          }}
+          subtitle={{
+            edit: 'Edit Admin',
+            create: 'Create New Admin'
+          }}
+          submitButtonText={{
+            edit: 'अपडेट करें',
+            create: 'ऐडमिन बनाएं'
+          }}
+          inputId="photo-upload"
+          namePlaceholder="Enter admin name"
         />
 
         {/* Delete Confirmation Modal */}

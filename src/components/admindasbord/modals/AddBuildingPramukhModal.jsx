@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { apiService } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
+import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
 
-const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
+const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onSuccess = null }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     photo: null
   })
 
+  const isEditMode = !!building
   
   const [selectedAddresses, setSelectedAddresses] = useState([])
   const [showAddressPicker, setShowAddressPicker] = useState(false)
@@ -17,6 +19,62 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
   const [addressOptions, setAddressOptions] = useState([])
   const [addressLoading, setAddressLoading] = useState(false)
   const [addressError, setAddressError] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
+  const [photoRemoved, setPhotoRemoved] = useState(false)
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
+
+  // Initialize form with building data when modal opens (edit mode)
+  useEffect(() => {
+    if (isOpen && building && isEditMode) {
+      setFormData({
+        name: building.name || '',
+        phone: building.phoneNumber || building.mobileNo || building.phone || '',
+        photo: null
+      })
+      // Set addresses from building.addresses array
+      setSelectedAddresses(building.addresses || [])
+      // Set photo preview if available
+      const existingPhoto = building.profileImage || building.photoPath || building.photo
+      if (existingPhoto && existingPhoto.trim() !== '') {
+        let photoUrl = existingPhoto.trim()
+        // If it's not a full URL and not starting with / or data:, try to construct proper URL
+        if (!photoUrl.startsWith('http') && !photoUrl.startsWith('/') && !photoUrl.startsWith('data:')) {
+          if (photoUrl.includes('.jpg') || photoUrl.includes('.jpeg') || 
+              photoUrl.includes('.png') || photoUrl.includes('.gif') ||
+              photoUrl.includes('.JPG') || photoUrl.includes('.JPEG') ||
+              photoUrl.includes('.PNG') || photoUrl.includes('.GIF')) {
+            photoUrl = '/' + photoUrl
+          } else if (building.isPhoto) {
+            photoUrl = '/' + photoUrl
+          }
+        }
+        setExistingPhotoUrl(photoUrl)
+        setPhotoPreview(photoUrl)
+      } else {
+        setExistingPhotoUrl(null)
+        setPhotoPreview(null)
+      }
+      setPhotoRemoved(false)
+    } else if (isOpen && !building) {
+      // Reset form for create mode
+      setFormData({ name: '', phone: '', photo: null })
+      setSelectedAddresses([])
+      setPhotoPreview(null)
+      setExistingPhotoUrl(null)
+      setPhotoRemoved(false)
+    }
+  }, [isOpen, building, isEditMode])
+
+  // Cleanup photo preview URL when component unmounts or photo changes
+  useEffect(() => {
+    return () => {
+      // Only revoke blob URLs (created from file uploads), not server URLs
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview)
+      }
+    }
+  }, [photoPreview])
 
   // Fetch addresses from API when modal opens
   useEffect(() => {
@@ -109,16 +167,46 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
   const handlePhotoChange = (e) => {
     const file = e.target.files && e.target.files[0]
     if (file) {
+      // Clean up old preview URL if exists (only blob URLs)
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview)
+      }
       setFormData(prev => ({ ...prev, photo: file }))
+      setPhotoRemoved(false) // Reset photoRemoved when new photo is uploaded
+      setExistingPhotoUrl(null) // Clear existing photo URL when new one is uploaded
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file)
+      setPhotoPreview(previewUrl)
     }
   }
 
-  const handleRemovePhoto = () => {
+  const handleRemovePhotoClick = () => {
+    setShowRemoveConfirm(true)
+  }
+
+  const handleRemovePhotoConfirm = () => {
+    // Clean up object URL if it was created from file upload
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview)
+    }
     setFormData(prev => ({ ...prev, photo: null }))
+    setPhotoPreview(null)
+    setExistingPhotoUrl(null)
+    setPhotoRemoved(true)
+    // Reset file input
+    const fileInput = document.getElementById(isEditMode ? 'edit-building-photo-input' : 'building-photo-input')
+    if (fileInput) {
+      fileInput.value = ''
+    }
+    setShowRemoveConfirm(false)
+  }
+
+  const handleRemovePhotoCancel = () => {
+    setShowRemoveConfirm(false)
   }
 
   const handlePhotoButtonClick = () => {
-    document.getElementById('building-photo-input').click()
+    document.getElementById(isEditMode ? 'edit-building-photo-input' : 'building-photo-input').click()
   }
 
   const convertFileToBase64 = (file) => {
@@ -157,16 +245,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
     
     setLoading(true)
     try {
-      // Convert photo to base64 if present
-      let photoBase64 = ''
-      let photoName = ''
-      if (formData.photo) {
-        photoBase64 = await convertFileToBase64(formData.photo)
-        // Remove data URL prefix if present (data:image/...;base64,)
-        photoBase64 = photoBase64.replace(/^data:image\/[a-z]+;base64,/, '')
-        photoName = formData.photo.name
-      }
-
       // Prepare address string - join with % and end with %
       const addressString = selectedAddresses.join('%') + '%'
       
@@ -174,54 +252,116 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
       const userData = localStorageManager.getUserData()
       const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com'
       
-      // Get login ID (admin ID) from user data for create_by field
+      // Get login ID (admin ID) from user data
       const loginId = userData?.admin?.adminId || userData?.admin?.id || '1'
       
-      console.log('🔍 Debug Info:', {
-        userData: userData,
-        admin: userData?.admin,
-        loginId: loginId,
-        selectedAddresses: selectedAddresses,
-        addressString: addressString
-      })
+      // Prepare photo data
+      let photoBase64 = ''
+      let photoName = ''
       
-      // Prepare admin data for insert_admin API
-      const adminData = {
-        type: 'AP', // Building Pramukh
-        sub_type: 'AP',
-        main_admin_id: '0',
-        name: formData.name.trim(),
-        mobile_no: formData.phone.trim(),
-        photo: photoName || '',
-        base64: photoBase64 || '',
-        idcard_no: '', // Empty string as per API example
-        booth_javabdari: '0',
-        page_javabdari: '', // Empty string as per API example
-        add: addressString,
-        create_by: loginId // Use login ID instead of hardcoded '1'
+      // If photo was removed in edit mode, send empty strings
+      if (photoRemoved && isEditMode) {
+        photoBase64 = ''
+        photoName = ''
+      } 
+      // If new photo is uploaded, convert it to base64
+      else if (formData.photo) {
+        try {
+          const base64String = await convertFileToBase64(formData.photo)
+          // Remove data URL prefix if present (data:image/...;base64,)
+          photoBase64 = base64String.replace(/^data:image\/[a-z]+;base64,/, '')
+          photoName = formData.photo.name
+        } catch (error) {
+          console.error('Error converting photo to base64:', error)
+          alert('फोटो प्रोसेस करने में त्रुटि. कृपया पुनः प्रयास करें.')
+          setLoading(false)
+          return
+        }
+      }
+      // If in edit mode and no new photo uploaded and photo not removed, keep existing photo
+      else if (isEditMode && existingPhotoUrl && !photoRemoved) {
+        // Keep existing photo - don't send base64, server will keep existing
+        photoName = building.photoPath || building.profileImage || building.photo || ''
+        photoBase64 = '' // Empty base64 means keep existing photo on server
       }
 
-      console.log('📤 Submitting building pramukh data:', adminData)
+      if (isEditMode && building) {
+        // Update mode - use updateAdmin API
+        const updateData = {
+          admin_id: building.id || building.adminId,
+          type: 'AP',
+          sub_type: 'AP',
+          name: formData.name.trim(),
+          mobile_no: formData.phone.trim(),
+          photo: photoRemoved ? '' : (photoName || building.photoPath || building.profileImage || building.photo || ''),
+          base64: photoBase64 || '',
+          idcard_no: '',
+          booth_javabdari: '0',
+          page_javabdari: '',
+          add: addressString,
+          modify_by: loginId
+        }
 
-      // Call the insert_admin API
-      const response = await apiService.insertAdmin(adminData, panelApiUrl)
-      
-      // Check for successful response
-      if (response && (response.success || response?.Column1 === 'ok' || (Array.isArray(response) && response[0]?.Column1 === 'ok'))) {
-        // Success - call the provided onSave callback
-        onSave && onSave({ ...formData, addresses: selectedAddresses, apiResponse: response })
+        console.log('📤 Updating building pramukh data:', updateData)
+
+        // Call the update_admin API
+        const response = await apiService.updateAdmin(updateData, panelApiUrl)
         
-        // Reset form
-        setFormData({ name: '', phone: '', photo: null })
-        setSelectedAddresses([])
-        onClose && onClose()
+        // Check for successful response
+        if (response && (response.success || response?.Column1 === 'ok' || (Array.isArray(response) && response[0]?.Column1 === 'ok'))) {
+          // Success - call the provided onSuccess callback
+          if (onSuccess) {
+            onSuccess()
+          } else if (onSave) {
+            onSave({ ...formData, addresses: selectedAddresses, apiResponse: response })
+          }
+          onClose && onClose()
+        } else {
+          console.error('Update building pramukh unexpected response:', response)
+          throw new Error('Failed to update building pramukh')
+        }
       } else {
-        console.error('Insert building pramukh unexpected response:', response)
-        throw new Error('Failed to save building pramukh')
+        // Create mode - use insertAdmin API
+        const adminData = {
+          type: 'AP', // Building Pramukh
+          sub_type: 'AP',
+          main_admin_id: '0',
+          name: formData.name.trim(),
+          mobile_no: formData.phone.trim(),
+          photo: photoName || '',
+          base64: photoBase64 || '',
+          idcard_no: '', // Empty string as per API example
+          booth_javabdari: '0',
+          page_javabdari: '', // Empty string as per API example
+          add: addressString,
+          create_by: loginId // Use login ID instead of hardcoded '1'
+        }
+
+        console.log('📤 Submitting building pramukh data:', adminData)
+
+        // Call the insert_admin API
+        const response = await apiService.insertAdmin(adminData, panelApiUrl)
+        
+        // Check for successful response
+        if (response && (response.success || response?.Column1 === 'ok' || (Array.isArray(response) && response[0]?.Column1 === 'ok'))) {
+          // Success - call the provided onSave callback
+          onSave && onSave({ ...formData, addresses: selectedAddresses, apiResponse: response })
+          
+          // Reset form
+          setFormData({ name: '', phone: '', photo: null })
+          setSelectedAddresses([])
+          setPhotoPreview(null)
+          setExistingPhotoUrl(null)
+          setPhotoRemoved(false)
+          onClose && onClose()
+        } else {
+          console.error('Insert building pramukh unexpected response:', response)
+          throw new Error('Failed to save building pramukh')
+        }
       }
     } catch (error) {
-      console.error('Error saving building pramukh:', error)
-      alert('बिल्डिंग प्रमुख सेव करने में विफल. कृपया पुन: प्रयास करें.')
+      console.error(`Error ${isEditMode ? 'updating' : 'saving'} building pramukh:`, error)
+      alert(`बिल्डिंग प्रमुख ${isEditMode ? 'अपडेट' : 'सेव'} करने में विफल. कृपया पुन: प्रयास करें.`)
     } finally {
       setLoading(false)
     }
@@ -246,32 +386,49 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
 
   return (
     <>
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-80 p-4" onClick={(e) => {
-      if (e.target === e.currentTarget) {
-        onClose()
-      }
-    }}>
-      <div className="w-full max-w-md overflow-hidden rounded-lg bg-white shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: '#103a94' }}>
-          <button onClick={onClose} className="text-white hover:text-gray-200">
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
+    >
+      <div className="relative w-full max-w-md sm:max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
+        {/* Modal Header */}
+        <div className="p-3 sm:p-5 text-white" style={{backgroundColor: '#103a94'}}>
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all hover:scale-105"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <h2 className="text-lg font-semibold text-white">बिल्डिंग प्रमुख</h2>
-          <div className="w-6" />
+          <div className="flex items-center space-x-3">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold">
+                {isEditMode ? 'बिल्डिंग प्रमुख संपादित करें' : 'बिल्डिंग प्रमुख'}
+              </h2>
+              <p className="text-blue-100 text-xs sm:text-sm">
+                {isEditMode ? 'Edit Building Pramukh' : 'Create New Building Pramukh'}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 p-4" noValidate>
-          {/* Address Multi-select trigger */}
+        {/* Modal Content */}
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3 sm:space-y-4" style={{backgroundColor:'#f4f6ff'}} noValidate>
+          {/* Address Multi-select */}
           <div className="relative address-picker-container">
-            <label className="mb-1 block text-sm font-semibold text-gray-800">पता</label>
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>पता</label>
             <button
               type="button"
               onClick={() => setShowAddressPicker(!showAddressPicker)}
-              className="flex w-full items-center justify-between rounded-lg border border-gray-300 px-3 py-2 text-left"
+              className="flex w-full items-center justify-between rounded-lg border px-2.5 sm:px-4 py-1.5 sm:py-2.5 text-left transition-all text-sm sm:text-base"
+              style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+              onMouseEnter={(e) => e.target.style.borderColor = '#0d2f7a'}
+              onMouseLeave={(e) => e.target.style.borderColor = '#103a94'}
             >
               <span className="text-gray-800">
                 {selectedAddresses.length > 0 ? `${selectedAddresses.length} पता` : 'चुनें'}
@@ -290,7 +447,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
                     value={addressSearch}
                     onChange={(e) => setAddressSearch(e.target.value)}
                     placeholder="सर्च दर्ज करें"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm sm:text-base"
                     disabled={addressLoading}
                   />
                 </div>
@@ -311,7 +468,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
                     filteredAddresses.map((addr, idx) => {
                       const checked = selectedAddresses.includes(addr)
                       return (
-                        <label key={`${addr}-${idx}`} className="flex cursor-pointer items-center space-x-3 px-3 py-2 border-b last:border-b-0">
+                        <label key={`${addr}-${idx}`} className="flex cursor-pointer items-center space-x-3 px-3 py-2 border-b last:border-b-0 hover:bg-gray-50">
                           <input
                             type="checkbox"
                             checked={checked}
@@ -328,7 +485,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
                   <button
                     type="button"
                     onClick={() => setShowAddressPicker(false)}
-                    className="w-full rounded-md py-2 text-center text-white font-semibold"
+                    className="w-full rounded-md py-2 text-center text-white font-semibold text-sm sm:text-base"
                   >
                     ठीक है
                   </button>
@@ -353,107 +510,134 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave }) => {
             )}
           </div>
 
-          {/* Name */}
+          {/* Name Field */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-800">नाम</label>
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
+              नाम
+            </label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="नाम दर्ज करें"
+              className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-sm sm:text-base"
+              style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+              onFocus={(e) => e.target.style.borderColor = '#103a94'}
+              onBlur={(e) => e.target.style.borderColor = '#103a94'}
+              placeholder="Enter name"
             />
           </div>
 
-          {/* Mobile */}
+          {/* Mobile Field */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-800">मोबाइल नं.</label>
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
+              मोबाइल नं.
+            </label>
             <input
               type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
               maxLength={10}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="मोबाइल नंबर"
+              className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-sm sm:text-base"
+              style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+              onFocus={(e) => e.target.style.borderColor = '#103a94'}
+              onBlur={(e) => e.target.style.borderColor = '#103a94'}
+              placeholder="Enter mobile number"
             />
           </div>
 
-          {/* Photo */}
+          {/* Photo Field */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-800">फोटो</label>
-            <div className="w-full border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 p-4">
-              {formData.photo ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center">
-                    <img
-                      src={URL.createObjectURL(formData.photo)}
-                      alt="Preview"
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-green-600 font-medium mb-2">{formData.photo.name}</p>
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        type="button"
-                        onClick={handlePhotoButtonClick}
-                        className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                      >
-                        बदलें
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleRemovePhoto}
-                        className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                      >
-                        हटाएं
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                  </svg>
-                  <p className="text-sm text-gray-500 mb-3">फोटो अपलोड करने के लिए बटन पर क्लिक करें</p>
-                  <button
-                    type="button"
-                    onClick={handlePhotoButtonClick}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    फोटो चुनें
-                  </button>
-                </div>
-              )}
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
+              फोटो
+            </label>
+            <div className="relative">
               <input
-                id="building-photo-input"
                 type="file"
                 accept="image/*"
                 onChange={handlePhotoChange}
                 className="hidden"
+                id={isEditMode ? 'edit-building-photo-input' : 'building-photo-input'}
               />
+              {photoPreview ? (
+                <div className="relative">
+                  <label
+                    htmlFor={isEditMode ? 'edit-building-photo-input' : 'building-photo-input'}
+                    className="block w-full h-28 sm:h-32 rounded-lg border overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer transition-all hover:bg-gray-100"
+                    style={{borderColor: '#103a94'}}
+                    onMouseEnter={(e) => e.target.style.borderColor = '#0d2f7a'}
+                    onMouseLeave={(e) => e.target.style.borderColor = '#103a94'}
+                  >
+                    <img
+                      src={photoPreview}
+                      alt="Photo preview - Click to change"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleRemovePhotoClick}
+                    className="mt-1.5 text-red-600 text-xs sm:text-sm hover:text-red-700 transition-colors flex items-center space-x-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>Remove Photo</span>
+                  </button>
+                </div>
+              ) : (
+                <label
+                  htmlFor={isEditMode ? 'edit-building-photo-input' : 'building-photo-input'}
+                  className="w-full h-20 sm:h-28 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
+                  style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
+                >
+                  <div className="text-center">
+                    <svg className="w-5 h-5 sm:w-7 sm:h-7 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <p className="text-xs sm:text-sm" style={{color: '#103a94'}}>Click to upload photo</p>
+                  </div>
+                </label>
+              )}
             </div>
           </div>
 
-          {/* Save */}
-          <div className="pt-2">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-sm sm:text-base"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg px-4 py-3 text-white disabled:opacity-50"
-              style={{ backgroundColor: '#1976d2' }}
+              className="flex-1 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-sm sm:text-base disabled:opacity-60"
+              style={{backgroundColor: '#103a94'}}
+              onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#0d2f7a')}
+              onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#103a94')}
             >
-              {loading ? 'सेव हो रहा है...' : 'सेव करें'}
+              {loading 
+                ? (isEditMode ? 'अपडेट हो रहा है...' : 'सेव हो रहा है...') 
+                : (isEditMode ? 'बिल्डिंग प्रमुख अपडेट करें' : 'बिल्डिंग प्रमुख बनाएं')}
             </button>
           </div>
         </form>
       </div>
     </div>
 
-    {/* No full-screen picker; dropdown used above */}
+    {/* Remove Photo Confirmation Modal */}
+    <RemovePhotoConfirmModal
+      isOpen={showRemoveConfirm}
+      onConfirm={handleRemovePhotoConfirm}
+      onCancel={handleRemovePhotoCancel}
+      zIndex={70}
+    />
     </>
   )
 }

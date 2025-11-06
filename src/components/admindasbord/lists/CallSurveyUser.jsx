@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import CreateCallSurveyUserModal from '../modals/CreateCallSurveyUserModal'
-import EditCallSurveyUserModal from '../modals/EditCallSurveyUserModal'
 import CallSurveyUserDetailModal from '../modals/CallSurveyUserDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import localStorageManager from '../../../utils/localStorage.js'
@@ -372,7 +371,7 @@ const CallSurveyUser = ({ navigation }) => {
         </div>
 
         {/* User List */}
-        <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-3 sm:py-6" style={{
+        <div className="flex-1 overflow-y-auto px-1.5 sm:px-4 py-2 sm:py-6" style={{
           scrollbarWidth: 'thin',
           scrollbarColor: '#d1d5db #f3f4f6',
           backgroundColor: '#e5e8ff'
@@ -409,12 +408,12 @@ const CallSurveyUser = ({ navigation }) => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-2 sm:space-y-3">
+              <div className="space-y-1.5 sm:space-y-3">
                 {filteredUsers.map((user, index) => (
                 <div
                   key={user.id}
                   onClick={() => handleUserClick(user)}
-                  className="bg-white rounded-xl p-3 sm:p-4 border transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-4 border transition-all cursor-pointer shadow-sm hover:shadow-md"
                   style={{borderColor: '#e6f0ff'}}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = '#103a94'
@@ -426,27 +425,27 @@ const CallSurveyUser = ({ navigation }) => {
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
                       {/* Profile Image */}
-                      {renderProfileImage(user, 'w-10 h-10 sm:w-12 sm:h-12')}
+                      {renderProfileImage(user, 'w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0')}
                       
                       {/* User Info */}
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="text-gray-900 font-semibold text-sm sm:text-base">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-1.5 sm:space-x-2 mb-0.5 sm:mb-1">
+                          <h3 className="text-gray-900 font-semibold text-xs sm:text-base truncate">
                             {index + 1}. {user.name}
                           </h3>
                         </div>
-                        <p className="text-blue-600 font-medium text-xs sm:text-sm mb-1 sm:mb-2">
+                        <p className="text-blue-600 font-medium text-[10px] sm:text-sm mb-0.5 sm:mb-2">
                           {user.phoneNumber}
                         </p>
                         <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                          <span className="text-gray-700 text-xs sm:text-sm">बूथ नं. :</span>
-                          <div className="flex flex-wrap gap-1">
+                          <span className="text-gray-700 text-[10px] sm:text-sm">बूथ नं. :</span>
+                          <div className="flex flex-wrap gap-0.5 sm:gap-1">
                             {user.boothNumbers.map((boothNumber, idx) => (
                               <span
                                 key={idx}
-                                className="px-1 sm:px-2 py-0.5 sm:py-1 bg-gray-100 text-gray-800 text-xs rounded-full font-medium"
+                                className="px-1 sm:px-2 py-0.5 bg-gray-100 text-gray-800 text-[10px] sm:text-xs rounded-full font-medium"
                               >
                                 {`${boothNumber}`}
                               </span>
@@ -462,12 +461,12 @@ const CallSurveyUser = ({ navigation }) => {
                         e.stopPropagation()
                         handleCall(user)
                       }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-105"
+                      className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 ml-1.5 sm:ml-0"
                       style={{backgroundColor: '#103a94'}}
                       onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
                       onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
                     >
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
                     </button>
@@ -523,16 +522,13 @@ const CallSurveyUser = ({ navigation }) => {
           onDelete={handleDeleteClick}
         />
         <CreateCallSurveyUserModal
-          isOpen={showCreateModal}
-          onClose={handleCloseCreateModal}
+          isOpen={showCreateModal || showEditModal}
+          onClose={() => {
+            if (showCreateModal) handleCloseCreateModal()
+            if (showEditModal) handleCloseEditModal()
+          }}
           onSuccess={refreshList}
-          allUsers={userData}
-        />
-        <EditCallSurveyUserModal
-          isOpen={showEditModal}
-          onClose={handleCloseEditModal}
-          onSuccess={refreshList}
-          user={userToEdit}
+          user={showEditModal ? userToEdit : null}
           allUsers={userData}
         />
         <DeleteConfirmationModal

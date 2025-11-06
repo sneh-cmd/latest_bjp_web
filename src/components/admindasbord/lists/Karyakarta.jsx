@@ -3,9 +3,8 @@ import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import KaryakartaDetailModal from '../modals/KaryakartaDetailModal.jsx'
-import CreateAdminModal from '../modals/CreateAdminModal'
+import CreateAdminBaseModal from '../modals/CreateAdminBaseModal.jsx'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
-import CreateKaryakartaModal from '../modals/CreateKaryakartaModal.jsx'
 import LastLoginModal from '../modals/LastLoginModal'
 import * as XLSX from 'xlsx'
 
@@ -110,14 +109,32 @@ const Karyakarta = ({ navigation }) => {
   }
 
   const handleEditKaryakarta = () => {
-    setKaryakartaToEdit(selectedKaryakarta)
-    setShowEditModal(true)
+    // Transform selectedKaryakarta to match CreateAdminBaseModal's expected editData format
+    const editData = {
+      id: selectedKaryakarta.id || selectedKaryakarta.karyakartaId,
+      adminId: selectedKaryakarta.karyakartaId || selectedKaryakarta.id,
+      name: selectedKaryakarta.name,
+      mobileNo: selectedKaryakarta.phoneNumber,
+      mobile: selectedKaryakarta.phoneNumber,
+      phoneNumber: selectedKaryakarta.phoneNumber,
+      photo: selectedKaryakarta.photo,
+      photoPath: selectedKaryakarta.profileImage,
+      profileImage: selectedKaryakarta.profileImage,
+      idcardNo: selectedKaryakarta.idcardNo
+    }
+    setKaryakartaToEdit(editData)
+    setShowCreateModal(true) // Use CreateAdminBaseModal for edit
     setSelectedKaryakarta(null) // Close detail modal
   }
 
   const handleCloseEditModal = () => {
     setShowEditModal(false)
     setKaryakartaToEdit(null)
+  }
+
+  const handleCloseCreateModal = () => {
+    setShowCreateModal(false)
+    setKaryakartaToEdit(null) // Clear edit data when closing
   }
 
   const handleDeleteClick = () => {
@@ -199,8 +216,35 @@ const Karyakarta = ({ navigation }) => {
       const userData = localStorageManager.getUserData()
       const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
       
-      // Call the insertAdmin API to create new karyakarta
-      await apiService.insertAdmin(data, panelApiUrl)
+      // Check if this is an edit operation (if karyakartaToEdit exists)
+      const isEdit = !!karyakartaToEdit
+      
+      if (isEdit) {
+        // Update existing karyakarta
+        const karyakartaToUpdate = karyakartaToEdit || karyakartaData.find(k => k.id === data.adminId || k.karyakartaId === data.admin_id)
+        
+        // Prepare payload for update_admin API
+        const payload = {
+          admin_id: data.admin_id || data.adminId || karyakartaToUpdate?.karyakartaId || karyakartaToUpdate?.id,
+          type: 'K',
+          sub_type: 'K',
+          name: data.name || '',
+          mobile_no: data.mobile || data.mobile_no || '',
+          // If photo was removed, send empty strings; otherwise use provided photo or existing
+          photo: data.photoRemoved ? '' : (data.photo || karyakartaToUpdate?.photo || ''),
+          base64: data.photoRemoved ? '' : (data.base64 || ''),
+          idcard_no: karyakartaToUpdate?.idcardNo || '0',
+          booth_javabdari: '0',
+          page_javabdari: '0',
+          add: '',
+          modify_by: '1'
+        }
+        
+        await apiService.updateAdmin(payload, panelApiUrl)
+      } else {
+        // Create new karyakarta
+        await apiService.insertAdmin(data, panelApiUrl)
+      }
       
       // Refresh karyakarta list from API
       const volunteers = await apiService.displayVolunteer(panelApiUrl)
@@ -225,9 +269,10 @@ const Karyakarta = ({ navigation }) => {
       setKaryakartaData(transformedKaryakartas)
       
       setShowCreateModal(false)
+      setKaryakartaToEdit(null) // Clear edit data after save
     } catch (err) {
-      console.error('Failed to create karyakarta:', err)
-      alert(err.message || 'Failed to create karyakarta')
+      console.error(`Failed to ${karyakartaToEdit ? 'update' : 'create'} karyakarta:`, err)
+      alert(err.message || `Failed to ${karyakartaToEdit ? 'update' : 'create'} karyakarta`)
     } finally {
       setLoading(false)
     }
@@ -709,12 +754,26 @@ const Karyakarta = ({ navigation }) => {
         />
 
         {/* Edit Modal */}
-        <CreateAdminModal
+        <CreateAdminBaseModal
           isOpen={showEditModal}
           onClose={handleCloseEditModal}
           onSubmit={handleUpdateKaryakarta}
           editData={karyakartaToEdit}
           mode="edit"
+          title={{
+            edit: 'ऐडमिन संपादित करें',
+            create: 'नया ऐडमिन'
+          }}
+          subtitle={{
+            edit: 'Edit Admin',
+            create: 'Create New Admin'
+          }}
+          submitButtonText={{
+            edit: 'अपडेट करें',
+            create: 'ऐडमिन बनाएं'
+          }}
+          inputId="photo-upload"
+          namePlaceholder="Enter admin name"
         />
 
         {/* Delete Confirmation Modal */}
@@ -725,11 +784,38 @@ const Karyakarta = ({ navigation }) => {
           admin={karyakartaToDelete}
         />
 
-        {/* Create Karyakarta Modal */}
-        <CreateKaryakartaModal
+        {/* Create/Edit Karyakarta Modal */}
+        <CreateAdminBaseModal
           isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
+          onClose={handleCloseCreateModal}
           onSubmit={handleCreateKaryakarta}
+          editData={karyakartaToEdit}
+          mode={karyakartaToEdit ? 'edit' : 'create'}
+          title={{
+            edit: 'कार्यकर्ता संपादित करें',
+            create: 'कार्यकर्ता बनाएं'
+          }}
+          subtitle={{
+            edit: 'Edit',
+            create: 'Create New'
+          }}
+          submitButtonText={{
+            edit: 'अपडेट करें',
+            create: 'कार्यकर्ता बनाएं'
+          }}
+          inputId="karyakarta-photo-upload"
+          namePlaceholder="Enter name"
+          mobilePlaceholder="Enter mobile number"
+          extraPayload={{
+            type: 'K',
+            sub_type: 'K',
+            main_admin_id: '0',
+            booth_javabdari: '0',
+            page_javabdari: '0',
+            add: '',
+            idcard_no: '0',
+            create_by: '1'
+          }}
         />
 
         {/* Last Login Modal */}

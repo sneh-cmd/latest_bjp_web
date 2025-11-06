@@ -5,7 +5,6 @@ import AddBuildingCoInchargeModal from '../modals/AddBuildingCoInchargeModal'
 import EditBuildingCoInchargeModal from '../modals/EditBuildingCoInchargeModal'
 import BuildingCoInchargeDetailModal from '../modals/BuildingCoInchargeDetailModal'
 import BuildingPramukhDetailModal from '../modals/BuildingPramukhDetailModal'
-import EditBuildingPramukhModal from '../modals/EditBuildingPramukhModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
 import localStorageManager from '../../../utils/localStorage'
@@ -832,7 +831,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         admin={buildingHeadToDelete}
       />
       
-      <EditBuildingPramukhModal
+      <AddBuildingPramukhModal
         isOpen={showEditBuildingHeadModal}
         onClose={handleCloseEditBuildingHeadModal}
         onSuccess={handleEditBuildingHeadSuccess}
@@ -1012,61 +1011,67 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                 <>
                   {/* Building Head Section */}
                   <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div className="text-white px-4 py-3 flex items-center justify-between" style={{ backgroundColor: '#102463' }}>
-                      <h2 className="font-semibold text-lg">बिल्डिंग प्रमुख</h2>
-                      <button
+                    <div className="text-white p-2 sm:p-4 flex items-center justify-between" style={{ backgroundColor: '#102463' }}>
+                      <h2 className="font-semibold text-sm sm:text-base">बिल्डिंग प्रमुख</h2>
+                    {/*   <button
                         onClick={handleAddBuildingHead}
-                        className="bg-white text-blue-800 px-4 py-2 rounded text-sm font-medium hover:bg-gray-100 transition-colors"
+                        className="bg-white px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium hover:bg-gray-100 transition-colors"
+                        style={{ color: '#102463' }}
                       >
                         जोड़ें
-                      </button>
+                      </button> */}
                     </div>
                 
-                    <div className="p-4">
+                    <div className="p-2 sm:p-4">
                       {current && current.name && current.name !== '—' ? (
                         shouldShowBuildingPramukh ? (
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                                 {current.profileImage || current.photo ? (
                                   <img
                                     src={current.profileImage || current.photo}
                                     alt={current.name}
-                                    className="w-12 h-12 rounded-full object-cover"
+                                    className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover"
                                   />
                                 ) : (
-                                  <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                                   </svg>
                                 )}
                               </div>
-                              <div>
-                                <h3 className="font-semibold text-gray-800">{current.name}</h3>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="font-semibold text-gray-800 text-xs sm:text-base truncate">{current.name}</h3>
                                 {current.phoneNumber && (
-                                  <p className="text-blue-600 text-sm">{current.phoneNumber}</p>
+                                  <p className="text-blue-600 text-[10px] sm:text-sm truncate">{current.phoneNumber}</p>
                                 )}
-                                <p className="text-gray-600 text-sm">{current.designation || 'बिल्डिंग प्रमुख'}</p>
+                                <p className="text-gray-600 text-[10px] sm:text-sm truncate">{current.designation || 'बिल्डिंग प्रमुख'}</p>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              {current.phoneNumber && (
+                            <div className="flex flex-col items-end space-y-1 sm:space-y-2 flex-shrink-0">
+                              <div className="flex items-center space-x-1 sm:space-x-2">
+                                {current.phoneNumber && (
+                                  <button
+                                    onClick={() => handleCall(current.phoneNumber)}
+                                    className="w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+                                    style={{backgroundColor: '#103a94'}}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
+                                  >
+                                    <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                  </button>
+                                )}
                                 <button
-                                  onClick={() => handleCall(current.phoneNumber)}
-                                  className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
+                                  onClick={() => handleViewDetails(current)}
+                                  className="w-7 h-7 sm:w-10 sm:h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors flex-shrink-0"
                                 >
-                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                   </svg>
                                 </button>
-                              )}
-                              <button
-                                onClick={() => handleViewDetails(current)}
-                                className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors"
-                              >
-                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                                </svg>
-                              </button>
+                              </div>
                               <button 
                                 onClick={() => {
                                   if (current.status === 'active' && (current.last_login || current.lastLogin)) {
@@ -1077,7 +1082,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                                     setShowLastLoginModal(true)
                                   }
                                 }}
-                                className={`px-3 py-1 rounded text-sm font-medium ${
+                                className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded text-[10px] sm:text-sm font-medium flex-shrink-0 ${
                                   current.status === 'active' ? 'bg-green-500 text-white cursor-pointer hover:bg-green-600' : 'bg-red-500 text-white'
                                 }`}
                               >
@@ -1086,23 +1091,23 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                             </div>
                           </div>
                         ) : searchQuery.trim() ? (
-                          <div className="flex flex-col items-center justify-center py-12">
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
-                              <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="flex flex-col items-center justify-center py-6 sm:py-12">
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-6 max-w-md w-full text-center">
+                              <svg className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-2 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                               </svg>
-                              <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
-                              <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+                              <h3 className="text-gray-800 font-semibold mb-1 sm:mb-2 text-xs sm:text-sm">No Results Found</h3>
+                              <p className="text-gray-600 text-xs sm:text-sm">Try adjusting your search term</p>
                             </div>
                           </div>
                         ) : (
-                          <div className="p-4 text-center text-gray-500">
-                            <p>कोई बिल्डिंग प्रमुख नहीं मिला</p>
+                          <div className="p-3 sm:p-4 text-center text-gray-500">
+                            <p className="text-xs sm:text-sm">कोई बिल्डिंग प्रमुख नहीं मिला</p>
                           </div>
                         )
                       ) : (
-                        <div className="p-4 text-center text-gray-500">
-                          <p>कोई बिल्डिंग प्रमुख नहीं मिला</p>
+                        <div className="p-3 sm:p-4 text-center text-gray-500">
+                          <p className="text-xs sm:text-sm">कोई बिल्डिंग प्रमुख नहीं मिला</p>
                         </div>
                       )}
                     </div>
@@ -1110,66 +1115,71 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
 
                   {/* Co-incharge Section */}
                   <div className="bg-gray-100 rounded-lg shadow-sm overflow-hidden">
-                    <div className="bg-gray-200 px-4 py-3 flex items-center justify-between border-b border-red-500">
-                      <h2 className="font-semibold text-gray-700 text-lg">बिल्डिंग सह इनचार्ज</h2>
+                    <div className="bg-gray-200 p-2 sm:p-4 flex items-center justify-between border-b border-red-500">
+                      <h2 className="font-semibold text-gray-700 text-sm sm:text-base">बिल्डिंग सह इनचार्ज</h2>
                       <button
                         onClick={handleAddCoIncharge}
-                        className="bg-blue-800 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-900 transition-colors"
+                        className="bg-blue-800 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium hover:bg-blue-900 transition-colors"
                       >
                         जोड़ें
                       </button>
                     </div>
                 
-                    <div className="p-4">
+                    <div className="p-2 sm:p-4">
                       {coInchargeData && coInchargeData.length > 0 ? (
                         filteredCoInchargeData.length > 0 ? (
-                          <div className="space-y-3">
+                          <div className="space-y-2 sm:space-y-3">
                             {filteredCoInchargeData.map((person, index) => (
-                            <div key={person.id || person.admin_id} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                            <div key={person.id || person.admin_id} className="flex items-center justify-between bg-white rounded-lg p-2 sm:p-3 shadow-sm">
+                              <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                                   {person.profileImage || person.photo ? (
                                     <img
                                       src={person.profileImage || person.photo}
                                       alt={person.name}
-                                      className="w-12 h-12 rounded-full object-cover"
+                                      className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover"
                                     />
                                   ) : (
-                                    <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
                                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                                     </svg>
                                   )}
                                 </div>
-                                <div>
-                                  <h3 className="font-semibold text-gray-800">{person.name}</h3>
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="font-semibold text-gray-800 text-xs sm:text-base truncate">{person.name}</h3>
                                   {person.phone && (
-                                    <p className="text-blue-600 text-sm">{person.phone}</p>
+                                    <p className="text-blue-600 text-[10px] sm:text-sm truncate">{person.phone}</p>
                                   )}
-                                  <p className="text-gray-600 text-sm">{person.role || person.designation || 'बिल्डिंग सह इनचार्ज'}</p>
+                                  <p className="text-gray-600 text-[10px] sm:text-sm truncate">{person.role || person.designation || 'बिल्डिंग सह इनचार्ज'}</p>
                                 </div>
                               </div>
-                              <div className="flex items-center space-x-2">
-                                {person.phone && (
+                              <div className="flex flex-col items-end space-y-1 sm:space-y-2 flex-shrink-0">
+                                <div className="flex items-center space-x-1 sm:space-x-2">
+                                  {person.phone && (
+                                    <button
+                                      onClick={() => handleCall(person.phone)}
+                                      className="w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+                                      style={{backgroundColor: '#103a94'}}
+                                      onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+                                      onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
+                                    >
+                                      <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                      </svg>
+                                    </button>
+                                  )}
                                   <button
-                                    onClick={() => handleCall(person.phone)}
-                                    className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
+                                    onClick={() => {
+                                      setSelectedCoIncharge(person)
+                                      setShowCoInchargeDetailModal(true)
+                                    }}
+                                    className="w-7 h-7 sm:w-10 sm:h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors flex-shrink-0"
                                   >
-                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                     </svg>
                                   </button>
-                                )}
-                                <button
-                                  onClick={() => {
-                                    setSelectedCoIncharge(person)
-                                    setShowCoInchargeDetailModal(true)
-                                  }}
-                                  className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors"
-                                >
-                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                                  </svg>
-                                </button>
+                                </div>
                                 <button 
                                   onClick={() => {
                                     if (person.status === 'active' && (person.last_login || person.lastLogin)) {
@@ -1180,7 +1190,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                                       setShowLastLoginModal(true)
                                     }
                                   }}
-                                  className={`px-3 py-1 rounded text-sm font-medium ${
+                                  className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded text-[10px] sm:text-sm font-medium flex-shrink-0 ${
                                     person.status === 'active' ? 'bg-green-500 text-white cursor-pointer hover:bg-green-600' : 'bg-red-500 text-white'
                                   }`}
                                 >
@@ -1191,19 +1201,19 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                             ))}
                           </div>
                         ) : (
-                          <div className="flex flex-col items-center justify-center py-12">
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md w-full text-center">
-                              <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="flex flex-col items-center justify-center py-6 sm:py-12">
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-6 max-w-md w-full text-center">
+                              <svg className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-2 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                               </svg>
-                              <h3 className="text-gray-800 font-semibold mb-2">No Results Found</h3>
-                              <p className="text-gray-600 text-sm">Try adjusting your search term</p>
+                              <h3 className="text-gray-800 font-semibold mb-1 sm:mb-2 text-xs sm:text-sm">No Results Found</h3>
+                              <p className="text-gray-600 text-xs sm:text-sm">Try adjusting your search term</p>
                             </div>
                           </div>
                         )
                       ) : (
-                        <div className="p-4 text-center text-gray-500">
-                          <p>कोई बिल्डिंग सह इनचार्ज नहीं मिला</p>
+                        <div className="p-3 sm:p-4 text-center text-gray-500">
+                          <p className="text-xs sm:text-sm">कोई बिल्डिंग सह इनचार्ज नहीं मिला</p>
                         </div>
                       )}
                     </div>
@@ -1380,34 +1390,34 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
               ) : (
                 <>
                   {/* Voter Statistics */}
-                  <div className="grid grid-cols-4 gap-2 mb-3">
-                    <button onClick={() => setSelectedFilter('total')} className={`bg-gray-200 rounded-lg px-2 py-1.5 text-center transition-colors ${selectedFilter === 'total' ? 'ring-2 ring-blue-900' : ''}`}>
-                      <div className="text-xs font-bold text-gray-800">टोटल</div>
-                      <div className="text-lg font-bold text-gray-900">{totalVoters}</div>
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                    <button onClick={() => setSelectedFilter('total')} className={`bg-gray-200 rounded-lg px-1 sm:px-2 py-1 sm:py-1.5 text-center transition-colors ${selectedFilter === 'total' ? 'ring-2 ring-blue-900' : ''}`}>
+                      <div className="text-[10px] sm:text-xs font-bold text-gray-800">टोटल</div>
+                      <div className="text-sm sm:text-lg font-bold text-gray-900">{totalVoters}</div>
                     </button>
-                    <button onClick={() => setSelectedFilter('visited')} className={`bg-white rounded-lg px-2 py-1.5 text-center transition-colors ${selectedFilter === 'visited' ? 'ring-2 ring-blue-900' : ''}`}>
-                      <div className="text-xs font-bold text-gray-800">मुलाकात</div>
-                      <div className="text-lg font-bold text-gray-900">{visitedVoters}</div>
+                    <button onClick={() => setSelectedFilter('visited')} className={`bg-white rounded-lg px-1 sm:px-2 py-1 sm:py-1.5 text-center transition-colors ${selectedFilter === 'visited' ? 'ring-2 ring-blue-900' : ''}`}>
+                      <div className="text-[10px] sm:text-xs font-bold text-gray-800">मुलाकात</div>
+                      <div className="text-sm sm:text-lg font-bold text-gray-900">{visitedVoters}</div>
                     </button>
-                    <button onClick={() => setSelectedFilter('unavailable')} className={`bg-white rounded-lg px-2 py-1.5 text-center transition-colors ${selectedFilter === 'unavailable' ? 'ring-2 ring-blue-900' : ''}`}>
-                      <div className="text-xs font-bold text-gray-800">अनुपलब्ध</div>
-                      <div className="text-lg font-bold text-gray-900">{unavailableVoters}</div>
+                    <button onClick={() => setSelectedFilter('unavailable')} className={`bg-white rounded-lg px-1 sm:px-2 py-1 sm:py-1.5 text-center transition-colors ${selectedFilter === 'unavailable' ? 'ring-2 ring-blue-900' : ''}`}>
+                      <div className="text-[10px] sm:text-xs font-bold text-gray-800">अनुपलब्ध</div>
+                      <div className="text-sm sm:text-lg font-bold text-gray-900">{unavailableVoters}</div>
                     </button>
-                    <button onClick={() => setSelectedFilter('remaining')} className={`bg-white rounded-lg px-2 py-1.5 text-center transition-colors ${selectedFilter === 'remaining' ? 'ring-2 ring-blue-900' : ''}`}>
-                      <div className="text-xs font-bold text-gray-800">मुलाकात बाकी</div>
-                      <div className="text-lg font-bold text-gray-900">{remainingVisits}</div>
+                    <button onClick={() => setSelectedFilter('remaining')} className={`bg-white rounded-lg px-1 sm:px-2 py-1 sm:py-1.5 text-center transition-colors ${selectedFilter === 'remaining' ? 'ring-2 ring-blue-900' : ''}`}>
+                      <div className="text-[10px] sm:text-xs font-bold text-gray-800">मुलाकात बाकी</div>
+                      <div className="text-sm sm:text-lg font-bold text-gray-900">{remainingVisits}</div>
                     </button>
                   </div>
 
               {/* Address Dropdown */}
               {addresses.length > 0 && (
-                <div className="bg-gray-100 rounded-lg p-3 flex items-center justify-between">
-                  <span className="text-gray-700 font-medium">पता</span>
+                <div className="bg-gray-100 rounded-lg px-1.5 sm:px-2 py-1 sm:py-2 flex items-center justify-between gap-1 sm:gap-2">
                   <select 
                     value={selectedAddress} 
                     onChange={(e) => setSelectedAddress(e.target.value)}
-                    className="bg-transparent text-gray-700 font-medium focus:outline-none"
+                    className="bg-transparent text-gray-700 font-medium focus:outline-none text-[10px] sm:text-xs flex-1 min-w-0 truncate"
                   >
+                    <option value="">पता</option>
                     {addresses.map((addrItem, index) => {
                       // Handle both string (backward compatibility) and object format
                       const address = typeof addrItem === 'string' ? addrItem : addrItem.address
@@ -1418,20 +1428,17 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                       )
                     })}
                   </select>
-                  <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
                 </div>
               )}
 
               {/* Voter List */}
               {filteredVoters.length === 0 ? (
-                <div className="text-center text-gray-600 py-8">
-                  <div className="text-gray-400 text-4xl mb-2">👥</div>
-                  <p>No voters found</p>
+                <div className="text-center text-gray-600 py-6 sm:py-8">
+                  <div className="text-gray-400 text-3xl sm:text-4xl mb-1 sm:mb-2">👥</div>
+                  <p className="text-xs sm:text-sm">No voters found</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   {filteredVoters.map((voter, index) => {
                     const surveyBy = (voter.survey_by || '').toString().trim()
                     const shouldShowSurveySection = surveyBy !== ' - ' && surveyBy !== '-'
@@ -1441,123 +1448,122 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                     <div key={voter.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                       {/* Survey Taker Section - Green Header Bar */}
                       {shouldShowSurveySection && (
-                        <div className="bg-green-100 px-4 py-2 flex items-center justify-between">
-                          <div className="text-black text-sm font-medium">
+                        <div className="bg-green-100 px-2 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between">
+                          <div className="text-black text-xs sm:text-sm font-medium truncate flex-1 min-w-0">
                             सर्वे लेनेवाला: {surveyBy}
                           </div>
                           {voterStatus.text && (
-                            <span className={`${voterStatus.color} text-white px-3 py-1 rounded-full text-xs font-semibold`}>
+                            <span className={`${voterStatus.color} text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold flex-shrink-0 ml-2`}>
                               {voterStatus.text}
                             </span>
                           )}
                         </div>
                       )}
                       
-                      <div className="p-4 space-y-3">
+                      <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
                         {/* Header */}
                         <div className="flex items-center justify-between">
-                          <div className="text-lg font-bold text-gray-900">
+                          <div className="text-sm sm:text-lg font-bold text-gray-900 truncate flex-1 min-w-0">
                             {index + 1}. {voter.eng_f_name} {voter.f_eng_surname}
                           </div>
                         </div>
 
                         {/* Details Grid */}
-                        <div className="grid grid-cols-1 gap-2 text-sm">
-                          <div className="flex">
-                            <span className="w-24 text-gray-600 font-medium">पिता/पति:</span>
-                            <span className="text-gray-900">{voter.eng_m_name}</span>
+                        <div className="grid grid-cols-1 gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                          <div className="flex flex-wrap items-start gap-x-2">
+                            <span className="text-gray-600 font-medium flex-shrink-0">पिता/पति:</span>
+                            <span className="text-gray-900 break-words flex-1 min-w-0">{voter.eng_m_name}</span>
                           </div>
                           
-                          <div className="flex">
-                            <span className="w-24 text-gray-600 font-medium">पता:</span>
-                            <div className="flex-1 flex items-center">
-                              <span className="text-gray-900 flex-1">{voter.eng_localityid}</span>
-                              <svg className="w-4 h-4 text-blue-500 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                          <div className="flex flex-wrap items-start gap-x-2">
+                            <span className="text-gray-600 font-medium flex-shrink-0">पता:</span>
+                            <div className="flex-1 flex items-center min-w-0">
+                              <span className="text-gray-900 break-words flex-1 min-w-0">{voter.eng_localityid}</span>
+                              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 ml-1 sm:ml-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                               </svg>
                             </div>
                           </div>
 
-                          <div className="flex">
-                            <span className="w-24 text-gray-600 font-medium">क्रमांक:</span>
+                          <div className="flex flex-wrap items-center gap-x-2">
+                            <span className="text-gray-600 font-medium flex-shrink-0">क्रमांक:</span>
                             <span className="text-gray-900">{voter.slnoinpart}</span>
                           </div>
 
-                          <div className="flex">
-                            <span className="w-24 text-gray-600 font-medium">मोबाइल:</span>
-                            <div className="flex-1 flex items-center">
-                              <span className="text-gray-900">{voter.contact_no || '-'}</span>
-                                <button className="ml-2 w-5 h-5 bg-yellow-500 rounded flex items-center justify-center">
-                                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                                  </svg>
-                                </button>
-                             
+                          <div className="flex flex-wrap items-center gap-x-2">
+                            <span className="text-gray-600 font-medium flex-shrink-0">मोबाइल:</span>
+                            <div className="flex-1 flex items-center min-w-0">
+                              <span className="text-gray-900 break-words flex-1 min-w-0">{voter.contact_no || '-'}</span>
+                              <button className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0">
+                                <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                </svg>
+                              </button>
                             </div>
                           </div>
 
-                          <div className="flex">
-                            <span className="w-24 text-gray-600 font-medium">पहचान पत्र नं.:</span>
-                            <span className="text-gray-900">{voter.idcard_no}</span>
+                          <div className="flex flex-wrap items-center gap-x-2">
+                            <span className="text-gray-600 font-medium flex-shrink-0">पहचान पत्र नं.:</span>
+                            <span className="text-gray-900 break-words flex-1 min-w-0">{voter.idcard_no}</span>
                           </div>
 
-                          <div className="flex">
-                            <span className="w-24 text-gray-600 font-medium">बूथ नं:</span>
+                          <div className="flex flex-wrap items-center gap-x-2">
+                            <span className="text-gray-600 font-medium flex-shrink-0">बूथ नं:</span>
                             <span className="text-gray-900">{voter.booth_no}</span>
                           </div>
 
-                          <div className="flex">
-                            <span className="w-24 text-gray-600 font-medium">घर नं:</span>
+                          <div className="flex flex-wrap items-center gap-x-2">
+                            <span className="text-gray-600 font-medium flex-shrink-0">घर नं:</span>
                             <span className="text-gray-900">{voter.eng_house_no || '-'}</span>
                           </div>
 
-                          <div className="flex">
-                            <span className="w-24 text-gray-600 font-medium">मतदान स्थान:</span>
-                            <span className="text-gray-900">{voter.eng_polling_location}</span>
+                          <div className="flex flex-wrap items-start gap-x-2">
+                            <span className="text-gray-600 font-medium flex-shrink-0">मतदान स्थान:</span>
+                            <span className="text-gray-900 break-words flex-1 min-w-0">{voter.eng_polling_location}</span>
                           </div>
 
-                          <div className="flex">
-                            <span className="w-24 text-gray-600 font-medium">दूसरा पता:</span>
-                            <span className="text-gray-900">{voter.add_add || '-'}</span>
+                          <div className="flex flex-wrap items-start gap-x-2">
+                            <span className="text-gray-600 font-medium flex-shrink-0">दूसरा पता:</span>
+                            <span className="text-gray-900 break-words flex-1 min-w-0">{voter.add_add || '-'}</span>
                           </div>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex justify-center space-x-8 pt-3 border-t border-gray-100">
+                        <div className="flex justify-center space-x-4 sm:space-x-8 pt-2 sm:pt-3 border-t border-gray-100">
                           <button 
                             onClick={() => handleCall(voter.contact_no)}
-                            className="flex flex-col items-center space-y-1"
+                            className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                           >
-                            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
                               </svg>
                             </div>
-                            <span className="text-xs text-gray-600">Call</span>
+                            <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
                           </button>
 
                           <button 
                             onClick={() => handleCheck(voter)}
-                            className="flex flex-col items-center space-y-1"
+                            className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                           >
-                            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center">
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                               </svg>
                             </div>
-                            <span className="text-xs text-gray-600">Check</span>
+                            <span className="text-[10px] sm:text-xs text-gray-600">Check</span>
                           </button>
 
                           <button 
                             onClick={() => handleFamily(voter)}
-                            className="flex flex-col items-center space-y-1"
+                            className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                           >
-                            <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99L14 10.5c-.47-.62-1.21-.99-2.01-.99H9.46c-.8 0-1.54.37-2.01.99L6 10.5c-.47-.62-1.21-.99-2.01-.99H2.46c-.8 0-1.54.37-2.01.99L0 10.5v7.5h2v6h2v-6h2v6h2v-6h2v6h2v-6h2v6h2z"/>
                               </svg>
                             </div>
-                            <span className="text-xs text-gray-600">Family</span>
+                            <span className="text-[10px] sm:text-xs text-gray-600">Family</span>
                           </button>
                         </div>
                       </div>
@@ -1572,29 +1578,29 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
           )}
 
           {/* Footer with dynamic counts */}
-          <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
-            <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg" style={{backgroundColor: '#ffffff'}}>
-              <div className="flex items-center space-x-4 sm:space-x-6" style={{color: '#102463'}}>
+          <div className="px-2 sm:px-4 py-2 sm:py-3 flex flex-col sm:flex-row items-center justify-between flex-shrink-0 shadow-lg space-y-1.5 sm:space-y-0" style={{backgroundColor: '#102463'}}>
+            <div className="px-1.5 sm:px-3 py-1 sm:py-2 rounded-lg" style={{backgroundColor: '#ffffff'}}>
+              <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-6" style={{color: '#102463'}}>
                 {activeTab === 'address' ? (
                   <div className="text-center">
-                    <div className="text-xs">पता :  {addresses.length + reDevelopmentAddresses.length}</div>
+                    <div className="text-[10px] sm:text-xs">पता :  {addresses.length + reDevelopmentAddresses.length}</div>
                   </div>
                 ) : (
                   <>
                     <div className="text-center">
-                      <div className="text-base sm:text-lg font-bold">
+                      <div className="text-sm sm:text-base md:text-lg font-bold">
                         {activeTab === 'organization' && (current && current.name && current.name !== '—' ? 1 : 0)}
                         {activeTab === 'voter' && voters.length}
                       </div>
-                      <div className="text-xs">
+                      <div className="text-[10px] sm:text-xs">
                         {activeTab === 'organization' && 'बिल्डिंग प्रमुख'}
                         {activeTab === 'voter' && 'मतदाता'}
                       </div>
                     </div>
                     {activeTab === 'organization' && (
                       <div className="text-center">
-                        <div className="text-base sm:text-lg font-bold">{coInchargeData.length}</div>
-                        <div className="text-xs">बिल्डिंग सह इनचार्ज</div>
+                        <div className="text-sm sm:text-base md:text-lg font-bold">{coInchargeData.length}</div>
+                        <div className="text-[10px] sm:text-xs">बिल्डिंग सह इनचार्ज</div>
                       </div>
                     )}
                   </>
@@ -1602,12 +1608,12 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                 {activeTab === 'voter' && (
                   <>
                     <div className="text-center">
-                      <div className="text-base sm:text-lg font-bold">{visitedVoters}</div>
-                      <div className="text-xs">मुलाकात</div>
+                      <div className="text-sm sm:text-base md:text-lg font-bold">{visitedVoters}</div>
+                      <div className="text-[10px] sm:text-xs">मुलाकात</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-base sm:text-lg font-bold">{remainingVisits}</div>
-                      <div className="text-xs">मुलाकात बाकी</div>
+                      <div className="text-sm sm:text-base md:text-lg font-bold">{remainingVisits}</div>
+                      <div className="text-[10px] sm:text-xs">मुलाकात बाकी</div>
                     </div>
                   </>
                 )}

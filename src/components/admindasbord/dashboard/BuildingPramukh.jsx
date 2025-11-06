@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { displayBuildingPramukh, apiService } from '../../../apidata.jsx'
 import AddBuildingPramukhModal from '../modals/AddBuildingPramukhModal.jsx'
 import BuildingPramukhDetailModal from '../modals/BuildingPramukhDetailModal.jsx'
-import EditBuildingPramukhModal from '../modals/EditBuildingPramukhModal.jsx'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal.jsx'
 import LastLoginModal from '../modals/LastLoginModal'
 import localStorageManager from '../../../utils/localStorage.js'
@@ -259,7 +258,7 @@ const BuildingPramukh = ({ navigation }) => {
       // Generate initials from name
       const initials = building.name ? building.name.charAt(0).toUpperCase() : 'B'
       return (
-        <div className={`${size} rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center border-2 border-gray-200`}>
+        <div className={`${size} rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200`}>
           <span className="text-white text-sm font-bold">
             {initials}
           </span>
@@ -270,38 +269,38 @@ const BuildingPramukh = ({ navigation }) => {
 
   // List View Render
   const renderListView = () => (
-    <div className="space-y-3">
+    <div className="space-y-1.5 sm:space-y-3">
       {filteredBuildings.map((building, index) => (
-        <div key={building.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 cursor-pointer" onClick={() => handleCardClick(building)}>
+        <div key={building.id} className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-sm border border-gray-100 cursor-pointer" onClick={() => handleCardClick(building)}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
               {/* Profile Image */}
-              {renderProfileImage(building, 'w-12 h-12')}
+              {renderProfileImage(building, 'w-8 h-8 sm:w-12 sm:h-12 flex-shrink-0')}
               
               {/* Building Info */}
-              <div className="flex-1">
-                <h3 className="text-gray-900 font-bold text-base">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-gray-900 font-bold text-xs sm:text-base truncate">
                   {index + 1}. {building.name}
                 </h3>
                 
                 {/* Address Count */}
-                <div className="flex items-center space-x-2 mb-1">
+                <div className="flex items-center space-x-1 sm:space-x-2 mb-0.5 sm:mb-1">
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleAddressExpansion(building.id) }}
-                    className="text-blue-600 font-medium text-sm hover:text-blue-800 transition-colors"
+                    className="text-blue-600 font-medium text-[10px] sm:text-sm hover:text-blue-800 transition-colors"
                   >
                     पता : {building.addressCount}
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleAddressExpansion(building.id) }}
-                    className="text-blue-600 hover:text-blue-800 transition-colors"
+                    className="text-blue-600 hover:text-blue-800 transition-colors flex-shrink-0"
                   >
                     {expandedCards.has(building.id) ? (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M7 14l5-5 5 5z"/>
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M7 10l5 5 5-5z"/>
                       </svg>
                     )}
@@ -309,15 +308,15 @@ const BuildingPramukh = ({ navigation }) => {
                 </div>
                 
                 {/* Voter Count */}
-                <p className="text-gray-800 text-sm">
+                <p className="text-gray-800 text-[10px] sm:text-sm">
                   मतदाता : {building.voters}
                 </p>
                 
                 {/* Expanded Address Details */}
                 {expandedCards.has(building.id) && (
-                  <div className="mt-2 space-y-1">
+                  <div className="mt-1 sm:mt-2 space-y-0.5 sm:space-y-1">
                     {building.addresses.map((address, addrIndex) => (
-                      <p key={addrIndex} className="text-gray-600 text-xs leading-relaxed">
+                      <p key={addrIndex} className="text-gray-600 text-[10px] sm:text-xs leading-relaxed">
                         {address}
                       </p>
                     ))}
@@ -327,28 +326,28 @@ const BuildingPramukh = ({ navigation }) => {
             </div>
             
             {/* Action Buttons */}
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
+            <div className="flex flex-col space-y-1 sm:space-y-2 flex-shrink-0 ml-1.5 sm:ml-0">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <button
                   onClick={(e) => { e.stopPropagation(); handleCall(building) }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
                   style={{backgroundColor: '#103a94'}}
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
                 >
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
                 </button>
                 
                 <button
                   onClick={(e) => { e.stopPropagation(); handleMoreOptions(building) }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
                   style={{backgroundColor: '#ea580c'}}
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#c2410c'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = '#ea580c'}
                 >
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                   </svg>
                 </button>
@@ -366,7 +365,7 @@ const BuildingPramukh = ({ navigation }) => {
                     setShowLastLoginModal(true)
                   }
                 }}
-                className={`px-3 py-1 rounded text-xs font-medium text-white w-full ${
+                className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium text-white w-full ${
                   (building.last_login && building.last_login.toString().trim() !== '') || 
                   (building.lastLogin && building.lastLogin.toString().trim() !== '')
                     ? 'bg-green-500 hover:bg-green-600 cursor-pointer'
@@ -717,7 +716,7 @@ const BuildingPramukh = ({ navigation }) => {
     )}
 
     {/* Edit Building Pramukh Modal */}
-    <EditBuildingPramukhModal
+    <AddBuildingPramukhModal
       isOpen={showEditModal}
       onClose={handleCloseEditModal}
       onSuccess={handleEditSuccess}

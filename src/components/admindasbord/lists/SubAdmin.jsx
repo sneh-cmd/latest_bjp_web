@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
-import CreateSubAdminModal from '../modals/CreateSubAdminModal'
+import CreateAdminBaseModal from '../modals/CreateAdminBaseModal.jsx'
 import SubAdminDetailModal from '../modals/SubAdminDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
@@ -705,20 +705,50 @@ const SubAdmin = ({ navigation }) => {
         />
 
         {/* Create Sub-Admin Modal */}
-        <CreateSubAdminModal
+        <CreateAdminBaseModal
           isOpen={showCreateModal}
           onClose={handleCloseCreateModal}
           onSubmit={handleSubmitSubAdmin}
           mode="create"
+          title={{
+            edit: 'सब ऐडमिन संपादित करें',
+            create: 'नया सब ऐडमिन'
+          }}
+          subtitle={{
+            edit: 'Edit Sub-Admin',
+            create: 'Create New Sub-Admin'
+          }}
+          submitButtonText={{
+            edit: 'अपडेट करें',
+            create: 'सब ऐडमिन बनाएं'
+          }}
+          inputId="subadmin-photo-upload"
+          namePlaceholder="Enter sub-admin name"
+          extraPayload={{ booth_javabdari: '0' }}
         />
 
         {/* Edit Sub-Admin Modal */}
-        <CreateSubAdminModal
+        <CreateAdminBaseModal
           isOpen={showEditModal}
           onClose={handleCloseEditModal}
           onSubmit={handleUpdateSubAdmin}
           editData={subAdminToEdit}
           mode="edit"
+          title={{
+            edit: 'सब ऐडमिन संपादित करें',
+            create: 'नया सब ऐडमिन'
+          }}
+          subtitle={{
+            edit: 'Edit Sub-Admin',
+            create: 'Create New Sub-Admin'
+          }}
+          submitButtonText={{
+            edit: 'अपडेट करें',
+            create: 'सब ऐडमिन बनाएं'
+          }}
+          inputId="subadmin-photo-upload"
+          namePlaceholder="Enter sub-admin name"
+          extraPayload={{ booth_javabdari: '0' }}
         />
 
         {/* Delete Confirmation Modal */}

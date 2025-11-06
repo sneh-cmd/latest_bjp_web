@@ -1567,9 +1567,13 @@ export const apiService = {
             }));
           }
         } else {
-          // Handle Success="0" for display_booth_pramukh_cadre - return empty array instead of error
-          if (soapAction === 'display_booth_pramukh_cadre' && parsedData.Success === "0") {
-            return [];
+          // Handle Success="0" for certain endpoints - return empty array instead of error
+          if (parsedData.Success === "0") {
+            // For display endpoints, Success="0" usually means no data found, which is valid
+            if (soapAction === 'display_booth_pramukh_cadre' || 
+                soapAction === 'display_booth_pramukh_by_sakti_pramukh') {
+              return [];
+            }
           }
           throw new Error(`API returned unsuccessful response: ${JSON.stringify(parsedData)}`);
         }

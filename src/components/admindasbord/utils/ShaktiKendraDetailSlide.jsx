@@ -7,6 +7,7 @@ import ShaktiKendraPramukhDetailModal from '../modals/ShaktiKendraPramukhDetailM
 import CreateShaktiKendraPramukhModal from '../modals/CreateShaktiKendraPramukhModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import AddBoothHeadModal from '../modals/AddBoothHeadModal'
+import BoothPramukhListModal from '../modals/BoothPramukhListModal'
 
 const ShaktiKendraDetailSlide = ({ 
   isVisible, 
@@ -45,10 +46,13 @@ const ShaktiKendraDetailSlide = ({
           name: item.name || '',
           mobileNo: item.mobileNo || item.mobile_no || '',
           designation: item.designation || '',
+          designation_sort: item.designation_sort || item.designationSort || '',
           photoPath: item.photoPath || item.photo_path || null,
           lastLogin: item.lastLogin || item.last_login || '',
           type: item.type || '',
-          subType: item.subType || item.sub_type || ''
+          subType: item.subType || item.sub_type || '',
+          idcardNo: item.idcardNo || item.idcard_no || '',
+          idcard_no: item.idcardNo || item.idcard_no || ''
         }))
         
         setCadreData(transformedData)
@@ -99,6 +103,13 @@ const ShaktiKendraDetailSlide = ({
     try {
       const apiData = await apiService.displayBoothPramukhBySaktiPramukh(mainAdminId, panelApiUrl)
       
+      // Handle empty array response (no booths assigned)
+      if (!apiData || !Array.isArray(apiData) || apiData.length === 0) {
+        setBoothData([])
+        setVoterData([])
+        return
+      }
+      
       // Transform API data to match component structure
       const transformedData = apiData.map(booth => ({
         id: booth.id,
@@ -121,7 +132,14 @@ const ShaktiKendraDetailSlide = ({
       setVoterData(voterTransformedData)
     } catch (err) {
       console.error('Error fetching booth data:', err)
-      setError(err.message)
+      // If error is about no data, set empty arrays instead of showing error
+      if (err.message && err.message.includes('Success":"0"')) {
+        setBoothData([])
+        setVoterData([])
+        setError(null) // Don't show error for no data
+      } else {
+        setError(err.message)
+      }
     } finally {
       setLoading(false)
     }
@@ -149,6 +167,8 @@ const ShaktiKendraDetailSlide = ({
   
   const [voterData, setVoterData] = useState([])
   const [showCreateMember, setShowCreateMember] = useState(false)
+  const [showEditMemberModal, setShowEditMemberModal] = useState(false)
+  const [memberToEdit, setMemberToEdit] = useState(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [selectedPramukhForModal, setSelectedPramukhForModal] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -157,6 +177,8 @@ const ShaktiKendraDetailSlide = ({
   const [pramukhToDelete, setPramukhToDelete] = useState(null)
   const [showAddBoothHeadModal, setShowAddBoothHeadModal] = useState(false)
   const [selectedBoothForHead, setSelectedBoothForHead] = useState(null)
+  const [showBoothPramukhListModal, setShowBoothPramukhListModal] = useState(false)
+  const [selectedBoothForList, setSelectedBoothForList] = useState(null)
 
   const handleCall = (pramukh) => {
     window.open(`tel:${pramukh.mobileNo || pramukh.phoneNumber}`, '_self')
@@ -183,12 +205,16 @@ const ShaktiKendraDetailSlide = ({
       photo: cadre.photoPath || '',
       responsibility: cadre.designation || 'शक्ति केन्द्र प्रमुख',
       designation: cadre.designation,
+      designation_sort: cadre.designation_sort || cadre.designationSort || '',
       isPhoto: !!cadre.photoPath,
       profileImage: null,
       boothNumbers: isMainPramukh && selectedPramukh.boothNumbers ? selectedPramukh.boothNumbers : [],
       type: cadre.type || 'SP',
       subType: cadre.subType || '',
-      lastLogin: cadre.lastLogin || null
+      sub_type: cadre.subType || '',
+      lastLogin: cadre.lastLogin || null,
+      idcardNo: cadre.idcardNo || cadre.idcard_no || '',
+      idcard_no: cadre.idcardNo || cadre.idcard_no || ''
     }
   }
 
@@ -206,6 +232,11 @@ const ShaktiKendraDetailSlide = ({
     // Transform the selected pramukh for edit modal
     const phoneNumber = selectedPramukhForModal?.phoneNumber || selectedPramukhForModal?.mobileNo || ''
     
+    // Check if this is a Co-Shakti Kendra Pramukh (organization member)
+    // Co-Pramukh has subType === 'SS'
+    const isCoPramukh = selectedPramukhForModal?.subType === 'SS' || 
+                       (selectedPramukhForModal?.subType || '').toUpperCase() === 'SS'
+    
     // Check if this is the main selected pramukh
     const isMainPramukh = selectedPramukh && selectedPramukhForModal && (
       selectedPramukhForModal.id === selectedPramukh.id || 
@@ -216,6 +247,38 @@ const ShaktiKendraDetailSlide = ({
       selectedPramukhForModal.adminId?.toString() === selectedPramukh.adminId?.toString()
     )
     
+    // If it's a Co-Pramukh (organization member), open CreateOrganizationMemberModal
+    if (isCoPramukh) {
+      const editData = selectedPramukhForModal ? {
+        id: selectedPramukhForModal.id || selectedPramukhForModal.adminId,
+        adminId: selectedPramukhForModal.id || selectedPramukhForModal.adminId,
+        admin_id: selectedPramukhForModal.id || selectedPramukhForModal.adminId,
+        name: selectedPramukhForModal.name,
+        phoneNumber: phoneNumber,
+        mobile: phoneNumber,
+        mobileNo: phoneNumber,
+        photo: selectedPramukhForModal.photo || selectedPramukhForModal.photoPath || '',
+        photoPath: selectedPramukhForModal.photoPath,
+        profileImage: selectedPramukhForModal.photoPath || selectedPramukhForModal.photo,
+        designation: selectedPramukhForModal.designation || selectedPramukhForModal.responsibility,
+        designation_sort: selectedPramukhForModal.designation_sort || '',
+        role: selectedPramukhForModal.designation_sort || '',
+        roleId: selectedPramukhForModal.designation_sort || '',
+        type: selectedPramukhForModal.type || 'SP',
+        subType: selectedPramukhForModal.subType || 'SS',
+        sub_type: selectedPramukhForModal.subType || 'SS',
+        idcardNo: selectedPramukhForModal.idcardNo || '',
+        idcard_no: selectedPramukhForModal.idcardNo || ''
+      } : null
+      
+      setMemberToEdit(editData)
+      setShowEditMemberModal(true)
+      setShowDetailModal(false)
+      setSelectedPramukhForModal(null)
+      return
+    }
+    
+    // Otherwise, it's the main pramukh - open CreateShaktiKendraPramukhModal
     // Get booth numbers - prefer from selectedPramukh if it's the main pramukh, otherwise from modal data
     const boothNumbers = isMainPramukh && selectedPramukh?.boothNumbers 
       ? selectedPramukh.boothNumbers 
@@ -325,6 +388,77 @@ const ShaktiKendraDetailSlide = ({
   const handleBoothCall = (booth) => {
     // Phone functionality - could be implemented if phone number is available
     console.log('Call booth:', booth)
+  }
+
+  const handleBoothWhatsApp = async (booth) => {
+    // If there are more than 1 booth heads, show the list modal
+    if (booth.totalBoothPramukh > 1) {
+      setSelectedBoothForList(booth)
+      setShowBoothPramukhListModal(true)
+      return
+    }
+
+    // If only 1 booth head or no booth heads, fetch phone number from booth pramukh cadre
+    let phoneNumber = booth.phoneNumber || booth.mobileNo || booth.mobile || booth.mobile_no || booth.phone
+    
+    // If not found and booth is assigned, fetch booth pramukh cadre to get phone number
+    if (booth.assigned && !phoneNumber) {
+      try {
+        const userData = localStorageManager.getUserData()
+        const apiUrl = panelApiUrl || userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
+        const boothNumber = booth.number || booth.id
+        
+        // Fetch booth pramukh cadre for this booth
+        const boothCadre = await apiService.displayBoothPramukhCadre(boothNumber, apiUrl)
+        
+        if (boothCadre && Array.isArray(boothCadre) && boothCadre.length > 0) {
+          // Get phone number from first booth head
+          const firstHead = boothCadre[0]
+          phoneNumber = firstHead.mobile_no || firstHead.mobileNo || firstHead.phoneNumber || firstHead.phone || firstHead.mobile || ''
+        }
+      } catch (err) {
+        console.error('Error fetching booth cadre:', err)
+      }
+    }
+
+    // If only 1 booth head, open WhatsApp directly
+    if (!phoneNumber) {
+      alert('Phone number not available')
+      return
+    }
+
+    // Remove all non-digit characters (spaces, dashes, +, etc.)
+    let formattedPhone = phoneNumber.replace(/\D/g, '')
+    
+    // Remove leading zeros
+    formattedPhone = formattedPhone.replace(/^0+/, '')
+    
+    // If number already starts with country code 91, use it as is
+    if (formattedPhone.startsWith('91')) {
+      // Remove the 91 prefix temporarily to check the actual number length
+      const actualNumber = formattedPhone.substring(2)
+      if (actualNumber.length === 10) {
+        // Valid format: 91XXXXXXXXXX
+        window.open(`https://wa.me/${formattedPhone}`, '_blank')
+        return
+      }
+    }
+    
+    // If number is exactly 10 digits, add country code 91
+    if (formattedPhone.length === 10) {
+      const formattedNumber = '91' + formattedPhone
+      window.open(`https://wa.me/${formattedNumber}`, '_blank')
+      return
+    }
+    
+    // If number is 12 digits and starts with 91, use as is
+    if (formattedPhone.length === 12 && formattedPhone.startsWith('91')) {
+      window.open(`https://wa.me/${formattedPhone}`, '_blank')
+      return
+    }
+    
+    // Invalid format
+    alert('Invalid phone number format. Please ensure it is a valid 10-digit Indian number.')
   }
 
   const handleBoothClick = (booth) => {
@@ -506,16 +640,19 @@ const ShaktiKendraDetailSlide = ({
                         e.stopPropagation()
                         handleBoothCall(booth)
                       }}
-                      className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-400 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors duration-200"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all hover:scale-105"
+                      style={{backgroundColor: '#103a94'}}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
                     >
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        // WhatsApp functionality
+                        handleBoothWhatsApp(booth)
                       }}
                       className="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors duration-200"
                     >
@@ -528,7 +665,7 @@ const ShaktiKendraDetailSlide = ({
                         e.stopPropagation()
                         // Profile functionality
                       }}
-                      className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors duration-200"
+                      className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-colors"
                     >
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -845,55 +982,60 @@ const ShaktiKendraDetailSlide = ({
       <div className="flex-1 px-4 py-4 space-y-4" style={{ backgroundColor: '#e5e8ff' }}>
         {/* Main Shakti Kendra Pramukh Section */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="text-white px-4 py-3 flex items-center justify-between" style={{ backgroundColor: '#102463' }}>
-            <h2 className="font-semibold text-lg">शक्ति केन्द्र प्रमुख</h2>
+          <div className="text-white px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between" style={{ backgroundColor: '#102463' }}>
+            <h2 className="font-semibold text-sm sm:text-lg">शक्ति केन्द्र प्रमुख</h2>
             <div className="w-8"></div>
           </div>
           {shouldShowMainPramukh && mainPramukhData ? (
-            <div className="p-4">
+            <div className="p-2 sm:p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                     {mainPramukhData.photoPath ? (
                       <img 
                         src={mainPramukhData.photoPath} 
                         alt={mainPramukhData.name}
-                        className="w-12 h-12 rounded-full object-cover"
+                        className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover"
                       />
                     ) : (
-                      <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                       </svg>
                     )}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800">{mainPramukhData.name}</h3>
-                    <p className="text-blue-600 text-sm">{mainPramukhData.mobileNo}</p>
-                    <p className="text-gray-600 text-sm">{mainPramukhData.designation || 'शक्ति केन्द्र प्रमुख'}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-gray-800 text-xs sm:text-base truncate">{mainPramukhData.name}</h3>
+                    <p className="text-blue-600 text-[10px] sm:text-sm truncate">{mainPramukhData.mobileNo}</p>
+                    <p className="text-gray-600 text-[10px] sm:text-sm truncate">{mainPramukhData.designation || 'शक्ति केन्द्र प्रमुख'}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleCall(mainPramukhData)}
-                    className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
-                  >
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </button>
-                  <button 
-                    onClick={() => {
-                      const modalData = transformCadreToModalFormat(mainPramukhData)
-                      setSelectedPramukhForModal(modalData)
-                      setShowDetailModal(true)
-                    }}
-                    className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors"
-                  >
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                    </svg>
-                  </button>
-                  <button className={`px-3 py-1 rounded text-sm font-medium ${
+                <div className="flex flex-col items-end space-y-1 sm:space-y-2 flex-shrink-0">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
+                    <button
+                      onClick={() => handleCall(mainPramukhData)}
+                      className="w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all hover:scale-105"
+                      style={{backgroundColor: '#103a94'}}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
+                    >
+                      <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const modalData = transformCadreToModalFormat(mainPramukhData)
+                        setSelectedPramukhForModal(modalData)
+                        setShowDetailModal(true)
+                      }}
+                      className="w-7 h-7 sm:w-10 sm:h-10 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <button className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded text-[10px] sm:text-sm font-medium ${
                     (mainPramukhData.lastLogin && mainPramukhData.lastLogin.trim() !== '') 
                       ? 'bg-green-500 text-white' 
                       : 'bg-red-500 text-white'
@@ -904,77 +1046,82 @@ const ShaktiKendraDetailSlide = ({
               </div>
             </div>
           ) : !mainPramukhData ? (
-            <div className="p-4 text-center text-gray-500">
-              <p>कोई शक्ति केन्द्र प्रमुख नहीं मिला</p>
+            <div className="p-2 sm:p-4 text-center text-gray-500">
+              <p className="text-xs sm:text-sm">कोई शक्ति केन्द्र प्रमुख नहीं मिला</p>
             </div>
           ) : searchQuery.trim() ? (
-            <div className="p-4 text-center text-gray-500">
-              <p>कोई परिणाम नहीं मिला</p>
+            <div className="p-2 sm:p-4 text-center text-gray-500">
+              <p className="text-xs sm:text-sm">कोई परिणाम नहीं मिला</p>
             </div>
           ) : null}
         </div>
 
         {/* Co-Shakti Kendra Pramukh Section */}
         <div className="bg-gray-100 rounded-lg shadow-sm overflow-hidden">
-          <div className="bg-gray-200 px-4 py-3 flex items-center justify-between border-b border-red-500">
-            <h2 className="font-semibold text-gray-700 text-lg">सह शक्ति केन्द्र प्रमुख</h2>
+          <div className="bg-gray-200 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between border-b border-red-500">
+            <h2 className="font-semibold text-gray-700 text-sm sm:text-lg">सह शक्ति केन्द्र प्रमुख</h2>
             <button 
               onClick={() => setShowCreateMember(true)} 
-              className="bg-blue-800 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-900 transition-colors"
+              className="bg-blue-800 text-white px-2 sm:px-4 py-1 sm:py-2 rounded text-xs sm:text-sm font-medium hover:bg-blue-900 transition-colors"
             >
               जोड़ें
             </button>
           </div>
           {filteredCoPramukhs.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
-              <p>{searchQuery.trim() ? 'कोई परिणाम नहीं मिला' : 'कोई सह शक्ति केन्द्र प्रमुख नहीं मिला'}</p>
+            <div className="p-2 sm:p-4 text-center text-gray-500">
+              <p className="text-xs sm:text-sm">{searchQuery.trim() ? 'कोई परिणाम नहीं मिला' : 'कोई सह शक्ति केन्द्र प्रमुख नहीं मिला'}</p>
             </div>
           ) : (
-            <div className="p-4 space-y-3">
+            <div className="p-2 sm:p-4 space-y-2 sm:space-y-3">
               {filteredCoPramukhs.map((coPramukh, index) => (
-                <div key={coPramukh.adminId || index} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                <div key={coPramukh.adminId || index} className="flex items-center justify-between bg-white rounded-lg p-2 sm:p-3 shadow-sm">
+                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                       {coPramukh.photoPath ? (
                         <img 
                           src={coPramukh.photoPath} 
                           alt={coPramukh.name}
-                          className="w-12 h-12 rounded-full object-cover"
+                          className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover"
                         />
                       ) : (
-                        <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                         </svg>
                       )}
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800">{coPramukh.name}</h3>
-                      <p className="text-blue-600 text-sm">{coPramukh.mobileNo}</p>
-                      <p className="text-gray-600 text-sm">{coPramukh.designation || 'सह शक्ति केन्द्र प्रमुख'}</p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-gray-800 text-xs sm:text-base truncate">{coPramukh.name}</h3>
+                      <p className="text-blue-600 text-[10px] sm:text-sm truncate">{coPramukh.mobileNo}</p>
+                      <p className="text-gray-600 text-[10px] sm:text-sm truncate">{coPramukh.designation || 'सह शक्ति केन्द्र प्रमुख'}</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleCall(coPramukh)}
-                      className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
-                    >
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                    </button>
-                    <button 
-                      onClick={() => {
-                        const modalData = transformCadreToModalFormat(coPramukh)
-                        setSelectedPramukhForModal(modalData)
-                        setShowDetailModal(true)
-                      }}
-                      className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center hover:bg-yellow-600 transition-colors"
-                    >
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                      </svg>
-                    </button>
-                    <button className={`px-3 py-1 rounded text-sm font-medium ${
+                  <div className="flex flex-col items-end space-y-1 sm:space-y-2 flex-shrink-0">
+                    <div className="flex items-center space-x-1 sm:space-x-2">
+                      <button
+                        onClick={() => handleCall(coPramukh)}
+                        className="w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all hover:scale-105"
+                        style={{backgroundColor: '#103a94'}}
+                        onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
+                        onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
+                      >
+                        <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          const modalData = transformCadreToModalFormat(coPramukh)
+                          setSelectedPramukhForModal(modalData)
+                          setShowDetailModal(true)
+                        }}
+                        className="w-7 h-7 sm:w-10 sm:h-10 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-colors"
+                      >
+                        <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                        </svg>
+                      </button>
+                    </div>
+                    <button className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded text-[10px] sm:text-sm font-medium ${
                       (coPramukh.lastLogin && coPramukh.lastLogin.trim() !== '') 
                         ? 'bg-green-500 text-white' 
                         : 'bg-red-500 text-white'
@@ -1258,6 +1405,24 @@ const ShaktiKendraDetailSlide = ({
         mainAdminId={mainAdminId}
       />
       
+      {/* Edit Organization Member Modal */}
+      <CreateOrganizationMemberModal
+        isOpen={showEditMemberModal}
+        onClose={() => {
+          setShowEditMemberModal(false)
+          setMemberToEdit(null)
+        }}
+        onSubmit={() => {
+          setShowEditMemberModal(false)
+          setMemberToEdit(null)
+          // Refresh cadre data after updating member
+          fetchShaktiKendraData()
+        }}
+        mainAdminId={mainAdminId}
+        editData={memberToEdit}
+        mode="edit"
+      />
+      
       <ShaktiKendraPramukhDetailModal
         pramukh={selectedPramukhForModal}
         onClose={() => {
@@ -1295,6 +1460,22 @@ const ShaktiKendraDetailSlide = ({
         boothNumber={selectedBoothForHead}
         onSave={handleBoothHeadSave}
         mode="create"
+      />
+      
+      {/* Booth Pramukh List Modal for WhatsApp */}
+      <BoothPramukhListModal
+        isOpen={showBoothPramukhListModal}
+        onClose={() => {
+          setShowBoothPramukhListModal(false)
+          setSelectedBoothForList(null)
+        }}
+        boothNumber={selectedBoothForList?.number || selectedBoothForList?.id}
+        onShowCadre={() => {
+          // Navigate to booth detail if needed
+          if (selectedBoothForList) {
+            handleBoothClick(selectedBoothForList)
+          }
+        }}
       />
       
       {/* Custom CSS for Scrollbar */}
