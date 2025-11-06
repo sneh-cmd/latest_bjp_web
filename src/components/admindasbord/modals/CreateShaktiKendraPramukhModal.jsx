@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import apiService, { displayAllBoothForSaktiAllocation } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
+import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
 
 const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData = null, mode = 'create', alreadyAssignedBooths = [] }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -8,6 +9,10 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
   const [name, setName] = useState('')
   const [mobile, setMobile] = useState('')
   const [photo, setPhoto] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
+  const [photoRemoved, setPhotoRemoved] = useState(false)
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [showBoothPicker, setShowBoothPicker] = useState(false)
   const [booths, setBooths] = useState([])
   const [loadingBooths, setLoadingBooths] = useState(false)
@@ -21,20 +26,113 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
       const boothNumbers = editData.boothNumbers || []
       setSelectedBooths(boothNumbers.map(booth => typeof booth === 'string' ? parseInt(booth.trim(), 10) : booth).filter(booth => !isNaN(booth)))
       setPhoto(null) // Reset photo, user can upload new one if needed
+      // Load existing photo if available
+      // Priority: photoPath > profileImage > photo (same as list view)
+      const existingPhoto = editData.photoPath || editData.profileImage || editData.photo
+      
+      console.log('Edit mode - Photo data:', {
+        photoPath: editData.photoPath,
+        profileImage: editData.profileImage,
+        photo: editData.photo,
+        isPhoto: editData.isPhoto,
+        existingPhoto: existingPhoto
+      })
+      
+      // If photo exists and is not empty, use it
+      // Don't be too strict with validation - let the browser handle invalid URLs
+      if (existingPhoto && existingPhoto.trim() !== '') {
+        let photoUrl = existingPhoto.trim()
+        
+        // If it's not a full URL and not starting with / or data:, try to construct proper URL
+        if (!photoUrl.startsWith('http') && !photoUrl.startsWith('/') && !photoUrl.startsWith('data:')) {
+          // If it contains image extensions, it's likely a filename/path
+          if (photoUrl.includes('.jpg') || photoUrl.includes('.jpeg') || 
+              photoUrl.includes('.png') || photoUrl.includes('.gif') ||
+              photoUrl.includes('.JPG') || photoUrl.includes('.JPEG') ||
+              photoUrl.includes('.PNG') || photoUrl.includes('.GIF')) {
+            // Prepend / to make it a relative path
+            photoUrl = '/' + photoUrl
+          } else {
+            // Even if no extension, if isPhoto flag is true, it might be a valid photo
+            // Try with / prefix
+            if (editData.isPhoto) {
+              photoUrl = '/' + photoUrl
+            }
+          }
+        }
+        
+        console.log('Setting photo preview URL:', photoUrl)
+        setExistingPhotoUrl(photoUrl)
+        setPhotoPreview(photoUrl)
+      } else {
+        console.log('No photo found or photo is empty')
+        setExistingPhotoUrl(null)
+        setPhotoPreview(null)
+      }
+      setPhotoRemoved(false)
     } else {
       // Reset form for create mode
       setName('')
       setMobile('')
       setSelectedBooths([])
       setPhoto(null)
+      setPhotoPreview(null)
+      setExistingPhotoUrl(null)
+      setPhotoRemoved(false)
     }
   }, [editData, mode, isOpen])
+
+  // Cleanup photo preview URL when component unmounts or photo changes
+  useEffect(() => {
+    return () => {
+      // Only revoke blob URLs (created from file uploads), not server URLs
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview)
+      }
+    }
+  }, [photoPreview])
 
   if (!isOpen) return null
 
   const handlePhotoUpload = (event) => {
     const file = event.target.files[0]
-    if (file) setPhoto(file)
+    if (file) {
+      // Clean up old preview URL if exists (only blob URLs)
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview)
+      }
+      setPhoto(file)
+      setPhotoRemoved(false) // Reset photoRemoved when new photo is uploaded
+      setExistingPhotoUrl(null) // Clear existing photo URL when new one is uploaded
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file)
+      setPhotoPreview(previewUrl)
+    }
+  }
+
+  const handleRemovePhotoClick = () => {
+    setShowRemoveConfirm(true)
+  }
+
+  const handleRemovePhotoConfirm = () => {
+    // Clean up object URL if it was created from file upload
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview)
+    }
+    setPhoto(null)
+    setPhotoPreview(null)
+    setExistingPhotoUrl(null)
+    setPhotoRemoved(true)
+    // Reset file input
+    const fileInput = document.getElementById('shakti-pramukh-photo-upload')
+    if (fileInput) {
+      fileInput.value = ''
+    }
+    setShowRemoveConfirm(false)
+  }
+
+  const handleRemovePhotoCancel = () => {
+    setShowRemoveConfirm(false)
   }
 
   const convertFileToBase64 = (file) => {
@@ -85,7 +183,14 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
     // Convert photo to base64 if present
     let photoBase64 = ''
     let photoName = ''
-    if (photo) {
+    
+    // If photo was removed in edit mode, send empty strings
+    if (photoRemoved && mode === 'edit') {
+      photoBase64 = ''
+      photoName = ''
+    } 
+    // If new photo is uploaded, convert it to base64
+    else if (photo) {
       try {
         const base64String = await convertFileToBase64(photo)
         // Remove data URL prefix if present (data:image/...;base64,)
@@ -96,6 +201,12 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
         alert('Failed to process photo. Please try again.')
         return
       }
+    }
+    // If in edit mode and no new photo uploaded and photo not removed, keep existing photo
+    else if (mode === 'edit' && existingPhotoUrl && !photoRemoved) {
+      // Keep existing photo - don't send base64, server will keep existing
+      photoName = editData.photo || ''
+      photoBase64 = '' // Empty base64 means keep existing photo on server
     }
 
     try {
@@ -111,7 +222,7 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
           sub_type: 'SP',
           name: name,
           mobile_no: mobile,
-          photo: photoName || editData.photo || '',
+          photo: photoRemoved ? '' : (photoName || editData.photo || ''),
           base64: photoBase64,
           idcard_no: '',
           booth_javabdari: booth_javabdari || '0',
@@ -236,29 +347,48 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
                 className="hidden"
                 id="shakti-pramukh-photo-upload"
               />
-              <label
-                htmlFor="shakti-pramukh-photo-upload"
-                className="w-full h-24 sm:h-32 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
-                style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
-              >
-                {photo ? (
-                  <div className="text-center">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              {photoPreview ? (
+                <div className="relative">
+                  <label
+                    htmlFor="shakti-pramukh-photo-upload"
+                    className="block w-full h-32 sm:h-40 rounded-lg border overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer transition-all hover:bg-gray-100"
+                    style={{borderColor: '#103a94'}}
+                    onMouseEnter={(e) => e.target.style.borderColor = '#0d2f7a'}
+                    onMouseLeave={(e) => e.target.style.borderColor = '#103a94'}
+                  >
+                    <img
+                      src={photoPreview}
+                      alt="Photo preview - Click to change"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleRemovePhotoClick}
+                    className="mt-2 text-red-600 text-xs sm:text-sm hover:text-red-700 transition-colors flex items-center space-x-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    <p className="text-xs sm:text-sm text-gray-600">Photo Selected</p>
-                  </div>
-                ) : (
+                    <span>Remove Photo</span>
+                  </button>
+                </div>
+              ) : (
+                <label
+                  htmlFor="shakti-pramukh-photo-upload"
+                  className="w-full h-24 sm:h-32 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
+                  style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
+                >
                   <div className="text-center">
                     <svg className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <p className="text-xs sm:text-sm" style={{color: '#103a94'}}>Click to upload photo</p>
                   </div>
-                )}
-              </label>
+                </label>
+              )}
             </div>
           </div>
 
@@ -320,6 +450,14 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
         </div>
       </div>
     )}
+
+      {/* Remove Photo Confirmation Modal */}
+      <RemovePhotoConfirmModal
+        isOpen={showRemoveConfirm}
+        onConfirm={handleRemovePhotoConfirm}
+        onCancel={handleRemovePhotoCancel}
+        zIndex={70}
+      />
     </>
   )
 }

@@ -618,57 +618,55 @@ const BuildingPramukh = ({ navigation }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-4 flex-shrink-0 shadow-lg" style={{backgroundColor: '#102463'}}>
-          <div className="flex items-center justify-between">
-            {/* Summary Statistics - Left side */}
-            <div className="px-2 sm:px-3 py-1 sm:py-2 rounded-lg" style={{backgroundColor: '#ffffff'}}>
-              <div className="flex items-center space-x-4 sm:space-x-6" style={{color: '#102463'}}>
-                <div className="text-center">
-                  <div className="text-base sm:text-lg font-bold">{totalAddresses}</div>
-                  <div className="text-xs">पता</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-base sm:text-lg font-bold">{totalPramukhs}</div>
-                  <div className="text-xs">प्रमुख</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-base sm:text-lg font-bold">{remainingAddresses}</div>
-                  <div className="text-xs">बाकी पता</div>
-                </div>
+        <div className="px-2 sm:px-4 py-2 sm:py-3 flex flex-row items-center justify-between flex-shrink-0 shadow-lg" style={{backgroundColor: '#102463'}}>
+          {/* Summary Statistics - Left side */}
+          <div className="px-1.5 sm:px-3 py-0.5 sm:py-2 rounded-lg" style={{backgroundColor: '#ffffff'}}>
+            <div className="flex items-center space-x-2 sm:space-x-6" style={{color: '#102463'}}>
+              <div className="text-center">
+                <div className="text-xs sm:text-lg font-bold">{totalAddresses}</div>
+                <div className="text-[10px] sm:text-xs">पता</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs sm:text-lg font-bold">{totalPramukhs}</div>
+                <div className="text-[10px] sm:text-xs">प्रमुख</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs sm:text-lg font-bold">{remainingAddresses}</div>
+                <div className="text-[10px] sm:text-xs leading-tight">बाकी पता</div>
               </div>
             </div>
-            
-            {/* Buttons - Right side */}
-            <div className="flex items-center gap-2 sm:gap-3">
+          </div>
+          
+          {/* Buttons - Right side */}
+          <div className="flex flex-row items-center gap-1.5 sm:gap-3">
               {/* Export Button */}
               <button 
                 onClick={handleExport}
-                className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
+                className="w-auto px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center justify-center space-x-1 sm:space-x-2 transition-all shadow-sm hover:shadow-md"
                 style={{backgroundColor: 'rgba(220, 38, 38, 0.87)'}}
                 onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(185, 28, 28, 0.85)'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(220, 38, 38, 0.87)'}
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1.8 18H6.2v-1.4h9.6V20zm0-2.8H6.2v-1.4h9.6v1.4zm0-2.8H6.2v-1.4h9.6v1.4zM13 9V3.5L18.5 9H13z"/>
                   <path d="M9 12h6v1.5H9V12zm0 2.5h6V16H9v-1.5zm0 2.5h6V18.5H9V17z"/>
                 </svg>
-                <span className="text-white text-xs sm:text-sm font-medium">Export</span>
+                <span className="text-white text-[10px] sm:text-sm font-medium">Export</span>
               </button>
 
               {/* Create Building Pramukh Button */}
               <button 
                 onClick={() => setShowAddModal(true)}
-                className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
+                className="w-auto px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center justify-center space-x-1 sm:space-x-2 transition-all shadow-sm hover:shadow-md"
                 style={{backgroundColor: '#ffffff'}}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" style={{color: '#102463'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5" style={{color: '#102463'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-                <span className="text-xs sm:text-sm font-medium" style={{color: '#102463'}}>बिल्डिंग प्रमुख बनाए</span>
+                <span className="text-[10px] sm:text-sm font-medium leading-tight" style={{color: '#102463'}}>बिल्डिंग प्रमुख बनाए</span>
               </button>
-            </div>
           </div>
         </div>
 

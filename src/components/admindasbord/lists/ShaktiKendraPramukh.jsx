@@ -445,20 +445,20 @@ const ShaktiKendraPramukh = ({ navigation }) => {
 
   // List View Render - matches the image layout
   const renderListView = () => (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-2 sm:space-y-4">
       {filteredPramukhs.map((pramukh, index) => (
         <div
           key={pramukh.id}
           onClick={() => handlePramukhClick(pramukh)}
-          className="bg-gray-50 rounded-lg p-3 sm:p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+          className="bg-gray-50 rounded-lg p-2 sm:p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
         >
-          <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="flex-shrink-0">
-              {renderProfileImage(pramukh, 'w-12 h-12 sm:w-16 sm:h-16')}
+              {renderProfileImage(pramukh, 'w-10 h-10 sm:w-16 sm:h-16')}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-gray-900 font-semibold text-sm sm:text-lg truncate">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <h3 className="text-gray-900 font-semibold text-xs sm:text-lg truncate">
                   {pramukh.name}
                 </h3>
                 <div className="flex items-center space-x-1 sm:space-x-2">
@@ -467,9 +467,9 @@ const ShaktiKendraPramukh = ({ navigation }) => {
                       e.stopPropagation()
                       handleCall(pramukh)
                     }}
-                    className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors"
+                    className="w-7 h-7 sm:w-10 sm:h-10 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors"
                   >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
                   </button>
@@ -479,15 +479,15 @@ const ShaktiKendraPramukh = ({ navigation }) => {
                       setSelectedPramukhForModal(pramukh)
                       setShowDetailModal(true)
                     }}
-                    className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-colors"
+                    className="w-7 h-7 sm:w-10 sm:h-10 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-colors"
                   >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                     </svg>
                   </button>
                 </div>
               </div>
-              <p className="text-blue-600 text-xs sm:text-sm mb-2 sm:mb-3 truncate">
+              <p className="text-blue-600 text-[10px] sm:text-sm mb-1 sm:mb-3 truncate">
                 {pramukh.phoneNumber}
               </p>
               <button
@@ -503,7 +503,7 @@ const ShaktiKendraPramukh = ({ navigation }) => {
                     toggleStatus(pramukh.id)
                   }
                 }}
-                className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                className={`px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-colors ${
                   pramukh.status === 'active'
                     ? 'bg-green-500 text-white hover:bg-green-600 cursor-pointer'
                     : 'bg-red-500 text-white hover:bg-red-600'
@@ -515,15 +515,15 @@ const ShaktiKendraPramukh = ({ navigation }) => {
           </div>
           
           {/* Booth Numbers Section */}
-          <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-gray-200">
-            <div className="flex items-center mb-2">
-              <span className="text-gray-700 text-xs sm:text-sm font-medium">बूथ नं. :</span>
+          <div className="mt-2 sm:mt-4 pt-1.5 sm:pt-3 border-t border-gray-200">
+            <div className="flex items-center mb-1 sm:mb-2">
+              <span className="text-gray-700 text-[10px] sm:text-sm font-medium">बूथ नं. :</span>
             </div>
             <div className="flex flex-wrap gap-1 sm:gap-2">
               {pramukh.boothNumbers.map((booth, idx) => (
                 <span
                   key={idx}
-                  className="px-2 sm:px-3 py-1 bg-gray-200 text-gray-800 rounded-full text-xs sm:text-sm font-medium"
+                  className="px-1.5 sm:px-3 py-0.5 sm:py-1 bg-gray-200 text-gray-800 rounded-full text-[10px] sm:text-sm font-medium"
                 >
                   {`${booth}`}
                 </span>
@@ -695,12 +695,12 @@ const ShaktiKendraPramukh = ({ navigation }) => {
         </div>
 
         {/* Footer - matches the image design */}
-        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-end flex-shrink-0 space-y-2 sm:space-y-0" style={{ backgroundColor: '#102463' }}>
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-row items-center justify-end flex-shrink-0 shadow-lg" style={{ backgroundColor: '#102463' }}>
+          <div className="flex flex-row items-center gap-2 sm:gap-3">
             {/* Export Button */}
             <button 
               onClick={handleExport}
-              className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
+              className="w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
               style={{backgroundColor: 'rgba(220, 38, 38, 0.87)'}}
               onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(185, 28, 28, 0.85)'}
               onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(220, 38, 38, 0.87)'}
@@ -715,7 +715,7 @@ const ShaktiKendraPramukh = ({ navigation }) => {
             {/* Create Shakti Kendra Pramukh Button */}
             <button 
               onClick={handleCreate}
-              className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
+              className="w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
               style={{backgroundColor: '#ffffff'}}
               onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
               onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}

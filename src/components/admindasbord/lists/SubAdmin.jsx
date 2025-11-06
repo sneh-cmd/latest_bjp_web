@@ -661,12 +661,12 @@ const SubAdmin = ({ navigation }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-end flex-shrink-0 shadow-lg space-y-2 sm:space-y-0" style={{backgroundColor: '#102463'}}>
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className="px-2 sm:px-4 py-3 sm:py-4 flex flex-row items-center justify-end flex-shrink-0 shadow-lg" style={{backgroundColor: '#102463'}}>
+          <div className="flex flex-row items-center gap-2 sm:gap-3">
             {/* Export Button */}
             <button 
               onClick={handleExport}
-              className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
+              className="w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
               style={{backgroundColor: 'rgba(220, 38, 38, 0.87)'}}
               onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(185, 28, 28, 0.85)'}
               onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(220, 38, 38, 0.87)'}
@@ -681,7 +681,7 @@ const SubAdmin = ({ navigation }) => {
             {/* Create Sub-Admin Button */}
             <button 
               onClick={handleCreateSubAdmin}
-              className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
+              className="w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
               style={{backgroundColor: '#ffffff'}}
               onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
               onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
