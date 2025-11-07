@@ -1387,6 +1387,19 @@ export const apiService = {
                 .split('%')
                 .map(s => s.trim())
                 .filter(Boolean);
+
+              const rawPhotoPath = item.photo_path || ''
+              const rawPhoto = item.photo || ''
+              let profileImage = null
+
+              if (rawPhotoPath && rawPhoto) {
+                profileImage = `${rawPhotoPath}${rawPhoto}`
+              } else if (rawPhoto && rawPhoto.trim().startsWith('data:image')) {
+                profileImage = rawPhoto.trim()
+              } else if (rawPhoto && /^[A-Za-z0-9+/=]+$/.test(rawPhoto) && rawPhoto.length > 50) {
+                profileImage = `data:image/jpeg;base64,${rawPhoto}`
+              }
+
               return {
                 id: item.admin_id ?? idx,
                 name: item.name || '—',
@@ -1395,7 +1408,9 @@ export const apiService = {
                 voters: Number(item.total_voter || 0),
                 status: (Number(item.building_count || 0) > 0) ? 'active' : 'inactive',
                 phoneNumber: item.mobile_no || '',
-                profileImage: item.photo_path && item.photo ? `${item.photo_path}${item.photo}` : null,
+                profileImage,
+                photoPath: rawPhotoPath,
+                photo: rawPhoto,
                 lastLogin: item.last_login || '',
                 last_login: item.last_login || '' // Include both camelCase and snake_case for compatibility
               };

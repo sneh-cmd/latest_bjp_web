@@ -49,8 +49,8 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
             photoUrl = '/' + photoUrl
           }
         }
-        setExistingPhotoUrl(photoUrl)
-        setPhotoPreview(photoUrl)
+        setExistingPhotoUrl(building.photoPath)
+        setPhotoPreview(building.photoPath)
       } else {
         setExistingPhotoUrl(null)
         setPhotoPreview(null)
@@ -218,6 +218,22 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
     })
   }
 
+  const sanitizeFileName = (fileName = '') => {
+    if (!fileName) return ''
+    const timestamp = Date.now()
+    const dotIndex = fileName.lastIndexOf('.')
+    const base = dotIndex > 0 ? fileName.slice(0, dotIndex) : fileName
+    const ext = dotIndex > 0 ? fileName.slice(dotIndex).toLowerCase() : ''
+    const safeBase = base
+      .toString()
+      .normalize('NFKD')
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .toLowerCase() || 'photo'
+    return `building_${timestamp}_${safeBase}${ext}`
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
@@ -269,8 +285,8 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
         try {
           const base64String = await convertFileToBase64(formData.photo)
           // Remove data URL prefix if present (data:image/...;base64,)
-          photoBase64 = base64String.replace(/^data:image\/[a-z]+;base64,/, '')
-          photoName = formData.photo.name
+          photoBase64 = base64String.replace(/^data:image\/[a-zA-Z]+;base64,/, '')
+          photoName = sanitizeFileName(formData.photo.name)
         } catch (error) {
           console.error('Error converting photo to base64:', error)
           alert('फोटो प्रोसेस करने में त्रुटि. कृपया पुनः प्रयास करें.')

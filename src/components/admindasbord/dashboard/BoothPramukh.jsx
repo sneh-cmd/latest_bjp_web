@@ -49,7 +49,18 @@ const BoothPramukh = ({ navigation }) => {
         const apiData = await apiService.displayBoothPramukh(panelApiUrl)
         
         // Transform API data to match component structure
-        const transformedData = apiData.map((booth, index) => ({
+        const transformedData = apiData.map((booth, index) => {
+          const rawHeadName = sanitizeHeadField(booth.headName)
+          const normalizedHeadName = rawHeadName.toLowerCase()
+          const isPlaceholderName = !rawHeadName || normalizedHeadName === 'unassigned' || normalizedHeadName === `booth head ${booth.boothNo}`.toLowerCase()
+          const primaryRole = sanitizeHeadField(booth.headRole || booth.designation || booth.role, { allowFallback: true, fallback: 'बुथ प्रमुख' })
+          const primaryPhone = sanitizeHeadField(booth.headPhone || booth.mobileNo)
+
+          const initialHeadDetails = !isPlaceholderName && rawHeadName
+            ? [createHeadEntry({ name: rawHeadName, phone: primaryPhone, role: primaryRole })]
+            : []
+
+          return {
           id: parseInt(booth.boothNo) || index + 1,
           boothNumber: parseInt(booth.boothNo) || 0,
           voters: booth.voterCount || 0,
@@ -58,10 +69,13 @@ const BoothPramukh = ({ navigation }) => {
           profileImage: booth.photoPath || null,
           photoPath: booth.photoPath || null,
           isPhoto: Boolean(booth.photoPath && booth.photoPath.trim() !== ''),
-          name: booth.totalBoothPramukh > 0 ? `Booth Head ${booth.boothNo}` : 'Unassigned',
-          phoneNumber: booth.mobileNo || '',
-          status: booth.last_login && booth.last_login.trim() !== '' ? 'active' : 'inactive'
-        }))
+            name: rawHeadName || (booth.totalBoothPramukh > 0 ? `Booth Head ${booth.boothNo}` : 'Unassigned'),
+            phoneNumber: primaryPhone,
+            status: booth.status || (booth.last_login && booth.last_login.trim() !== '' ? 'active' : 'inactive'),
+            role: primaryRole,
+          headDetails: initialHeadDetails
+        }
+        })
         
         console.log('Transformed booth data:', transformedData)
         setBoothData(transformedData)
@@ -164,13 +178,63 @@ const BoothPramukh = ({ navigation }) => {
     setShowAddBoothHeadModal(true)
   }
 
-  const handleExport = () => {
+  const sanitizeHeadField = (value, { allowFallback = false, fallback = '' } = {}) => {
+    if (value === null || value === undefined) {
+      return allowFallback ? fallback : ''
+    }
+    const trimmed = value.toString().trim()
+    if (trimmed === '' && allowFallback) {
+      return fallback
+    }
+    return trimmed
+  }
+
+  const createHeadEntry = ({ name, phone, role }) => {
+    return {
+      name: sanitizeHeadField(name),
+      phone: sanitizeHeadField(phone),
+      role: sanitizeHeadField(role, { allowFallback: true, fallback: 'बुथ प्रमुख' })
+    }
+  }
+
+  const isPlaceholderHeadName = (name = '', boothNumber) => {
+    const trimmed = sanitizeHeadField(name)
+    if (trimmed === '' || trimmed.toLowerCase() === 'unassigned') return true
+    const generatedName = `booth head ${boothNumber}`.toLowerCase()
+    return trimmed.toLowerCase() === generatedName
+  }
+
+  const extractBoothHeadsFromCadre = (cadreList = []) => {
+    if (!Array.isArray(cadreList)) return []
+    return cadreList
+      .filter(cadre => {
+        const subType = cadre.sub_type || cadre.subType || ''
+        const type = cadre.type || ''
+        const designation = cadre.designation || cadre.role || ''
+
+        const isBoothHeadByType = type === 'BP' && (subType === 'BP' || !subType || subType === '')
+        const isBoothHeadByRole = designation === 'बुथ प्रमुख' || designation === 'Booth Pramukh' ||
+                                  designation === 'बूथ प्रमुख' || cadre.role === 'बुथ प्रमुख'
+        const isNotCoIncharge = subType !== 'BS' &&
+                                designation !== 'बुथ सह इनचार्ज' &&
+                                designation !== 'Co Incharge' &&
+                                cadre.role !== 'बुथ सह इनचार्ज'
+        return (isBoothHeadByType || isBoothHeadByRole) && isNotCoIncharge
+      })
+      .map(cadre => createHeadEntry({
+        name: cadre.name || cadre.full_name,
+        phone: cadre.phone || cadre.mobile || cadre.mobile_no || cadre.mobileNo || cadre.phoneNumber,
+        role: cadre.role || cadre.designation
+      }))
+  }
+
+  const handleExport = async () => {
     try {
       // Filter booths based on search query (same logic as filteredBooths)
       const filteredData = boothData.filter(booth =>
         booth.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         booth.boothNumber.toString().includes(searchQuery) ||
-        booth.phoneNumber.includes(searchQuery)
+        (booth.phoneNumber || '').includes(searchQuery)
       )
       
       if (filteredData.length === 0) {
@@ -178,14 +242,99 @@ const BoothPramukh = ({ navigation }) => {
         return
       }
 
+      const headDetailsMap = {}
+
+      const userData = localStorageManager.getUserData()
+      const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
+
+      for (const booth of filteredData) {
+        if (!booth.heads || booth.heads <= 0) {
+          continue
+        }
+
+        if (headDetailsMap[booth.boothNumber]) {
+          continue
+        }
+
+        let headEntries = Array.isArray(booth.headDetails) && booth.headDetails.length
+          ? booth.headDetails.map(entry => createHeadEntry(entry))
+          : []
+
+        if (!headEntries.length && !isPlaceholderHeadName(booth.name, booth.boothNumber)) {
+          headEntries.push(createHeadEntry({
+            name: booth.name,
+            phone: booth.phoneNumber,
+            role: booth.role
+          }))
+        }
+
+        try {
+          const cadreList = await apiService.displayBoothPramukhCadre(booth.boothNumber, panelApiUrl)
+          const extractedHeads = extractBoothHeadsFromCadre(cadreList)
+          if (extractedHeads.length) {
+            headEntries = headEntries.concat(extractedHeads)
+          }
+        } catch (error) {
+          console.error('Error fetching booth head details for export:', error)
+        }
+
+        if (!headEntries.length) {
+          headEntries.push(createHeadEntry({
+            name: booth.name,
+            phone: booth.phoneNumber,
+            role: booth.role
+          }))
+        }
+
+        const seenEntries = new Set()
+        const uniqueEntries = headEntries.reduce((acc, entry) => {
+          const key = `${entry.name.toLowerCase()}|${entry.phone}|${entry.role.toLowerCase()}`
+          if (!seenEntries.has(key)) {
+            seenEntries.add(key)
+            acc.push(entry)
+          }
+          return acc
+        }, [])
+
+        headDetailsMap[booth.boothNumber] = uniqueEntries
+
+        if (uniqueEntries.length) {
+          const combinedName = uniqueEntries.map(h => h.name).filter(Boolean).join(', ') || sanitizeHeadField(booth.name)
+          const combinedPhone = uniqueEntries.map(h => h.phone).filter(Boolean).join(', ') || sanitizeHeadField(booth.phoneNumber)
+          const combinedRole = uniqueEntries.map(h => h.role).filter(Boolean).join(', ') || sanitizeHeadField(booth.role, { allowFallback: true, fallback: 'बुथ प्रमुख' })
+
+          setBoothData(prev => prev.map(item =>
+            item.boothNumber === booth.boothNumber
+              ? {
+                  ...item,
+                  name: combinedName || item.name,
+                  phoneNumber: combinedPhone || item.phoneNumber,
+                  role: combinedRole || item.role,
+                  headDetails: uniqueEntries
+                }
+              : item
+          ))
+        }
+      }
+
       // Transform data to Excel format with headers
-      const excelData = filteredData.map((booth, index) => ({
-        'Sr. No.': index + 1,
-        'Booth Number': booth.boothNumber || '',
-        'Voters': booth.voters || 0,
-        'Heads': booth.heads || 0,
-        'Status': booth.assigned ? 'Assigned' : 'Unassigned'
-      }))
+      const excelData = filteredData.map((booth, index) => {
+        const headEntries = (headDetailsMap[booth.boothNumber] || []).map(createHeadEntry)
+        const headNames = headEntries.map(h => h.name).filter(Boolean)
+        const headPhones = headEntries.map(h => h.phone).filter(Boolean)
+        const headRoles = headEntries.map(h => h.role).filter(Boolean)
+
+        return {
+          'Sr. No.': index + 1,
+          'Booth Number': booth.boothNumber || '',
+          'Voters': booth.voters || 0,
+          'Heads': booth.heads || 0,
+          'Status': booth.assigned ? 'Assigned' : 'Unassigned',
+          'Head Name': headNames.length ? headNames.join(', ') : sanitizeHeadField(booth.name),
+          'Head Phone': headPhones.length ? headPhones.join(', ') : sanitizeHeadField(booth.phoneNumber),
+          'Head Role': headRoles.length ? headRoles.join(', ') : sanitizeHeadField(booth.role, { allowFallback: true, fallback: 'बुथ प्रमुख' })
+        }
+      })
 
       // Create a new workbook
       const wb = XLSX.utils.book_new()
@@ -199,7 +348,10 @@ const BoothPramukh = ({ navigation }) => {
         { wch: 12 },  // Booth Number
         { wch: 10 },  // Voters
         { wch: 10 },  // Heads
-        { wch: 12 }   // Status
+        { wch: 12 },  // Status
+        { wch: 25 },  // Head Name
+        { wch: 25 },  // Head Phone
+        { wch: 18 }   // Head Role
       ]
       ws['!cols'] = colWidths
       
@@ -227,7 +379,13 @@ const BoothPramukh = ({ navigation }) => {
             status: boothHeadData.last_login && boothHeadData.last_login.trim() !== '' ? 'active' : 'inactive',
             name: boothHeadData.name,
             phoneNumber: boothHeadData.phone,
-            heads: 1
+            heads: 1,
+            role: boothHeadData.role || booth.role || 'बुथ प्रमुख',
+            headDetails: [createHeadEntry({
+              name: boothHeadData.name,
+              phone: boothHeadData.phone,
+              role: boothHeadData.role
+            })]
           }
         : booth
     ))
@@ -238,7 +396,7 @@ const BoothPramukh = ({ navigation }) => {
   const filteredBooths = boothData.filter(booth =>
     booth.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     booth.boothNumber.toString().includes(searchQuery) ||
-    booth.phoneNumber.includes(searchQuery)
+    (booth.phoneNumber || '').includes(searchQuery)
   )
 
   const totalBooths = boothData.length

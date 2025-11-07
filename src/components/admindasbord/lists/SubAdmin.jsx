@@ -307,15 +307,19 @@ const SubAdmin = ({ navigation }) => {
       const subAdminToUpdate = subAdminToEdit || subAdminData.find(subAdmin => subAdmin.id === data.adminId || subAdmin.adminId === data.admin_id)
       
       // Prepare payload for update_admin API
-      // If no new photo is provided, preserve existing photo (empty strings will keep existing photo on server)
+      // If no new photo is provided, preserve existing photo unless the user removed it in the modal
+      const shouldRemovePhoto = data.photoRemoved === true
+      const photoValue = shouldRemovePhoto ? '' : (data.photo || subAdminToUpdate?.photo || '')
+      const base64Value = shouldRemovePhoto ? '' : (data.base64 || '')
+
       const payload = {
         admin_id: data.admin_id || data.adminId || subAdminToUpdate?.adminId || subAdminToUpdate?.id,
         type: subAdminToUpdate?.type || 'SA',
         sub_type: subAdminToUpdate?.subType || subAdminToUpdate?.sub_type || 'SA',
         name: data.name || '',
         mobile_no: data.mobile || '',
-        photo: data.photo || subAdminToUpdate?.photo || '',
-        base64: data.base64 || '', // Only send base64 if a new photo was uploaded
+        photo: photoValue,
+        base64: base64Value, // Only send base64 if a new photo was uploaded
         idcard_no: subAdminToUpdate?.idcardNo || '',
         booth_javabdari: data.booth_javabdari || subAdminToUpdate?.booth_javabdari || '0',
         page_javabdari: '',

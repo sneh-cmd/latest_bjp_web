@@ -46,6 +46,7 @@ const BuildingPramukh = ({ navigation }) => {
       const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
 
       const resp = await displayBuildingPramukh(panelApiUrl)
+      console.log("data fetched successfully", resp)
       setBuildingData(resp.list || [])
       setSummary(resp.summary || { total_address: 0, matched_address: 0 })
       setLoading(false)
@@ -242,17 +243,48 @@ const BuildingPramukh = ({ navigation }) => {
   }
 
   const renderProfileImage = (building, size = 'w-12 h-12') => {
-    if (building.profileImage) {
+    const resolvedPhoto = (() => {
+      if (building.photoPath) return building.photoPath
+      if (building.photoPath) {
+        const trimmed = building.photo.toString().trim()
+        if (trimmed.startsWith('data:image')) return trimmed
+        if (/^[A-Za-z0-9+/=]+$/.test(trimmed)) {
+          return `data:image/jpeg;base64,${trimmed}`
+        }
+      }
+      if (building.photoPath && building.photo) {
+        return `${building.photoPath}${building.photo}`
+      }
+      return null
+    })()
+
+    if (resolvedPhoto) {
+      const src = resolvedPhoto.startsWith('http') || resolvedPhoto.startsWith('data:') || resolvedPhoto.startsWith('blob:')
+        ? resolvedPhoto
+        : resolvedPhoto.startsWith('/')
+          ? resolvedPhoto
+          : `/${resolvedPhoto}`
       return (
-        <img
-          src={building.profileImage}
-          alt={building.name}
-          className={`${size} rounded-full object-cover border-2 border-gray-200`}
-          onError={(e) => {
-            e.target.style.display = 'none'
-            e.target.nextSibling.style.display = 'flex'
-          }}
-        />
+        <div className="relative">
+          <img
+            src={src}
+            alt={building.name}
+            className={`${size} rounded-full object-cover border-2 border-gray-200`}
+            onError={(e) => {
+              e.target.style.display = 'none'
+              const fallback = e.target.nextElementSibling
+              if (fallback) fallback.style.display = 'flex'
+            }}
+          />
+          <div
+            className={`${size} rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200`}
+            style={{ display: 'none' }}
+          >
+            <span className="text-white text-sm font-bold">
+              {building.name ? building.name.charAt(0).toUpperCase() : 'B'}
+            </span>
+          </div>
+        </div>
       )
     } else {
       // Generate initials from name

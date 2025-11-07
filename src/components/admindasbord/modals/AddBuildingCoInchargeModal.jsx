@@ -1,25 +1,145 @@
 import React, { useState, useEffect } from 'react'
 import { apiService } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
+import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
 
-const AddBuildingCoInchargeModal = ({ isOpen, onClose, onSave, buildingId }) => {
+const AddBuildingCoInchargeModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  onSuccess,
+  buildingId,
+  person = null
+}) => {
+  const isEditMode = !!person
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     photo: null
   })
   const [loading, setLoading] = useState(false)
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
+  const [photoBase64, setPhotoBase64] = useState('')
+  const [photoName, setPhotoName] = useState('')
+  const [photoRemoved, setPhotoRemoved] = useState(false)
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
 
-  // Reset form when modal opens
+  const resetForm = () => {
+    setFormData({ name: '', phone: '', photo: null })
+    setPhotoPreview(null)
+    setExistingPhotoUrl(null)
+    setPhotoBase64('')
+    setPhotoName('')
+    setPhotoRemoved(false)
+    setShowRemoveConfirm(false)
+    const addInput = document.getElementById('building-coincharge-photo-input')
+    if (addInput) addInput.value = ''
+    const editInput = document.getElementById('edit-building-coincharge-photo-input')
+    if (editInput) editInput.value = ''
+  }
+
+  const resolveExistingPhotoUrl = (entity) => {
+    if (!entity) return null
+
+    const ensureBaseUrl = (url) => {
+      const fallback = 'http://ntmc2.mhbjplok.com'
+      if (!url) return fallback
+      let normalized = url.toString().trim()
+      if (!normalized) return fallback
+      if (/\/webservice\.asmx$/i.test(normalized)) {
+        normalized = normalized.replace(/\/webservice\.asmx$/i, '')
+      }
+      if (!/^https?:\/\//i.test(normalized)) {
+        if (normalized.startsWith('//')) {
+          normalized = `https:${normalized}`
+        } else {
+          normalized = `http://${normalized.replace(/^\/+/, '')}`
+        }
+      }
+      return normalized.replace(/\/$/, '') || fallback
+    }
+
+    const userData = localStorageManager.getUserData()
+    const baseUrl = ensureBaseUrl(userData?.panel?.apiUrl)
+
+    const normalizeCandidate = (value) => {
+      if (value == null) return null
+      const str = value.toString().trim()
+      if (!str || str.toLowerCase() === 'null' || str.toLowerCase() === 'undefined') return null
+      if (str.startsWith('data:image')) return str
+      if (/^[A-Za-z0-9+/=]{60,}$/.test(str)) return `data:image/jpeg;base64,${str}`
+      if (/^https?:\/\//i.test(str)) return str
+      if (str.startsWith('//')) return `https:${str}`
+      if (str.startsWith('blob:')) return str
+
+      let path = str.replace(/\\/g, '/').replace(/^\.\/+/, '')
+      if (/^\/?img\//i.test(path)) {
+        if (!path.startsWith('/')) path = `/${path}`
+        return `${baseUrl}${path}`
+      }
+      if (/^\/upload_/i.test(path) || /^\/.*\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(path)) {
+        return `${baseUrl}${path}`
+      }
+      if (/^upload_/i.test(path)) {
+        return `${baseUrl}/${path}`
+      }
+      if (path.startsWith('/')) {
+        return `${baseUrl}${path}`
+      }
+      return `${baseUrl}/${path}`
+    }
+
+    const { profileImage, photoPath, photo } = entity
+    const candidates = [
+      profileImage,
+      photoPath,
+      photo
+    ]
+
+    for (const candidate of candidates) {
+      const normalized = normalizeCandidate(candidate)
+      if (normalized) return normalized
+    }
+    return null
+  }
+
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) {
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview)
+      }
+      resetForm()
+      return
+    }
+
+    if (isEditMode && person) {
       setFormData({
-        name: '',
-        phone: '',
+        name: person.name || '',
+        phone: person.phone || person.phoneNumber || person.mobile_no || person.mobileNo || '',
         photo: null
       })
+      const resolved = resolveExistingPhotoUrl(person)
+      setExistingPhotoUrl(resolved)
+      setPhotoPreview(resolved)
+      setPhotoBase64('')
+      setPhotoName(person?.photoPath || person?.profileImage || person?.photo || '')
+      setPhotoRemoved(false)
+      const inputId = isEditMode ? 'edit-building-coincharge-photo-input' : 'building-coincharge-photo-input'
+      const fileInput = document.getElementById(inputId)
+      if (fileInput) fileInput.value = ''
+    } else {
+      resetForm()
     }
-  }, [isOpen])
+  }, [isOpen, isEditMode, person])
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview)
+      }
+    }
+  }, [photoPreview])
 
   if (!isOpen) return null
 
@@ -44,19 +164,56 @@ const AddBuildingCoInchargeModal = ({ isOpen, onClose, onSave, buildingId }) => 
     return firstDigit === '6' || firstDigit === '9'
   }
 
-  const handlePhotoChange = (e) => {
+  const handlePhotoChange = async (e) => {
     const file = e.target.files && e.target.files[0]
-    if (file) {
-      setFormData(prev => ({ ...prev, photo: file }))
+    if (!file) return
+
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview)
+    }
+
+    setFormData(prev => ({ ...prev, photo: file }))
+    setPhotoRemoved(false)
+    setShowRemoveConfirm(false)
+    const previewUrl = URL.createObjectURL(file)
+    setPhotoPreview(previewUrl)
+    setExistingPhotoUrl(null)
+
+    try {
+      const base64String = await convertFileToBase64(file)
+      const cleanedBase64 = base64String.replace(/^data:image\/[a-zA-Z]+;base64,/, '')
+      setPhotoBase64(cleanedBase64)
+      setPhotoName(sanitizeFileName(file.name))
+    } catch (error) {
+      console.error('Error converting photo to base64:', error)
+      alert('फोटो प्रोसेस करने में त्रुटि. कृपया पुनः प्रयास करें.')
+      setPhotoBase64('')
+      setPhotoName('')
     }
   }
 
-  const handleRemovePhoto = () => {
-    setFormData(prev => ({ ...prev, photo: null }))
+  const handleRemovePhotoClick = () => {
+    setShowRemoveConfirm(true)
   }
 
-  const handlePhotoButtonClick = () => {
-    document.getElementById('building-coincharge-photo-input').click()
+  const handleRemovePhotoConfirm = () => {
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview)
+    }
+    setFormData(prev => ({ ...prev, photo: null }))
+    setPhotoPreview(null)
+    setExistingPhotoUrl(null)
+    setPhotoBase64('')
+    setPhotoName('')
+    setPhotoRemoved(true)
+    const inputId = isEditMode ? 'edit-building-coincharge-photo-input' : 'building-coincharge-photo-input'
+    const fileInput = document.getElementById(inputId)
+    if (fileInput) fileInput.value = ''
+    setShowRemoveConfirm(false)
+  }
+
+  const handleRemovePhotoCancel = () => {
+    setShowRemoveConfirm(false)
   }
 
   const convertFileToBase64 = (file) => {
@@ -66,6 +223,22 @@ const AddBuildingCoInchargeModal = ({ isOpen, onClose, onSave, buildingId }) => 
       reader.onload = () => resolve(reader.result)
       reader.onerror = error => reject(error)
     })
+  }
+
+  const sanitizeFileName = (fileName = '') => {
+    if (!fileName) return ''
+    const timestamp = Date.now()
+    const dotIndex = fileName.lastIndexOf('.')
+    const base = dotIndex > 0 ? fileName.slice(0, dotIndex) : fileName
+    const ext = dotIndex > 0 ? fileName.slice(dotIndex).toLowerCase() : ''
+    const safeBase = base
+      .toString()
+      .normalize('NFKD')
+      .replace(/[^a-zA-Z0-9]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .toLowerCase() || 'photo'
+    return `coincharge_${timestamp}_${safeBase}${ext}`
   }
 
   const handleSubmit = async (e) => {
@@ -91,44 +264,6 @@ const AddBuildingCoInchargeModal = ({ isOpen, onClose, onSave, buildingId }) => 
     
     setLoading(true)
     try {
-      // Convert photo to base64 if present
-      let photoBase64 = ''
-      let photoName = ''
-      if (formData.photo) {
-        photoBase64 = await convertFileToBase64(formData.photo)
-        // Remove data URL prefix if present (data:image/...;base64,)
-        photoBase64 = photoBase64.replace(/^data:image\/[a-z]+;base64,/, '')
-        photoName = formData.photo.name
-      }
-
-      // Prepare data for API - Building Co Incharge
-      // Same structure as Building Pramukh but with sub_type='AS' and empty add
-      // main_admin_id should be the building ID to link co-incharge to the building
-      // Convert buildingId to string and validate it's a real ID (not 0, '0', 1, or '1')
-      let buildingMainAdminId = '0'
-      
-      if (buildingId) {
-        const idStr = String(buildingId).trim()
-        // Only use if it's a valid number and not 0, 1, or their string equivalents
-        if (idStr && idStr !== '0' && idStr !== '1' && idStr !== 'undefined' && idStr !== 'null') {
-          buildingMainAdminId = idStr
-        }
-      }
-      
-      // Warn if we're about to save with invalid ID
-      if (buildingMainAdminId === '0') {
-        console.warn('⚠️ WARNING: Building ID is invalid or not provided!', {
-          buildingId,
-          type: typeof buildingId,
-          buildingMainAdminId
-        })
-        const userConfirm = confirm('⚠️ Building ID नहीं मिला!\n\nCo-incharge बिल्डिंग से link नहीं होगा.\n\nफिर भी save करें?')
-        if (!userConfirm) {
-          setLoading(false)
-          return // User cancelled
-        }
-      }
-      
       // Get or fallback to default API URL
       const userData = localStorageManager.getUserData()
       const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com'
@@ -136,56 +271,122 @@ const AddBuildingCoInchargeModal = ({ isOpen, onClose, onSave, buildingId }) => 
       // Get login ID (admin ID) from user data for create_by field
       const loginId = userData?.admin?.adminId || userData?.admin?.id || '1'
       
-      console.log('🔍 Debug Info:', {
-        userData: userData,
-        admin: userData?.admin,
-        loginId: loginId,
-        buildingId: buildingId,
-        buildingMainAdminId: buildingMainAdminId
-      })
-      
-      const adminData = {
-        type: 'AP', // Building Pramukh type (NOT BP - that's for Booth Head)
-        sub_type: 'AS', // Building Co Incharge sub_type (NOT BS - that's for Booth Co-incharge)
-        main_admin_id: buildingMainAdminId, // Link to building
-        name: formData.name.trim(),
-        mobile_no: formData.phone.trim(),
-        photo: photoName || '',
-        base64: photoBase64 || '',
-        idcard_no: '0',
-        booth_javabdari: '0',
-        page_javabdari: '0',
-        add: '', // Empty address for building co-incharge
-        create_by: loginId // Use login ID instead of hardcoded '1'
+      let finalPhotoName = ''
+      let finalPhotoBase64 = ''
+
+      if (formData.photo) {
+        finalPhotoName = photoName || sanitizeFileName(formData.photo.name)
+        finalPhotoBase64 = photoBase64
+        if (!finalPhotoBase64) {
+          const base64String = await convertFileToBase64(formData.photo)
+          finalPhotoBase64 = base64String.replace(/^data:image\/[a-zA-Z]+;base64,/, '')
+        }
       }
-      
-      console.log('🏗️ Building Co-incharge submission:', {
-        '📥 Received buildingId prop': buildingId,
-        '🔗 Using main_admin_id': buildingMainAdminId,
-        '📋 Full adminData': adminData
-      })
 
-      console.log('✅ Submitting building co-incharge data:', adminData)
+      if (isEditMode) {
+        const adminId = person?.id || person?.admin_id || person?.adminId
+        if (!adminId) {
+          throw new Error('Invalid co-incharge data for edit (missing admin_id).')
+        }
 
-      // Call the insert_admin API
-      const response = await apiService.insertAdmin(adminData, panelApiUrl)
-      
-      // Check for successful response
-      if (response && (response.success || response?.Column1 === 'ok' || (Array.isArray(response) && response[0]?.Column1 === 'ok'))) {
-        // Success - call the provided onSave callback with the building ID used
-        onSave && onSave({ 
-          ...formData, 
-          buildingId: buildingId || buildingMainAdminId, 
-          main_admin_id: buildingMainAdminId,
-          apiResponse: response 
-        })
-        
-        // Reset form
-        setFormData({ name: '', phone: '', photo: null })
-        onClose && onClose()
+        if (photoRemoved) {
+          finalPhotoName = ''
+          finalPhotoBase64 = ''
+        } else if (!formData.photo) {
+          finalPhotoName = person.photoPath || person.profileImage || person.photo || ''
+          finalPhotoBase64 = ''
+        }
+
+        const updateData = {
+          admin_id: adminId,
+          type: 'AP',
+          sub_type: 'AS',
+          name: formData.name.trim(),
+          mobile_no: formData.phone.trim(),
+          photo: finalPhotoName || '',
+          base64: finalPhotoBase64 || '',
+          idcard_no: '0',
+          booth_javabdari: '0',
+          page_javabdari: '0',
+          add: '',
+          modify_by: loginId
+        }
+
+        console.log('📤 Updating building co-incharge data:', updateData)
+
+        const response = await apiService.updateAdmin(updateData, panelApiUrl)
+
+        if (response && (response.success || response?.Column1 === 'ok' || (Array.isArray(response) && response[0]?.Column1 === 'ok'))) {
+          if (onSuccess) {
+            onSuccess()
+          } else if (onSave) {
+            onSave({ ...formData, apiResponse: response })
+          }
+          resetForm()
+          onClose && onClose()
+        } else {
+          console.error('Update building co-incharge unexpected response:', response)
+          throw new Error('Failed to update building co-incharge')
+        }
       } else {
-        console.error('Insert building co-incharge unexpected response:', response)
-        throw new Error('Failed to save building co-incharge')
+        // Prepare data for API - Building Co Incharge
+        let buildingMainAdminId = '0'
+
+        if (buildingId) {
+          const idStr = String(buildingId).trim()
+          if (idStr && idStr !== '0' && idStr !== '1' && idStr.toLowerCase() !== 'undefined' && idStr.toLowerCase() !== 'null') {
+            buildingMainAdminId = idStr
+          }
+        }
+
+        if (buildingMainAdminId === '0') {
+          console.warn('⚠️ WARNING: Building ID is invalid or not provided!', {
+            buildingId,
+            type: typeof buildingId,
+            buildingMainAdminId
+          })
+          const userConfirm = confirm('⚠️ Building ID नहीं मिला!\n\nCo-incharge बिल्डिंग से link नहीं होगा.\n\nफिर भी save करें?')
+          if (!userConfirm) {
+            setLoading(false)
+            return
+          }
+        }
+
+        const adminData = {
+          type: 'AP',
+          sub_type: 'AS',
+          main_admin_id: buildingMainAdminId,
+          name: formData.name.trim(),
+          mobile_no: formData.phone.trim(),
+          photo: finalPhotoName || '',
+          base64: finalPhotoBase64 || '',
+          idcard_no: '0',
+          booth_javabdari: '0',
+          page_javabdari: '0',
+          add: '',
+          create_by: loginId
+        }
+
+        console.log('✅ Submitting building co-incharge data:', adminData)
+
+        const response = await apiService.insertAdmin(adminData, panelApiUrl)
+
+        if (response && (response.success || response?.Column1 === 'ok' || (Array.isArray(response) && response[0]?.Column1 === 'ok'))) {
+          if (onSave) {
+            onSave({
+              ...formData,
+              buildingId: buildingId || buildingMainAdminId,
+              main_admin_id: buildingMainAdminId,
+              apiResponse: response
+            })
+          }
+
+          resetForm()
+          onClose && onClose()
+        } else {
+          console.error('Insert building co-incharge unexpected response:', response)
+          throw new Error('Failed to save building co-incharge')
+        }
       }
     } catch (error) {
       console.error('Error saving building co-incharge:', error)
@@ -196,124 +397,197 @@ const AddBuildingCoInchargeModal = ({ isOpen, onClose, onSave, buildingId }) => 
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-80 p-4" onClick={(e) => {
-      if (e.target === e.currentTarget) {
-        onClose()
-      }
-    }}>
-      <div className="w-full max-w-md overflow-hidden rounded-lg bg-white shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: '#103a94' }}>
-          <button onClick={onClose} className="text-white hover:text-gray-200">
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+    <>
+    <div
+      className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
+    >
+      <div className="relative w-full max-w-md sm:max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto z-[125]">
+        <div className="p-3 sm:p-5 text-white" style={{ backgroundColor: '#103a94' }}>
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all hover:scale-105"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <h2 className="text-lg font-semibold text-white">बिल्डिंग सह इनचार्ज</h2>
-          <div className="w-6" />
+          <div className="flex items-center space-x-3">
+            <div>
+              <h2 className="text-lg sm:text-xl font-bold">{isEditMode ? 'बिल्डिंग सह इनचार्ज संपादित करें' : 'बिल्डिंग सह इनचार्ज'}</h2>
+              <p className="text-blue-100 text-xs sm:text-sm">
+                {isEditMode ? 'Edit Building Co-Incharge' : 'Create New Building Co-Incharge'}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 p-4" noValidate>
-          {/* Name */}
+        <form
+          onSubmit={handleSubmit}
+          className="p-4 sm:p-5 space-y-3 sm:space-y-4"
+          style={{ backgroundColor: '#f4f6ff' }}
+          noValidate
+        >
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-800">नाम</label>
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{ color: '#103a94' }}>
+              नाम
+            </label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="नाम दर्ज करें"
+              className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-sm sm:text-base"
+              style={{ backgroundColor: '#f0f4ff', borderColor: '#103a94' }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#103a94'
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#103a94'
+              }}
+              placeholder="Enter name"
             />
           </div>
 
-          {/* Mobile */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-800">मोबाइल नं.</label>
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{ color: '#103a94' }}>
+              मोबाइल नं.
+            </label>
             <input
               type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
               maxLength={10}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="मोबाइल नंबर"
+              className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-sm sm:text-base"
+              style={{ backgroundColor: '#f0f4ff', borderColor: '#103a94' }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#103a94'
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#103a94'
+              }}
+              placeholder="Enter mobile number"
             />
           </div>
 
-          {/* Photo */}
           <div>
-            <label className="mb-1 block text-sm font-semibold text-gray-800">फोटो</label>
-            <div className="w-full border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 p-4">
-              {formData.photo ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center">
-                    <img
-                      src={URL.createObjectURL(formData.photo)}
-                      alt="Preview"
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-green-600 font-medium mb-2">{formData.photo.name}</p>
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        type="button"
-                        onClick={handlePhotoButtonClick}
-                        className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                      >
-                        बदलें
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleRemovePhoto}
-                        className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                      >
-                        हटाएं
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-4">
-                  <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                  </svg>
-                  <p className="text-sm text-gray-500 mb-3">फोटो अपलोड करने के लिए बटन पर क्लिक करें</p>
-                  <button
-                    type="button"
-                    onClick={handlePhotoButtonClick}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  >
-                    फोटो चुनें
-                  </button>
-                </div>
-              )}
+            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{ color: '#103a94' }}>
+              फोटो
+            </label>
+            <div className="relative">
               <input
-                id="building-coincharge-photo-input"
                 type="file"
                 accept="image/*"
                 onChange={handlePhotoChange}
                 className="hidden"
+                id={isEditMode ? 'edit-building-coincharge-photo-input' : 'building-coincharge-photo-input'}
               />
+              {photoPreview ? (
+                <div className="relative">
+                  <label
+                    htmlFor={isEditMode ? 'edit-building-coincharge-photo-input' : 'building-coincharge-photo-input'}
+                    className="block w-full h-28 sm:h-32 rounded-lg border overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer transition-all hover:bg-gray-100"
+                    style={{ borderColor: '#103a94' }}
+                    onMouseEnter={(e) => {
+                      e.target.style.borderColor = '#0d2f7a'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.borderColor = '#103a94'
+                    }}
+                  >
+                    <img
+                      src={photoPreview}
+                      alt="Photo preview - Click to change"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </label>
+                  <div className="mt-1.5 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={handleRemovePhotoClick}
+                      className="text-red-600 text-xs sm:text-sm hover:text-red-700 transition-colors flex items-center space-x-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      <span>Remove Photo</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label
+                  htmlFor={isEditMode ? 'edit-building-coincharge-photo-input' : 'building-coincharge-photo-input'}
+                  className="w-full h-20 sm:h-28 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
+                  style={{ backgroundColor: '#f0f4ff', borderColor: '#103a94' }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#e6f0ff'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#f0f4ff'
+                  }}
+                >
+                  <div className="text-center">
+                    <svg
+                      className="w-5 h-5 sm:w-7 sm:h-7 mx-auto mb-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      style={{ color: '#103a94' }}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <p className="text-xs sm:text-sm" style={{ color: '#103a94' }}>
+                      Click to upload photo
+                    </p>
+                  </div>
+                </label>
+              )}
             </div>
           </div>
 
-          {/* Save */}
-          <div className="pt-2">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-sm sm:text-base"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg px-4 py-3 text-white disabled:opacity-50"
+              className="flex-1 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-sm sm:text-base disabled:opacity-60"
               style={{ backgroundColor: '#103a94' }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.target.style.backgroundColor = '#0d2f7a'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.target.style.backgroundColor = '#103a94'
+                }
+              }}
             >
-              {loading ? 'सेव हो रहा है...' : 'सेव करें'}
+              {loading ? 'सेव हो रहा है...' : isEditMode ? 'बिल्डिंग सह इनचार्ज अपडेट करें' : 'बिल्डिंग सह इनचार्ज सेव करें'}
             </button>
           </div>
         </form>
       </div>
     </div>
+
+    <RemovePhotoConfirmModal
+      isOpen={showRemoveConfirm}
+      onConfirm={handleRemovePhotoConfirm}
+      onCancel={handleRemovePhotoCancel}
+      zIndex={200}
+    />
+    </>
   )
 }
 
