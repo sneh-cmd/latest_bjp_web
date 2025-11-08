@@ -198,26 +198,48 @@ const BuildingPramukh = ({ navigation }) => {
         return
       }
 
-      // Transform data to Excel format with headers
-      const excelData = filteredData.map((building, index) => ({
-        'Sr. No.': index + 1,
-        'Name': building.name || '',
-        'Address Count': building.addressCount || 0,
-        'Voters': building.voters || 0
-      }))
+      const excelRows = []
 
-      // Create a new workbook
+      filteredData.forEach((building, index) => {
+        const addresses = Array.isArray(building.addresses) && building.addresses.length
+          ? building.addresses
+          : ['']
+
+        addresses.forEach((address, addrIdx) => {
+          excelRows.push({
+            'Sr. No.': addrIdx === 0 ? index + 1 : '',
+            'Name': addrIdx === 0 ? (building.name || '') : '',
+            'Phone Number': addrIdx === 0 ? (building.phoneNumber || building.mobileNo || building.mobile || '') : '',
+            'No of Building': addrIdx === 0 ? (building.addressCount || 0) : '',
+            'Total Voters': addrIdx === 0 ? (building.voters || 0) : '',
+            'Building List': address || ''
+          })
+        })
+      })
+
       const wb = XLSX.utils.book_new()
       
-      // Create a worksheet from the data
-      const ws = XLSX.utils.json_to_sheet(excelData)
-      
+      const ws = XLSX.utils.aoa_to_sheet([])
+      const title = 'Building Pramukh'
+
+      XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' })
+      ws['A1'] = { t: 's', v: title, s: { alignment: { horizontal: 'center', vertical: 'center' }, font: { bold: true, sz: 14 } } }
+      ws['!merges'] = ws['!merges'] || []
+      ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } })
+
+      const headers = [['Sr. No.', 'Name', 'Phone Number', 'No of Building', 'Total Voters', 'Building List']]
+      XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A2' })
+
+      XLSX.utils.sheet_add_json(ws, excelRows, { origin: 'A3', skipHeader: true })
+
       // Set column widths for better readability
       const colWidths = [
         { wch: 8 },   // Sr. No.
         { wch: 25 },  // Name
-        { wch: 15 },  // Address Count
-        { wch: 12 }   // Voters
+        { wch: 15 },  // Phone Number
+        { wch: 15 },  // No of Building
+        { wch: 12 },  // Total Voters
+        { wch: 120 }   // Building List
       ]
       ws['!cols'] = colWidths
       

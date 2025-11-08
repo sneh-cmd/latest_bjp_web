@@ -304,9 +304,18 @@ const Karyakarta = ({ navigation }) => {
       // Create a new workbook
       const wb = XLSX.utils.book_new()
       
-      // Create a worksheet from the data
-      const ws = XLSX.utils.json_to_sheet(excelData)
-      
+      // Create worksheet with title and headers
+      const ws = XLSX.utils.aoa_to_sheet([])
+      const title = 'Karyakarta'
+      XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' })
+      ws['A1'] = { t: 's', v: title, s: { alignment: { horizontal: 'center', vertical: 'center' }, font: { bold: true, sz: 14 } } }
+      ws['!merges'] = ws['!merges'] || []
+      ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } })
+
+      const headers = [['Sr. No.', 'Name', 'Phone Number', 'Status']]
+      XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A2' })
+      XLSX.utils.sheet_add_json(ws, excelData, { origin: 'A3', skipHeader: true })
+       
       // Set column widths for better readability
       const colWidths = [
         { wch: 8 },   // Sr. No.
