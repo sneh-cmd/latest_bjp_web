@@ -274,19 +274,27 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
 
 
   const handleBack = () => {
-    setIsVisible(false)
-    setTimeout(() => {
-      // Check if there's a return path in navigation state
-      const returnPath = state?.returnPath || (state?.from === 'shakti-kendra-detail' ? '/shakti-kendra-pramukh' : null)
-      
-      if (returnPath) {
-        navigate(returnPath)
-      } else {
-        // Default to booth-pramukh page
-        navigate('/booth-pramukh')
-      }
-    }, 300)
-  }
+     setIsVisible(false)
+     setTimeout(() => {
+       // Determine where to return based on navigation state metadata
+       let returnPath = state?.returnPath
+       let navigationState = state?.originState || null
+       if (!returnPath) {
+         if (state?.from === 'shakti-kendra-detail') {
+           returnPath = '/shakti-kendra-pramukh'
+         } else if (state?.from === 'booth-pramukh') {
+           returnPath = '/booth-pramukh'
+         }
+       }
+ 
+       if (returnPath) {
+         navigate(returnPath, navigationState)
+       } else {
+         // Fallback to booth list if origin is unknown
+         navigate('/booth-pramukh')
+       }
+     }, 300)
+   }
 
   const handleCall = (person) => {
     if (person.phone) {
@@ -1217,7 +1225,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                         >
                           <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center">
                             <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 7H17c-.8 0-1.54.37-2.01.99L14 9l-1.99-2.01A2.5 2.5 0 0 0 10.01 7H9.46c-.8 0-1.54.37-2.01.99L5 9l-1.99-2.01A2.5 2.5 0 0 0 1.01 7H.5L3 14.5V22h2v-6h2v6h2v-6h2v6h2v-6h2v6h2v-6h2v6h2z"/>
+                              <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 7H17c-.8 0-1.54.37-2.01.99L14 9l-1.99-2.01A2.5 2.5 0 0 0 10.01 7H9.46c-.8 0-1.54.37-2.01.99L5 9l-1.99-2.01A2.5 2.5 0 0 0 1.01 7H.5L3 14.5V22h2v-6h2v6h2v-6h2v6h2v-6h2v6h2v-6h2v6h2v-6h2v6h2z"/>
                             </svg>
                           </div>
                           <span className="text-[10px] sm:text-xs text-gray-600">Family</span>

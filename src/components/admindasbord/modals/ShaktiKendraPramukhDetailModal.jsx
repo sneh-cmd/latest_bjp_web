@@ -110,17 +110,7 @@ const ShaktiKendraPramukhDetailModal = ({
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-lg sm:text-xl font-bold truncate">{pramukh.name}</h2>
-              <p className="text-blue-100 text-xs sm:text-sm">{pramukh.responsibility || 'शक्ति केन्द्र प्रमुख'}</p>
-              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 shadow-sm ${
-                pramukh.status === 'active' 
-                  ? 'bg-green-500/20 text-green-100' 
-                  : 'bg-red-500/20 text-red-100'
-              }`}>
-                <div className={`w-2 h-2 rounded-full mr-1 ${
-                  pramukh.status === 'active' ? 'bg-green-400' : 'bg-red-400'
-                }`}></div>
-                {pramukh.status === 'active' ? 'Active' : 'Inactive'}
-              </div>
+              <p className="text-blue-100 text-xs sm:text-sm">Shakti Kendra Pramukh</p>
             </div>
           </div>
         </div>
@@ -134,25 +124,6 @@ const ShaktiKendraPramukhDetailModal = ({
                 <span className="text-gray-600 text-sm">Phone:</span>
                 <span className="font-semibold text-sm truncate ml-2">{pramukh.phoneNumber}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 text-sm">Status:</span>
-                <span className="font-semibold text-sm capitalize">{pramukh.status}</span>
-              </div>
-              {pramukh.boothNumbers && pramukh.boothNumbers.length > 0 && (
-                <div className="flex flex-col">
-                  <span className="text-gray-600 text-sm mb-1">Booth Numbers:</span>
-                  <div className="flex flex-wrap gap-1 sm:gap-2">
-                    {pramukh.boothNumbers.map((booth, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 sm:px-3 py-1 bg-gray-200 text-gray-800 rounded-full text-xs sm:text-sm font-medium"
-                      >
-                        {booth}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 

@@ -116,34 +116,6 @@ const CallSurveyUserDetailModal = ({
             <p className="text-gray-800 text-sm sm:text-lg font-medium">{user.phoneNumber || user.phone || user.mobile_no || 'N/A'}</p>
           </div>
 
-          {user.lastLogin && (
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold mb-2" style={{color: '#103a94'}}>
-                Last Login
-              </label>
-              <p className="text-gray-800 text-xs sm:text-sm font-medium">{user.lastLogin}</p>
-            </div>
-          )}
-
-          {user.boothNumbers && user.boothNumbers.length > 0 && (
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold mb-2" style={{color: '#103a94'}}>
-                Booth Numbers
-              </label>
-              <div className="flex flex-wrap gap-1 sm:gap-2">
-                {user.boothNumbers.map((boothNumber, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-800 text-xs sm:text-sm rounded-full font-medium"
-                  >
-                    {boothNumber}
-                    {idx < user.boothNumbers.length - 1 && ','}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="flex justify-center">
             {/* Actions Row */}
             <div className="flex flex-row space-x-3">

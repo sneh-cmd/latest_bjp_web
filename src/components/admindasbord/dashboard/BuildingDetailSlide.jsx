@@ -508,23 +508,64 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
     setCoInchargeToEdit(null)
   }
 
-  const handleViewDetails = (person) => {
-    console.log('View details for:', person)
-    // Check if it's a co-incharge based on role
-    const isCoIncharge = person.role && (
-      person.role.includes('सह इनचार्ज') || 
-      person.role.includes('Co Incharge') ||
-      person.role === 'बिल्डिंग सह इनचार्ज'
-    )
-    
-    if (isCoIncharge) {
-      setSelectedCoIncharge(person)
-      setShowCoInchargeDetailModal(true)
-    } else {
-      // It's a building head
-      setSelectedBuildingHead(person)
-      setShowBuildingHeadDetailModal(true)
+  const openBuildingHeadDetail = (building) => {
+    if (!building) return
+
+    const resolvedLastLogin = (building.last_login || building.lastLogin || buildingPramukh?.last_login || buildingPramukh?.lastLogin || buildingData?.last_login || buildingData?.lastLogin || '').toString().trim()
+
+    const statusCandidate = (building.status || buildingPramukh?.status || buildingData?.status || '').toString().trim().toLowerCase()
+    const normalizedStatus = statusCandidate === 'active'
+      ? 'active'
+      : statusCandidate === 'inactive'
+        ? 'inactive'
+        : (resolvedLastLogin ? 'active' : 'inactive')
+
+    const resolvedPhone = building.phoneNumber || building.phone || building.mobile_no || building.mobileNo || building.mobile || buildingPramukh?.phoneNumber || buildingData?.phoneNumber || ''
+
+    const resolvedProfileImage = building.profileImage
+      || building.photoPath
+      || building.photo
+      || buildingPramukh?.profileImage
+      || buildingPramukh?.photoPath
+      || buildingPramukh?.photo
+      || buildingData?.profileImage
+      || buildingData?.photoPath
+      || buildingData?.photo
+      || null
+
+    const resolvedAddresses = (() => {
+      if (Array.isArray(building.addresses) && building.addresses.length > 0) return building.addresses
+      if (Array.isArray(buildingPramukh?.addresses) && buildingPramukh.addresses.length > 0) return buildingPramukh.addresses
+      if (Array.isArray(buildingData?.addresses) && buildingData.addresses.length > 0) return buildingData.addresses
+      if (Array.isArray(addresses) && addresses.length > 0) {
+        return addresses
+          .map(addrItem => (typeof addrItem === 'string' ? addrItem : addrItem?.address))
+          .filter(Boolean)
+      }
+      return []
+    })()
+
+    const resolvedAddressCount = building.addressCount || buildingPramukh?.addressCount || buildingData?.addressCount || resolvedAddresses.length
+    const resolvedVoters = building.voters ?? buildingPramukh?.voters ?? buildingData?.voters ?? (Array.isArray(voters) ? voters.length : 0)
+
+    const detailData = {
+      ...building,
+      id: building.id || buildingPramukh?.id || buildingData?.id || buildingId,
+      name: building.name || buildingPramukh?.name || buildingData?.name || '',
+      designation: building.designation || buildingPramukh?.designation || buildingData?.designation || 'बिल्डिंग प्रमुख',
+      phoneNumber: resolvedPhone,
+      profileImage: resolvedProfileImage,
+      photoPath: building.photoPath || resolvedProfileImage,
+      status: normalizedStatus,
+      last_login: resolvedLastLogin,
+      lastLogin: resolvedLastLogin,
+      addresses: resolvedAddresses,
+      addressCount: resolvedAddressCount,
+      voters: resolvedVoters
     }
+
+    setSelectedBuildingHead(detailData)
+      setShowBuildingHeadDetailModal(true)
   }
 
   const handleCloseCoInchargeDetailModal = () => {
@@ -1066,8 +1107,9 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                                   </button>
                                 )}
                                 <button
-                                  onClick={() => handleViewDetails(current)}
+                                  onClick={() => openBuildingHeadDetail(current)}
                                   className="w-7 h-7 sm:w-10 sm:h-10 bg-orange-500 hover:bg-orange-600 rounded-full flex items-center justify-center transition-colors flex-shrink-0"
+                                  type="button"
                                 >
                                   <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />

@@ -91,16 +91,6 @@ const BoothPramukhDetailModal = ({
             <div className="flex-1 min-w-0">
               <h2 className="text-lg sm:text-xl font-bold truncate">{person.name}</h2>
               <p className="text-blue-100 text-xs sm:text-sm">{person.role || 'Booth Pramukh'}</p>
-              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 shadow-sm ${
-                person.status === 'active' 
-                  ? 'bg-green-500/20 text-green-100' 
-                  : 'bg-red-500/20 text-red-100'
-              }`}>
-                <div className={`w-2 h-2 rounded-full mr-1 ${
-                  person.status === 'active' ? 'bg-green-400' : 'bg-red-400'
-                }`}></div>
-                {person.status === 'active' ? 'Active' : 'Inactive'}
-              </div>
             </div>
           </div>
         </div>
@@ -111,20 +101,8 @@ const BoothPramukhDetailModal = ({
             <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">Contact Information</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600 text-sm">Name:</span>
-                <span className="font-semibold text-sm truncate ml-2">{person.name}</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-gray-600 text-sm">Phone:</span>
                 <span className="font-semibold text-sm truncate ml-2">{person.phone || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 text-sm">Role:</span>
-                <span className="font-semibold text-sm">{person.role || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 text-sm">Status:</span>
-                <span className="font-semibold text-sm capitalize">{person.status || 'N/A'}</span>
               </div>
             </div>
           </div>

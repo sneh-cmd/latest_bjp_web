@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { apiService } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
@@ -9,9 +10,8 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
     phone: '',
     photo: null
   })
-
   const isEditMode = !!building
-  
+
   const [selectedAddresses, setSelectedAddresses] = useState([])
   const [showAddressPicker, setShowAddressPicker] = useState(false)
   const [addressSearch, setAddressSearch] = useState('')
@@ -32,13 +32,10 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
         phone: building.phoneNumber || building.mobileNo || building.phone || '',
         photo: null
       })
-      // Set addresses from building.addresses array
       setSelectedAddresses(building.addresses || [])
-      // Set photo preview if available
       const existingPhoto = building.profileImage || building.photoPath || building.photo
       if (existingPhoto && existingPhoto.trim() !== '') {
         let photoUrl = existingPhoto.trim()
-        // If it's not a full URL and not starting with / or data:, try to construct proper URL
         if (!photoUrl.startsWith('http') && !photoUrl.startsWith('/') && !photoUrl.startsWith('data:')) {
           if (photoUrl.includes('.jpg') || photoUrl.includes('.jpeg') || 
               photoUrl.includes('.png') || photoUrl.includes('.gif') ||
@@ -57,7 +54,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
       }
       setPhotoRemoved(false)
     } else if (isOpen && !building) {
-      // Reset form for create mode
       setFormData({ name: '', phone: '', photo: null })
       setSelectedAddresses([])
       setPhotoPreview(null)
@@ -69,7 +65,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
   // Cleanup photo preview URL when component unmounts or photo changes
   useEffect(() => {
     return () => {
-      // Only revoke blob URLs (created from file uploads), not server URLs
       if (photoPreview && photoPreview.startsWith('blob:')) {
         URL.revokeObjectURL(photoPreview)
       }
@@ -102,22 +97,17 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
     setAddressLoading(true)
     setAddressError(null)
     try {
-      // Use the API endpoint - handle dev/prod cases
       const endpoint = import.meta.env.DEV 
         ? '/panel-api/webservice.asmx' 
         : 'http://ntmc2.mhbjplok.com/webservice.asmx'
       const soapBody = '<dis_all_address xmlns="http://tempuri.org/" />'
-      
       const response = await apiService.makeRequest(
         endpoint,
         'POST',
         'dis_all_address',
         soapBody,
-        true // use admin auth
+        true
       )
-
-      // Extract addresses from response
-      // Response structure: { Success: "1", result: [{ eng_localityid: "address" }, ...] }
       if (response && Array.isArray(response)) {
         const addresses = response
           .map(item => item.eng_localityid)
@@ -134,19 +124,15 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
     } catch (error) {
       console.error('Error fetching addresses:', error)
       setAddressError('पते लोड करने में त्रुटि: ' + error.message)
-      // Keep empty array on error
       setAddressOptions([])
     } finally {
       setAddressLoading(false)
     }
   }
 
-  if (!isOpen) return null
-
   const handleChange = (e) => {
     const { name, value } = e.target
     if (name === 'phone') {
-      // Only allow digits and max 10 digits
       const digitsOnly = value.replace(/\D/g, '')
       if (digitsOnly.length <= 10) {
         setFormData(prev => ({ ...prev, [name]: digitsOnly }))
@@ -167,14 +153,12 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
   const handlePhotoChange = (e) => {
     const file = e.target.files && e.target.files[0]
     if (file) {
-      // Clean up old preview URL if exists (only blob URLs)
       if (photoPreview && photoPreview.startsWith('blob:')) {
         URL.revokeObjectURL(photoPreview)
       }
       setFormData(prev => ({ ...prev, photo: file }))
-      setPhotoRemoved(false) // Reset photoRemoved when new photo is uploaded
-      setExistingPhotoUrl(null) // Clear existing photo URL when new one is uploaded
-      // Create preview URL
+      setPhotoRemoved(false)
+      setExistingPhotoUrl(null)
       const previewUrl = URL.createObjectURL(file)
       setPhotoPreview(previewUrl)
     }
@@ -185,7 +169,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
   }
 
   const handleRemovePhotoConfirm = () => {
-    // Clean up object URL if it was created from file upload
     if (photoPreview && photoPreview.startsWith('blob:')) {
       URL.revokeObjectURL(photoPreview)
     }
@@ -193,7 +176,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
     setPhotoPreview(null)
     setExistingPhotoUrl(null)
     setPhotoRemoved(true)
-    // Reset file input
     const fileInput = document.getElementById(isEditMode ? 'edit-building-photo-input' : 'building-photo-input')
     if (fileInput) {
       fileInput.value = ''
@@ -203,10 +185,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
 
   const handleRemovePhotoCancel = () => {
     setShowRemoveConfirm(false)
-  }
-
-  const handlePhotoButtonClick = () => {
-    document.getElementById(isEditMode ? 'edit-building-photo-input' : 'building-photo-input').click()
   }
 
   const convertFileToBase64 = (file) => {
@@ -236,55 +214,43 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    // Validate name first
+
     if (!formData.name.trim()) {
       alert('Name is required')
       return
     }
-    
-    // Validate mobile number exists
+
     if (!formData.phone.trim()) {
       alert('Mobile number is required')
       return
     }
-    
-    // Validate mobile number format
+
     if (!validateMobile(formData.phone)) {
       alert('Invalid mobile number')
       return
     }
+
     if (selectedAddresses.length === 0) {
       alert('कृपया कम से कम एक पता चुनें')
       return
     }
-    
+
     setLoading(true)
     try {
-      // Prepare address string - join with % and end with %
       const addressString = selectedAddresses.join('%') + '%'
-      
-      // Get or fallback to default API URL
       const userData = localStorageManager.getUserData()
       const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com'
-      
-      // Get login ID (admin ID) from user data
       const loginId = userData?.admin?.adminId || userData?.admin?.id || '1'
-      
-      // Prepare photo data
+
       let photoBase64 = ''
       let photoName = ''
-      
-      // If photo was removed in edit mode, send empty strings
+
       if (photoRemoved && isEditMode) {
         photoBase64 = ''
         photoName = ''
-      } 
-      // If new photo is uploaded, convert it to base64
-      else if (formData.photo) {
+      } else if (formData.photo) {
         try {
           const base64String = await convertFileToBase64(formData.photo)
-          // Remove data URL prefix if present (data:image/...;base64,)
           photoBase64 = base64String.replace(/^data:image\/[a-zA-Z]+;base64,/, '')
           photoName = sanitizeFileName(formData.photo.name)
         } catch (error) {
@@ -293,16 +259,12 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           setLoading(false)
           return
         }
-      }
-      // If in edit mode and no new photo uploaded and photo not removed, keep existing photo
-      else if (isEditMode && existingPhotoUrl && !photoRemoved) {
-        // Keep existing photo - don't send base64, server will keep existing
+      } else if (isEditMode && existingPhotoUrl && !photoRemoved) {
         photoName = building.photoPath || building.profileImage || building.photo || ''
-        photoBase64 = '' // Empty base64 means keep existing photo on server
+        photoBase64 = ''
       }
 
       if (isEditMode && building) {
-        // Update mode - use updateAdmin API
         const updateData = {
           admin_id: building.id || building.adminId,
           type: 'AP',
@@ -319,13 +281,8 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
         }
 
         console.log('📤 Updating building pramukh data:', updateData)
-
-        // Call the update_admin API
         const response = await apiService.updateAdmin(updateData, panelApiUrl)
-        
-        // Check for successful response
         if (response && (response.success || response?.Column1 === 'ok' || (Array.isArray(response) && response[0]?.Column1 === 'ok'))) {
-          // Success - call the provided onSuccess callback
           if (onSuccess) {
             onSuccess()
           } else if (onSave) {
@@ -337,33 +294,25 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           throw new Error('Failed to update building pramukh')
         }
       } else {
-        // Create mode - use insertAdmin API
         const adminData = {
-          type: 'AP', // Building Pramukh
+          type: 'AP',
           sub_type: 'AP',
           main_admin_id: '0',
           name: formData.name.trim(),
           mobile_no: formData.phone.trim(),
           photo: photoName || '',
           base64: photoBase64 || '',
-          idcard_no: '', // Empty string as per API example
+          idcard_no: '',
           booth_javabdari: '0',
-          page_javabdari: '', // Empty string as per API example
+          page_javabdari: '',
           add: addressString,
-          create_by: loginId // Use login ID instead of hardcoded '1'
+          create_by: loginId
         }
 
         console.log('📤 Submitting building pramukh data:', adminData)
-
-        // Call the insert_admin API
         const response = await apiService.insertAdmin(adminData, panelApiUrl)
-        
-        // Check for successful response
         if (response && (response.success || response?.Column1 === 'ok' || (Array.isArray(response) && response[0]?.Column1 === 'ok'))) {
-          // Success - call the provided onSave callback
           onSave && onSave({ ...formData, addresses: selectedAddresses, apiResponse: response })
-          
-          // Reset form
           setFormData({ name: '', phone: '', photo: null })
           setSelectedAddresses([])
           setPhotoPreview(null)
@@ -400,10 +349,14 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
     return addressStr.toLowerCase().includes(addressSearch.toLowerCase())
   })
 
-  return (
+  if (!isOpen) return null
+  if (typeof document === 'undefined') return null
+
+  const modalMarkup = (
     <>
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm"
+      style={{ zIndex: 1000 }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose()
@@ -411,7 +364,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
       }}
     >
       <div className="relative w-full max-w-md sm:max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
-        {/* Modal Header */}
         <div className="p-3 sm:p-5 text-white" style={{backgroundColor: '#103a94'}}>
           <button
             onClick={onClose}
@@ -433,9 +385,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           </div>
         </div>
 
-        {/* Modal Content */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3 sm:space-y-4" style={{backgroundColor:'#f4f6ff'}} noValidate>
-          {/* Address Multi-select */}
           <div className="relative address-picker-container">
             <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>पता</label>
             <button
@@ -454,7 +404,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
               </svg>
             </button>
 
-            {/* Dropdown panel */}
             {showAddressPicker && (
               <div className="absolute left-0 right-0 z-[200] mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
                 <div className="p-2 border-b">
@@ -509,7 +458,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
               </div>
             )}
 
-            {/* Selected list display */}
             {selectedAddresses.length > 0 && (
               <div className="mt-2 max-h-60 overflow-y-auto divide-y divide-gray-200 rounded-lg border border-gray-200">
                 {selectedAddresses.map((addr, i) => (
@@ -526,7 +474,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
             )}
           </div>
 
-          {/* Name Field */}
           <div>
             <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
               नाम
@@ -544,7 +491,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
             />
           </div>
 
-          {/* Mobile Field */}
           <div>
             <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
               मोबाइल नं.
@@ -563,7 +509,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
             />
           </div>
 
-          {/* Photo Field */}
           <div>
             <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
               फोटो
@@ -621,7 +566,6 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
             <button
               type="button"
@@ -647,15 +591,16 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
       </div>
     </div>
 
-    {/* Remove Photo Confirmation Modal */}
     <RemovePhotoConfirmModal
       isOpen={showRemoveConfirm}
       onConfirm={handleRemovePhotoConfirm}
       onCancel={handleRemovePhotoCancel}
-      zIndex={70}
+      zIndex={1005}
     />
     </>
   )
+
+  return createPortal(modalMarkup, document.body)
 }
 
 export default AddBuildingPramukhModal

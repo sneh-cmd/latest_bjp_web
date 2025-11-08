@@ -482,10 +482,14 @@ const ShaktiKendraDetailSlide = ({
       
       // Navigate to booth detail page with return path
       navigate(`/booth-detail?boothId=${boothNumber}`, {
-        state: { 
+        state: {
           boothData: boothDataForNavigation,
           returnPath: '/shakti-kendra-pramukh',
-          from: 'shakti-kendra-detail'
+          from: 'shakti-kendra-detail',
+          originState: {
+            reopenShaktiKendraDetail: true,
+            selectedPramukh
+          }
         }
       })
     }
@@ -512,10 +516,14 @@ const ShaktiKendraDetailSlide = ({
     
     // Navigate to booth detail page with return path
     navigate(`/booth-detail?boothId=${boothNumber}`, {
-      state: { 
+      state: {
         boothData: boothDataForNavigation,
         returnPath: '/shakti-kendra-pramukh',
-        from: 'shakti-kendra-detail'
+        from: 'shakti-kendra-detail',
+        originState: {
+          reopenShaktiKendraDetail: true,
+          selectedPramukh
+        }
       }
     })
   }

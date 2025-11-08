@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import ShaktiKendraDetailSlide from '../utils/ShaktiKendraDetailSlide.jsx'
@@ -10,6 +11,7 @@ import * as XLSX from 'xlsx'
 
 const ShaktiKendraPramukh = ({ navigation }) => {
   const { navigate } = navigation
+  const location = useLocation()
   const [isVisible, setIsVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedPramukh, setSelectedPramukh] = useState(null)
@@ -148,6 +150,15 @@ const ShaktiKendraPramukh = ({ navigation }) => {
       setShowDetailSlide(true)
     }, 2000) // 2 second delay as requested
   }
+
+  useEffect(() => {
+    const navState = location.state
+    if (navState?.reopenShaktiKendraDetail && navState.selectedPramukh) {
+      handlePramukhClick(navState.selectedPramukh)
+      window.history.replaceState(null, document.title, window.location.pathname + window.location.search)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   const toggleStatus = (pramukhId) => {
     // Toggle status logic here
