@@ -9,7 +9,7 @@ const DuplicateMobileModal = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-xs sm:max-w-sm bg-white rounded-2xl shadow-2xl border border-blue-100 overflow-hidden">
         <div className="p-4 sm:p-6 text-center space-y-3 sm:space-y-4">
           {mobileNumber && (

@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom'
 import { apiService } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
+import DuplicateMobileModal from './DuplicateMobileModal.jsx'
 
-const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onSuccess = null }) => {
+const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onSuccess = null, existingMobiles = [], duplicateContextLabel = 'बिल्डिंग प्रमुख', duplicateMessage = '' }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -23,6 +24,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
   const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
   const [photoRemoved, setPhotoRemoved] = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
+  const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, mobile: '', message: '' })
 
   // Initialize form with building data when modal opens (edit mode)
   useEffect(() => {
@@ -53,12 +55,14 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
         setPhotoPreview(null)
       }
       setPhotoRemoved(false)
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     } else if (isOpen && !building) {
       setFormData({ name: '', phone: '', photo: null })
       setSelectedAddresses([])
       setPhotoPreview(null)
       setExistingPhotoUrl(null)
       setPhotoRemoved(false)
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     }
   }, [isOpen, building, isEditMode])
 
@@ -150,6 +154,15 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
     return firstDigit === '6' || firstDigit === '9'
   }
 
+  const normalizeMobileNumber = (value) => {
+    if (!value) return ''
+    const digits = value.toString().replace(/\D/g, '')
+    if (digits.length > 10) {
+      return digits.slice(-10)
+    }
+    return digits
+  }
+
   const handlePhotoChange = (e) => {
     const file = e.target.files && e.target.files[0]
     if (file) {
@@ -215,6 +228,10 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (duplicateModal.isOpen) {
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
+    }
+
     if (!formData.name.trim()) {
       alert('Name is required')
       return
@@ -227,6 +244,32 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
 
     if (!validateMobile(formData.phone)) {
       alert('Invalid mobile number')
+      return
+    }
+
+    const sanitizedExistingMobiles = Array.isArray(existingMobiles)
+      ? existingMobiles.map(normalizeMobileNumber).filter(Boolean)
+      : []
+    const originalMobile = isEditMode
+      ? normalizeMobileNumber(
+          building?.phoneNumber ||
+          building?.mobileNo ||
+          building?.phone
+        )
+      : ''
+
+    const normalizedInputMobile = normalizeMobileNumber(formData.phone)
+    const isDuplicateMobile = normalizedInputMobile &&
+      sanitizedExistingMobiles.includes(normalizedInputMobile) &&
+      !(isEditMode && normalizedInputMobile === originalMobile)
+
+    if (isDuplicateMobile) {
+      const messageToShow = duplicateMessage || `यह मोबाइल नंबर पहले से ही ${duplicateContextLabel} में उपयोग किया जा चुका है।`
+      setDuplicateModal({
+        isOpen: true,
+        mobile: normalizedInputMobile,
+        message: messageToShow
+      })
       return
     }
 
@@ -596,6 +639,12 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
       onConfirm={handleRemovePhotoConfirm}
       onCancel={handleRemovePhotoCancel}
       zIndex={1005}
+    />
+    <DuplicateMobileModal
+      isOpen={duplicateModal.isOpen}
+      mobileNumber={duplicateModal.mobile}
+      message={duplicateModal.message}
+      onClose={() => setDuplicateModal({ isOpen: false, mobile: '', message: '' })}
     />
     </>
   )

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { displayBuildingPramukh, apiService } from '../../../apidata.jsx'
 import AddBuildingPramukhModal from '../modals/AddBuildingPramukhModal.jsx'
 import BuildingPramukhDetailModal from '../modals/BuildingPramukhDetailModal.jsx'
@@ -27,6 +27,15 @@ const BuildingPramukh = ({ navigation }) => {
   const [selectedUserForLastLogin, setSelectedUserForLastLogin] = useState(null)
 
   const [summary, setSummary] = useState({ total_address: 0, matched_address: 0 })
+
+  const buildingPramukhExistingMobiles = useMemo(() => {
+    if (!Array.isArray(buildingData)) return []
+    const numbers = buildingData
+      .map(item => item?.phoneNumber || item?.mobileNo || item?.mobile || item?.phone)
+      .filter(Boolean)
+      .map(num => num.toString().trim())
+    return Array.from(new Set(numbers))
+  }, [buildingData])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -751,6 +760,8 @@ const BuildingPramukh = ({ navigation }) => {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSave={handleSaveNew}
+        existingMobiles={buildingPramukhExistingMobiles}
+        duplicateContextLabel="बिल्डिंग प्रमुख"
       />
     </div>
 
@@ -775,6 +786,8 @@ const BuildingPramukh = ({ navigation }) => {
       onClose={handleCloseEditModal}
       onSuccess={handleEditSuccess}
       building={buildingToEdit}
+      existingMobiles={buildingPramukhExistingMobiles}
+      duplicateContextLabel="बिल्डिंग प्रमुख"
     />
 
     {/* Delete Confirmation Modal */}

@@ -10,15 +10,21 @@ const BuildingPramukhDetailModal = ({
   if (!building) return null
 
   const renderProfileImage = (buildingData, size = 'w-12 h-12') => {
-    if (buildingData.profileImage) {
+    const imageSource = buildingData.photo_path || buildingData.photoPath || buildingData.profileImage || buildingData.photo || buildingData.profile_image
+    if (imageSource) {
       return (
         <img
-          src={buildingData.profileImage}
+          src={imageSource}
           alt={buildingData.name}
           className={`${size} rounded-full object-cover border-2 border-gray-200`}
           onError={(e) => {
-            e.target.style.display = 'none'
-            e.target.nextSibling.style.display = 'flex'
+            if (e?.target) {
+              e.target.style.display = 'none'
+              const fallback = e.target.nextSibling
+              if (fallback && fallback.style) {
+                fallback.style.display = 'flex'
+              }
+            }
           }}
         />
       )

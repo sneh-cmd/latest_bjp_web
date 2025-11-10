@@ -16,6 +16,7 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
   const [loading, setLoading] = useState(false)
   const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
+  const [existingPhotoName, setExistingPhotoName] = useState('')
   const [photoRemoved, setPhotoRemoved] = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [designations, setDesignations] = useState([])
@@ -67,7 +68,7 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
       })
       
       // Load existing photo if available
-      const existingPhoto = editData.photoPath || editData.profileImage || editData.photo
+      const existingPhoto = editData.photo_path || editData.photoPath || editData.profileImage || editData.photo
       // Check if it's a valid photo URL
       const isValidPhotoUrl = existingPhoto && 
                               existingPhoto.trim() !== '' && 
@@ -97,6 +98,11 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
         setExistingPhotoUrl(null)
         setPhotoPreview(null)
       }
+      const originalName = editData.photo_path
+        || editData.photo
+        || (editData.photoPath ? editData.photoPath.split('/').pop() : '')
+        || (typeof editData.profileImage === 'string' ? editData.profileImage.split('/').pop() : '')
+      setExistingPhotoName(originalName ? originalName.toString().trim() : '')
       setPhotoRemoved(false)
     } else if (mode === 'create' && isOpen) {
       // Reset form for create mode
@@ -110,6 +116,7 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
       })
       setExistingPhotoUrl(null)
       setPhotoPreview(null)
+      setExistingPhotoName('')
       setPhotoRemoved(false)
     }
   }, [editData, mode, isOpen])
@@ -173,6 +180,7 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
       }))
       setPhotoRemoved(false) // Reset photoRemoved when new photo is uploaded
       setExistingPhotoUrl(null) // Clear existing photo URL when new one is uploaded
+      setExistingPhotoName('')
       // Create preview URL
       const previewUrl = URL.createObjectURL(file)
       setPhotoPreview(previewUrl)
@@ -194,6 +202,7 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
     }))
     setPhotoPreview(null)
     setExistingPhotoUrl(null)
+    setExistingPhotoName('')
     setPhotoRemoved(true)
     // Reset file input
     const fileInput = document.getElementById('co-incharge-photo-input')
@@ -299,9 +308,9 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
         }
       }
       // If in edit mode and no new photo uploaded and photo not removed, keep existing photo
-      else if (mode === 'edit' && existingPhotoUrl && !photoRemoved) {
+      else if (mode === 'edit' && !photoRemoved) {
         // Keep existing photo - don't send base64, server will keep existing
-        photoName = editData.photo || ''
+        photoName = existingPhotoName || editData.photo || editData.photo_path || ''
         photoBase64 = '' // Empty base64 means keep existing photo on server
       }
 
@@ -317,7 +326,7 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
           sub_type: 'BS',
           name: formData.name.trim(),
           mobile_no: formData.phone.trim(),
-          photo: photoRemoved ? '' : (photoName || editData.photo || ''),
+          photo: photoRemoved ? '' : (photoName || existingPhotoName || editData.photo || editData.photo_path || ''),
           base64: photoBase64 || '',
           idcard_no: '',
           booth_javabdari: boothNumber.toString(),

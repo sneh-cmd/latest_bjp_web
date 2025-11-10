@@ -16,6 +16,7 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
   const [loading, setLoading] = useState(false)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
+  const [existingPhotoName, setExistingPhotoName] = useState('')
   const [photoRemoved, setPhotoRemoved] = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [selectedBoothNumber, setSelectedBoothNumber] = useState(boothNumber || '')
@@ -37,7 +38,7 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
       })
       // Load existing photo if available
       // Priority: photoPath > profileImage > photo
-      const existingPhoto = editData.photoPath || editData.profileImage || editData.photo
+      const existingPhoto = editData.photo_path || editData.photoPath || editData.profileImage || editData.photo
       
       if (existingPhoto && existingPhoto.trim() !== '') {
         let photoUrl = existingPhoto.trim()
@@ -63,6 +64,11 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
         setExistingPhotoUrl(null)
         setPhotoPreview(null)
       }
+      const originalName = editData.photo_path
+        || editData.photo
+        || (editData.photoPath ? editData.photoPath.split('/').pop() : '')
+        || (typeof editData.profileImage === 'string' ? editData.profileImage.split('/').pop() : '')
+      setExistingPhotoName(originalName ? originalName.toString().trim() : '')
       setPhotoRemoved(false)
       setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     } else {
@@ -77,6 +83,7 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
       })
       setPhotoPreview(null)
       setExistingPhotoUrl(null)
+      setExistingPhotoName('')
       setPhotoRemoved(false)
       setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     }
@@ -148,6 +155,7 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
       }))
       setPhotoRemoved(false) // Reset photoRemoved when new photo is uploaded
       setExistingPhotoUrl(null) // Clear existing photo URL when new one is uploaded
+      setExistingPhotoName('') // Clear existing photo name when new one is uploaded
       // Create preview URL
       const previewUrl = URL.createObjectURL(file)
       setPhotoPreview(previewUrl)
@@ -169,6 +177,7 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
     }))
     setPhotoPreview(null)
     setExistingPhotoUrl(null)
+    setExistingPhotoName('')
     setPhotoRemoved(true)
     // Reset file input
     const fileInput = document.getElementById('booth-head-photo-upload')
@@ -274,9 +283,9 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
         }
       }
       // If in edit mode and no new photo uploaded and photo not removed, keep existing photo
-      else if (mode === 'edit' && existingPhotoUrl && !photoRemoved) {
+      else if (mode === 'edit' && !photoRemoved) {
         // Keep existing photo - don't send base64, server will keep existing
-        photoName = editData.photo || ''
+        photoName = existingPhotoName || editData?.photo || ''
         photoBase64 = '' // Empty base64 means keep existing photo on server
       }
 
@@ -292,7 +301,7 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
           sub_type: 'BP',
           name: formData.name.trim(),
           mobile_no: formData.phone.trim(),
-          photo: photoRemoved ? '' : (photoName || editData.photo || ''),
+          photo: photoRemoved ? '' : (photoName || existingPhotoName || editData.photo || editData.photo_path || ''),
           base64: photoBase64,
           idcard_no: '',
           booth_javabdari: selectedBoothNumber.toString(),

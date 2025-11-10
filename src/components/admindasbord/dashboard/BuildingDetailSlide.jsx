@@ -512,13 +512,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
     if (!building) return
 
     const resolvedLastLogin = (building.last_login || building.lastLogin || buildingPramukh?.last_login || buildingPramukh?.lastLogin || buildingData?.last_login || buildingData?.lastLogin || '').toString().trim()
-
-    const statusCandidate = (building.status || buildingPramukh?.status || buildingData?.status || '').toString().trim().toLowerCase()
-    const normalizedStatus = statusCandidate === 'active'
-      ? 'active'
-      : statusCandidate === 'inactive'
-        ? 'inactive'
-        : (resolvedLastLogin ? 'active' : 'inactive')
+    const normalizedStatus = resolvedLastLogin.length > 0 ? 'active' : 'inactive'
 
     const resolvedPhone = building.phoneNumber || building.phone || building.mobile_no || building.mobileNo || building.mobile || buildingPramukh?.phoneNumber || buildingData?.phoneNumber || ''
 
@@ -841,6 +835,27 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
       .map(num => num.toString().trim())
   ))
 
+  const buildingPramukhNumbers = Array.from(new Set(
+    [
+      current.phoneNumber,
+      current.mobileNo,
+      buildingPramukh?.phoneNumber,
+      buildingPramukh?.mobileNo,
+      buildingData?.phoneNumber,
+      buildingData?.mobileNo
+    ]
+      .filter(Boolean)
+      .map(num => num.toString().trim())
+  ))
+
+  const buildingPramukhExistingMobiles = Array.from(new Set([...buildingPramukhNumbers, ...buildingCoInchargeMobiles]))
+
+  const currentLastLoginRaw = (current.last_login || current.lastLogin || '').toString().trim()
+  const hasValidLastLogin = currentLastLoginRaw.length > 0
+  const resolvedStatus = hasValidLastLogin ? 'active' : 'inactive'
+  const isCurrentActive = resolvedStatus === 'active'
+  const currentStatusLabel = isCurrentActive ? 'Active' : 'Inactive'
+
   if (!isVisible) return null
 
   return (
@@ -849,6 +864,8 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         isOpen={showAddBuildingHeadModal}
         onClose={() => setShowAddBuildingHeadModal(false)}
         onSave={handleSaveBuildingHead}
+        existingMobiles={buildingPramukhExistingMobiles}
+        duplicateContextLabel="बिल्डिंग प्रमुख"
       />
       
       <AddBuildingCoInchargeModal
@@ -890,6 +907,8 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         onClose={handleCloseEditBuildingHeadModal}
         onSuccess={handleEditBuildingHeadSuccess}
         building={buildingHeadToEdit}
+        existingMobiles={buildingPramukhExistingMobiles}
+        duplicateContextLabel="बिल्डिंग प्रमुख"
       />
       
       <BuildingCoInchargeDetailModal
@@ -1129,19 +1148,19 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                               </div>
                               <button 
                                 onClick={() => {
-                                  if (current.status === 'active' && (current.last_login || current.lastLogin)) {
+                                  if (isCurrentActive && hasValidLastLogin) {
                                     setSelectedUserForLastLogin({
                                       name: current.name,
-                                      lastLogin: current.last_login || current.lastLogin
+                                      lastLogin: currentLastLoginRaw
                                     })
                                     setShowLastLoginModal(true)
                                   }
                                 }}
                                 className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded text-[10px] sm:text-sm font-medium flex-shrink-0 ${
-                                  current.status === 'active' ? 'bg-green-500 text-white cursor-pointer hover:bg-green-600' : 'bg-red-500 text-white'
+                                  isCurrentActive ? 'bg-green-500 text-white cursor-pointer hover:bg-green-600' : 'bg-red-500 text-white'
                                 }`}
                               >
-                                {current.status === 'active' ? 'Active' : 'inactive'}
+                                {currentStatusLabel}
                               </button>
                             </div>
                           </div>

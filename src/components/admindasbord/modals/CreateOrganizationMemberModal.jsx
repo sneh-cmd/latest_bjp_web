@@ -32,7 +32,7 @@ const CreateOrganizationMemberModal = ({
 
   // Update form when editData changes
   useEffect(() => {
-    if (editData && mode === 'edit' && isOpen) {
+    if (isOpen && editData && mode === 'edit') {
       setName(editData.name || '')
       setMobile(editData.phoneNumber || editData.mobileNo || editData.mobile || '')
       setPhoto(null) // Reset photo, user can upload new one if needed
@@ -91,10 +91,19 @@ const CreateOrganizationMemberModal = ({
           // We need: { id, label }
           const transformedRoles = designations.map(item => ({
             id: item.designation_sort || item.type || item.ud?.toString(),
-            label: item.designation || ''
+            label: item.designation || '',
+            rawId: item.designation_sort || item.type || item.ud?.toString()
           })).filter(item => item.label) // Filter out empty labels
           
           setRoles(transformedRoles)
+
+          if (mode === 'edit' && editData) {
+            const matchedRole = transformedRoles.find(r => r.id === (editData.designation_sort || editData.role || editData.roleId || r.rawId))
+              || transformedRoles.find(r => r.rawId === (editData.designation_sort || editData.role || editData.roleId || ''))
+            if (matchedRole) {
+              setRole(matchedRole.id)
+            }
+          }
         } catch (error) {
           console.error('Error fetching designations:', error)
           setRolesError('पद लोड करने में त्रुटि')
@@ -455,7 +464,8 @@ const CreateOrganizationMemberModal = ({
                 <span>
                   {loadingRoles ? 'लोड हो रहा है...' : 
                    rolesError ? rolesError :
-                   role ? (roles.find(r=>r.id===role)?.label || '') : 'पद चुनें'}
+                   role ? (roles.find(r=>r.id === role || r.rawId === role)?.label || '')
+                  : 'पद चुनें'}
                 </span>
                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>
               </button>
