@@ -603,6 +603,8 @@ const ShaktiKendraPramukh = ({ navigation }) => {
         editData={pramukhToEdit}
         mode="edit"
         alreadyAssignedBooths={getAlreadyAssignedBooths(pramukhToEdit?.id || pramukhToEdit?.adminId)}
+        existingMobiles={pramukhData.map(pramukh => pramukh.mobileNo || pramukh.mobile_no || pramukh.mobile || pramukh.phoneNumber || pramukh.phone).filter(Boolean)}
+        duplicateContextLabel="शक्ति केन्द्र प्रमुख"
       />
       
       {/* Delete Confirmation Modal */}
@@ -763,6 +765,8 @@ const ShaktiKendraPramukh = ({ navigation }) => {
       onClose={() => setShowCreateModal(false)}
       onSuccess={refreshList}
       alreadyAssignedBooths={getAlreadyAssignedBooths()}
+      existingMobiles={pramukhData.map(pramukh => pramukh.mobileNo || pramukh.mobile_no || pramukh.mobile || pramukh.phoneNumber || pramukh.phone).filter(Boolean)}
+      duplicateContextLabel="शक्ति केन्द्र प्रमुख"
     />
     </>
   )

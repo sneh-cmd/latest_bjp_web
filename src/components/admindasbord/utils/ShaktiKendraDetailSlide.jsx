@@ -27,6 +27,22 @@ const ShaktiKendraDetailSlide = ({
   const [viewMode, setViewMode] = useState('grid') // 'list', 'grid' - default is grid
   const [searchQuery, setSearchQuery] = useState('')
 
+  const combinedPramukhMobiles = Array.from(
+    new Set(
+      [
+        mainPramukhData?.mobileNo || mainPramukhData?.mobile_no || mainPramukhData?.mobile,
+        ...(coPramukhData || []).map(item => item.mobileNo || item.mobile_no || item.mobile || item.phoneNumber || item.phone),
+        ...(Array.isArray(pramukhData) ? pramukhData.map(item => item.mobileNo || item.mobile_no || item.mobile || item.phoneNumber || item.phone) : [])
+      ].filter(Boolean)
+    )
+  )
+
+  const cadreMobileNumbers = Array.from(
+    new Set(
+      (cadreData || []).map(item => item.mobileNo || item.mobile_no || item.mobile || item.phoneNumber || item.phone).filter(Boolean)
+    )
+  )
+
   // API call function to fetch Shakti Kendra Pramukh data
   const fetchShaktiKendraData = async () => {
     setLoading(true)
@@ -1411,6 +1427,8 @@ const ShaktiKendraDetailSlide = ({
           fetchShaktiKendraData()
         }}
         mainAdminId={mainAdminId}
+        existingMobiles={cadreMobileNumbers}
+        duplicateContextLabel="संगठन सदस्य"
       />
       
       {/* Edit Organization Member Modal */}
@@ -1429,6 +1447,8 @@ const ShaktiKendraDetailSlide = ({
         mainAdminId={mainAdminId}
         editData={memberToEdit}
         mode="edit"
+        existingMobiles={cadreMobileNumbers}
+        duplicateContextLabel="संगठन सदस्य"
       />
       
       <ShaktiKendraPramukhDetailModal
@@ -1451,6 +1471,8 @@ const ShaktiKendraDetailSlide = ({
         editData={pramukhToEdit}
         mode="edit"
         alreadyAssignedBooths={getAlreadyAssignedBooths(pramukhToEdit?.id || pramukhToEdit?.adminId)}
+        existingMobiles={combinedPramukhMobiles}
+        duplicateContextLabel="शक्ति केन्द्र प्रमुख"
       />
       
       {/* Delete Confirmation Modal */}

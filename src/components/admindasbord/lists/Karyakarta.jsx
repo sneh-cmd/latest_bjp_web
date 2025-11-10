@@ -800,6 +800,8 @@ const Karyakarta = ({ navigation }) => {
           onSubmit={handleCreateKaryakarta}
           editData={karyakartaToEdit}
           mode={karyakartaToEdit ? 'edit' : 'create'}
+          existingMobiles={karyakartaData.map(karyakarta => karyakarta.phoneNumber || karyakarta.mobile || karyakarta.mobileNo).filter(Boolean)}
+          duplicateContextLabel="कार्यकर्ता"
           title={{
             edit: 'कार्यकर्ता संपादित करें',
             create: 'कार्यकर्ता बनाएं'

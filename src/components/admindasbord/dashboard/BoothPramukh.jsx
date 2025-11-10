@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
@@ -24,6 +24,23 @@ const BoothPramukh = ({ navigation }) => {
   const [selectedBoothNumber, setSelectedBoothNumber] = useState(null)
   const [showBoothPramukhListModal, setShowBoothPramukhListModal] = useState(false)
   const [selectedBoothForList, setSelectedBoothForList] = useState(null)
+  const [summary, setSummary] = useState({ total_address: 0, matched_address: 0 })
+
+  const boothHeadExistingMobiles = useMemo(() => {
+    if (!Array.isArray(boothData)) return []
+    const numbers = []
+    boothData.forEach(booth => {
+      const primary = booth?.phoneNumber || booth?.mobileNo || booth?.mobile || booth?.phone
+      if (primary) numbers.push(primary.toString().trim())
+      if (Array.isArray(booth?.headDetails)) {
+        booth.headDetails.forEach(head => {
+          const headPhone = head?.phone || head?.mobile || head?.mobileNo
+          if (headPhone) numbers.push(headPhone.toString().trim())
+        })
+      }
+    })
+    return Array.from(new Set(numbers))
+  }, [boothData])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -699,6 +716,8 @@ const BoothPramukh = ({ navigation }) => {
         onClose={() => setShowAddBoothHeadModal(false)}
         boothNumber={selectedBoothNumber}
         onSave={handleSaveBoothHead}
+        existingMobiles={boothHeadExistingMobiles}
+        duplicateContextLabel="बूथ प्रमुख"
       />
       
       <div className={`relative w-screen h-screen overflow-hidden transition-all duration-700 ${

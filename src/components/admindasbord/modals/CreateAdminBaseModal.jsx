@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
+import DuplicateMobileModal from './DuplicateMobileModal.jsx'
 
 const CreateAdminBaseModal = ({ 
   isOpen, 
@@ -14,7 +15,10 @@ const CreateAdminBaseModal = ({
   inputId = 'photo-upload',
   namePlaceholder = 'Enter name',
   mobilePlaceholder = 'Enter mobile number',
-  extraPayload = {} // Additional payload fields for create and edit mode
+  extraPayload = {}, // Additional payload fields for create and edit mode
+  existingMobiles = [],
+  duplicateContextLabel = 'सिस्टम',
+  duplicateMessage = ''
 }) => {
   const [name, setName] = useState('')
   const [mobile, setMobile] = useState('')
@@ -23,6 +27,7 @@ const CreateAdminBaseModal = ({
   const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
   const [photoRemoved, setPhotoRemoved] = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
+  const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, mobile: '', message: '' })
 
   // Update form when editData changes
   useEffect(() => {
@@ -130,6 +135,15 @@ const CreateAdminBaseModal = ({
     }
   }
 
+  const normalizeMobileNumber = (value) => {
+    if (!value) return ''
+    const digits = value.toString().replace(/\D/g, '')
+    if (digits.length > 10) {
+      return digits.slice(-10)
+    }
+    return digits
+  }
+
   const validateMobile = (mobileNumber) => {
     if (!mobileNumber || mobileNumber.length !== 10) {
       return false
@@ -139,6 +153,10 @@ const CreateAdminBaseModal = ({
   }
 
   const handleSubmit = async () => {
+    if (duplicateModal.isOpen) {
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
+    }
+
     // Validate name first
     if (!name.trim()) {
       alert('Name is required')
@@ -154,6 +172,34 @@ const CreateAdminBaseModal = ({
     // Validate mobile number format
     if (!validateMobile(mobile)) {
       alert('Invalid mobile number')
+      return
+    }
+
+    const normalizedMobile = normalizeMobileNumber(mobile)
+    const sanitizedExistingMobiles = Array.isArray(existingMobiles)
+      ? existingMobiles.map(normalizeMobileNumber).filter(Boolean)
+      : []
+    const originalMobile = mode === 'edit'
+      ? normalizeMobileNumber(
+          editData?.phoneNumber ||
+          editData?.mobile ||
+          editData?.mobileNo ||
+          editData?.mobile_no ||
+          editData?.phone
+        )
+      : ''
+
+    const isDuplicateMobile = normalizedMobile &&
+      sanitizedExistingMobiles.includes(normalizedMobile) &&
+      !(mode === 'edit' && normalizedMobile === originalMobile)
+
+    if (isDuplicateMobile) {
+      const messageToShow = duplicateMessage || `यह मोबाइल नंबर पहले से ही ${duplicateContextLabel} में उपयोग किया जा चुका है।`
+      setDuplicateModal({
+        isOpen: true,
+        mobile: normalizedMobile,
+        message: messageToShow
+      })
       return
     }
 
@@ -346,6 +392,12 @@ const CreateAdminBaseModal = ({
         isOpen={showRemoveConfirm}
         onConfirm={handleRemovePhotoConfirm}
         onCancel={handleRemovePhotoCancel}
+      />
+      <DuplicateMobileModal
+        isOpen={duplicateModal.isOpen}
+        mobileNumber={duplicateModal.mobile}
+        message={duplicateModal.message}
+        onClose={() => setDuplicateModal({ isOpen: false, mobile: '', message: '' })}
       />
     </div>
   )

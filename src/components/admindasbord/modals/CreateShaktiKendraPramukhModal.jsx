@@ -2,8 +2,19 @@ import React, { useState, useEffect } from 'react'
 import apiService, { displayAllBoothForSaktiAllocation } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
+import DuplicateMobileModal from './DuplicateMobileModal.jsx'
 
-const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData = null, mode = 'create', alreadyAssignedBooths = [] }) => {
+const CreateShaktiKendraPramukhModal = ({ 
+  isOpen, 
+  onClose, 
+  onSuccess, 
+  editData = null, 
+  mode = 'create', 
+  alreadyAssignedBooths = [],
+  existingMobiles = [],
+  duplicateContextLabel = 'शक्ति केन्द्र प्रमुख',
+  duplicateMessage = ''
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedBooths, setSelectedBooths] = useState([])
   const [name, setName] = useState('')
@@ -17,6 +28,7 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
   const [booths, setBooths] = useState([])
   const [loadingBooths, setLoadingBooths] = useState(false)
   const [boothError, setBoothError] = useState('')
+  const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, mobile: '', message: '' })
 
   // Update form when editData changes
   useEffect(() => {
@@ -144,6 +156,15 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
     }
   }
 
+  const normalizeMobileNumber = (value) => {
+    if (!value) return ''
+    const digits = value.toString().replace(/\D/g, '')
+    if (digits.length > 10) {
+      return digits.slice(-10)
+    }
+    return digits
+  }
+
   const validateMobile = (mobileNumber) => {
     if (!mobileNumber || mobileNumber.length !== 10) {
       return false
@@ -153,6 +174,10 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
   }
 
   const handleSubmit = async () => {
+    if (duplicateModal.isOpen) {
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
+    }
+
     // Reset errors
     setBoothError('')
     
@@ -171,6 +196,34 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
     // Validate mobile number format
     if (!validateMobile(mobile)) {
       alert('Invalid mobile number')
+      return
+    }
+
+    const normalizedMobile = normalizeMobileNumber(mobile)
+    const sanitizedExistingMobiles = Array.isArray(existingMobiles)
+      ? existingMobiles.map(normalizeMobileNumber).filter(Boolean)
+      : []
+    const originalMobile = mode === 'edit'
+      ? normalizeMobileNumber(
+          editData?.mobile ||
+          editData?.mobileNo ||
+          editData?.mobile_no ||
+          editData?.phoneNumber ||
+          editData?.phone
+        )
+      : ''
+
+    const isDuplicateMobile = normalizedMobile &&
+      sanitizedExistingMobiles.includes(normalizedMobile) &&
+      !(mode === 'edit' && normalizedMobile === originalMobile)
+
+    if (isDuplicateMobile) {
+      const messageToShow = duplicateMessage || `यह मोबाइल नंबर पहले से ही ${duplicateContextLabel} में उपयोग किया जा चुका है।`
+      setDuplicateModal({
+        isOpen: true,
+        mobile: normalizedMobile,
+        message: messageToShow
+      })
       return
     }
 
@@ -535,6 +588,12 @@ const CreateShaktiKendraPramukhModal = ({ isOpen, onClose, onSuccess, editData =
         onConfirm={handleRemovePhotoConfirm}
         onCancel={handleRemovePhotoCancel}
         zIndex={70}
+      />
+      <DuplicateMobileModal
+        isOpen={duplicateModal.isOpen}
+        mobileNumber={duplicateModal.mobile}
+        message={duplicateModal.message}
+        onClose={() => setDuplicateModal({ isOpen: false, mobile: '', message: '' })}
       />
     </>
   )

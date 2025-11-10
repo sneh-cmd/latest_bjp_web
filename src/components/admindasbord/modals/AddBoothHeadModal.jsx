@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import apiService, { displayAllBoothForSaktiAllocation } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage'
 import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
+import DuplicateMobileModal from './DuplicateMobileModal.jsx'
 
-const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = null, mode = 'create' }) => {
+const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = null, mode = 'create', existingMobiles = [], duplicateContextLabel = 'बूथ प्रमुख', duplicateMessage = '' }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -21,6 +22,7 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
   const [showBoothPicker, setShowBoothPicker] = useState(false)
   const [booths, setBooths] = useState([])
   const [loadingBooths, setLoadingBooths] = useState(false)
+  const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, mobile: '', message: '' })
 
   // Update form when editData changes
   useEffect(() => {
@@ -62,6 +64,7 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
         setPhotoPreview(null)
       }
       setPhotoRemoved(false)
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     } else {
       // Reset form for create mode
       setFormData({
@@ -75,6 +78,7 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
       setPhotoPreview(null)
       setExistingPhotoUrl(null)
       setPhotoRemoved(false)
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     }
   }, [editData, mode, isOpen])
 
@@ -120,6 +124,15 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
     }
     const firstDigit = mobileNumber.charAt(0)
     return firstDigit === '6' || firstDigit === '9'
+  }
+
+  const normalizeMobileNumber = (value) => {
+    if (!value) return ''
+    const digits = value.toString().replace(/\D/g, '')
+    if (digits.length > 10) {
+      return digits.slice(-10)
+    }
+    return digits
   }
 
   const handlePhotoUpload = (event) => {
@@ -180,6 +193,9 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (duplicateModal.isOpen) {
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
+    }
     
     // Validate name first
     if (!formData.name.trim()) {
@@ -198,7 +214,35 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
       alert('Invalid mobile number')
       return
     }
-    
+
+    const sanitizedExistingMobiles = Array.isArray(existingMobiles)
+      ? existingMobiles.map(normalizeMobileNumber).filter(Boolean)
+      : []
+    const originalMobile = mode === 'edit'
+      ? normalizeMobileNumber(
+          editData?.phone ||
+          editData?.phoneNumber ||
+          editData?.mobile ||
+          editData?.mobileNo ||
+          editData?.mobile_no
+        )
+      : ''
+
+    const normalizedInputMobile = normalizeMobileNumber(formData.phone)
+    const isDuplicateMobile = normalizedInputMobile &&
+      sanitizedExistingMobiles.includes(normalizedInputMobile) &&
+      !(mode === 'edit' && normalizedInputMobile === originalMobile)
+
+    if (isDuplicateMobile) {
+      const messageToShow = duplicateMessage || `यह मोबाइल नंबर पहले से ही ${duplicateContextLabel} में उपयोग किया जा चुका है।`
+      setDuplicateModal({
+        isOpen: true,
+        mobile: normalizedInputMobile,
+        message: messageToShow
+      })
+      return
+    }
+ 
     if (!selectedBoothNumber) {
       alert('कृपया बूथ नंबर चुनें')
       return
@@ -547,8 +591,14 @@ const AddBoothHeadModal = ({ isOpen, onClose, boothNumber, onSave, editData = nu
       onCancel={handleRemovePhotoCancel}
       zIndex={70}
     />
-    </>
-  )
+    <DuplicateMobileModal
+      isOpen={duplicateModal.isOpen}
+      mobileNumber={duplicateModal.mobile}
+      message={duplicateModal.message}
+      onClose={() => setDuplicateModal({ isOpen: false, mobile: '', message: '' })}
+    />
+  </>
+)
 }
 
 export default AddBoothHeadModal

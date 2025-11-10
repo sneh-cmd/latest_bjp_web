@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import apiService, { displayAllBoothForSaktiAllocation } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
+import DuplicateMobileModal from './DuplicateMobileModal.jsx'
 
 const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers = [] }) => {
   const [name, setName] = useState('')
@@ -21,6 +22,7 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [photoBase64, setPhotoBase64] = useState('')
   const [boothError, setBoothError] = useState('')
+  const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, mobile: '', message: '' })
 
   // Determine if we're in edit mode
   const isEditMode = !!user
@@ -46,6 +48,15 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
     
     return assignedSet
   }, [allUsers, user, isEditMode])
+
+  const existingMobileNumbers = useMemo(() => {
+    const numbers = allUsers
+      .filter(u => !(isEditMode && (u.id === (user?.id) || u.adminId === (user?.adminId))))
+      .map(u => u.phoneNumber || u.mobile || u.mobileNo || u.mobile_no || u.phone)
+      .filter(Boolean)
+      .map(num => num.toString().trim())
+    return Array.from(new Set(numbers))
+  }, [allUsers, isEditMode, user])
 
   // Initialize form with user data when modal opens or user changes (edit mode)
   useEffect(() => {
@@ -166,9 +177,21 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
     return firstDigit === '6' || firstDigit === '9'
   }
 
+  const normalizeMobileNumber = (value) => {
+    if (!value) return ''
+    const digits = value.toString().replace(/\D/g, '')
+    if (digits.length > 10) {
+      return digits.slice(-10)
+    }
+    return digits
+  }
+
   const handleSubmit = async () => {
     // Reset errors
     setBoothError('')
+    if (duplicateModal.isOpen) {
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
+    }
     
     // Validate name first
     if (!name.trim()) {
@@ -185,6 +208,33 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
     // Validate mobile number format
     if (!validateMobile(mobile)) {
       alert('Invalid mobile number')
+      return
+    }
+
+    const normalizedMobile = normalizeMobileNumber(mobile)
+    const sanitizedExistingMobiles = existingMobileNumbers
+      .map(normalizeMobileNumber)
+      .filter(Boolean)
+    const originalMobile = isEditMode
+      ? normalizeMobileNumber(
+          user?.phoneNumber ||
+          user?.mobile ||
+          user?.mobileNo ||
+          user?.mobile_no ||
+          user?.phone
+        )
+      : ''
+
+    const isDuplicateMobile = normalizedMobile &&
+      sanitizedExistingMobiles.includes(normalizedMobile) &&
+      !(isEditMode && normalizedMobile === originalMobile)
+
+    if (isDuplicateMobile) {
+      setDuplicateModal({
+        isOpen: true,
+        mobile: normalizedMobile,
+        message: 'यह मोबाइल नंबर पहले से ही कॉल सेंटर यूज़र में उपयोग किया जा चुका है।'
+      })
       return
     }
 
@@ -604,6 +654,12 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
         onConfirm={handleRemovePhotoConfirm}
         onCancel={handleRemovePhotoCancel}
         zIndex={70}
+      />
+      <DuplicateMobileModal
+        isOpen={duplicateModal.isOpen}
+        mobileNumber={duplicateModal.mobile}
+        message={duplicateModal.message}
+        onClose={() => setDuplicateModal({ isOpen: false, mobile: '', message: '' })}
       />
     </>
   )

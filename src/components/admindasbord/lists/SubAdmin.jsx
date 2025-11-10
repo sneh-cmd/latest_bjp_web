@@ -723,6 +723,8 @@ const SubAdmin = ({ navigation }) => {
           onClose={handleCloseCreateModal}
           onSubmit={handleSubmitSubAdmin}
           mode="create"
+          existingMobiles={subAdminData.map(subAdmin => subAdmin.phoneNumber || subAdmin.mobile || subAdmin.mobileNo).filter(Boolean)}
+          duplicateContextLabel="सब ऐडमिन"
           title={{
             edit: 'सब ऐडमिन संपादित करें',
             create: 'नया सब ऐडमिन'
@@ -747,6 +749,8 @@ const SubAdmin = ({ navigation }) => {
           onSubmit={handleUpdateSubAdmin}
           editData={subAdminToEdit}
           mode="edit"
+          existingMobiles={subAdminData.map(subAdmin => subAdmin.phoneNumber || subAdmin.mobile || subAdmin.mobileNo).filter(Boolean)}
+          duplicateContextLabel="सब ऐडमिन"
           title={{
             edit: 'सब ऐडमिन संपादित करें',
             create: 'नया सब ऐडमिन'

@@ -834,6 +834,13 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
     last_login: buildingPramukh?.last_login || buildingPramukh?.lastLogin || buildingData?.last_login || buildingData?.lastLogin || ''
   }
 
+  const buildingCoInchargeMobiles = Array.from(new Set(
+    (coInchargeData || [])
+      .map(item => item.phone || item.mobile || item.mobile_no || item.mobileNo || item.phoneNumber)
+      .filter(Boolean)
+      .map(num => num.toString().trim())
+  ))
+
   if (!isVisible) return null
 
   return (
@@ -850,6 +857,8 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         buildingId={buildingPramukh?.id || buildingData?.id || buildingId}
         onSave={handleSaveCoIncharge}
         person={null}
+        existingMobiles={buildingCoInchargeMobiles}
+        duplicateContextLabel="बिल्डिंग सह इनचार्ज"
       />
       
       <AddBuildingCoInchargeModal
@@ -858,6 +867,8 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         onSuccess={handleEditCoInchargeSuccess}
         buildingId={buildingPramukh?.id || buildingData?.id || buildingId}
         person={coInchargeToEdit}
+        existingMobiles={buildingCoInchargeMobiles}
+        duplicateContextLabel="बिल्डिंग सह इनचार्ज"
       />
       
       <DeleteConfirmationModal

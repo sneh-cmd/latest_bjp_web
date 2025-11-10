@@ -742,6 +742,8 @@ const AdminList = ({ navigation }) => {
           onClose={handleCloseCreateModal}
           onSubmit={handleSubmitAdmin}
           mode="create"
+          existingMobiles={adminData.map(admin => admin.phoneNumber || admin.mobile || admin.mobileNo).filter(Boolean)}
+          duplicateContextLabel="ऐडमिन"
           title={{
             edit: 'ऐडमिन संपादित करें',
             create: 'नया ऐडमिन'
@@ -765,6 +767,8 @@ const AdminList = ({ navigation }) => {
           onSubmit={handleUpdateAdmin}
           editData={adminToEdit}
           mode="edit"
+          existingMobiles={adminData.map(admin => admin.phoneNumber || admin.mobile || admin.mobileNo).filter(Boolean)}
+          duplicateContextLabel="ऐडमिन"
           title={{
             edit: 'ऐडमिन संपादित करें',
             create: 'नया ऐडमिन'

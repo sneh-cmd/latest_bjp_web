@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage'
 import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
+import DuplicateMobileModal from './DuplicateMobileModal.jsx'
 
-const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = null, mode = 'create' }) => {
+const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = null, mode = 'create', existingMobiles = [], duplicateContextLabel = 'बुथ सह इनचार्ज', duplicateMessage = '' }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -19,6 +20,7 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [designations, setDesignations] = useState([])
   const [loadingDesignations, setLoadingDesignations] = useState(false)
+  const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, mobile: '', message: '' })
 
   // Fetch designations from API
   useEffect(() => {
@@ -149,6 +151,15 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
     return firstDigit === '6' || firstDigit === '9'
   }
 
+  const normalizeMobileNumber = (value) => {
+    if (!value) return ''
+    const digits = value.toString().replace(/\D/g, '')
+    if (digits.length > 10) {
+      return digits.slice(-10)
+    }
+    return digits
+  }
+
   const handlePhotoUpload = (event) => {
     const file = event.target.files[0]
     if (file) {
@@ -207,6 +218,9 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (duplicateModal.isOpen) {
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
+    }
     
     // Validate name first
     if (!formData.name.trim()) {
@@ -223,6 +237,34 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
     // Validate mobile number format
     if (!validateMobile(formData.phone)) {
       alert('Invalid mobile number')
+      return
+    }
+
+    const normalizedMobile = normalizeMobileNumber(formData.phone)
+    const sanitizedExistingMobiles = Array.isArray(existingMobiles)
+      ? existingMobiles.map(normalizeMobileNumber).filter(Boolean)
+      : []
+    const originalMobile = mode === 'edit'
+      ? normalizeMobileNumber(
+          editData?.phone ||
+          editData?.phoneNumber ||
+          editData?.mobile ||
+          editData?.mobileNo ||
+          editData?.mobile_no
+        )
+      : ''
+
+    const isDuplicateMobile = normalizedMobile &&
+      sanitizedExistingMobiles.includes(normalizedMobile) &&
+      !(mode === 'edit' && normalizedMobile === originalMobile)
+
+    if (isDuplicateMobile) {
+      const messageToShow = duplicateMessage || `यह मोबाइल नंबर पहले से ही ${duplicateContextLabel} में उपयोग किया जा चुका है।`
+      setDuplicateModal({
+        isOpen: true,
+        mobile: normalizedMobile,
+        message: messageToShow
+      })
       return
     }
     
@@ -527,8 +569,14 @@ const AddCoInchargeModal = ({ isOpen, onClose, boothNumber, onSave, editData = n
       onCancel={handleRemovePhotoCancel}
       zIndex={70}
     />
-    </>
-  )
+    <DuplicateMobileModal
+      isOpen={duplicateModal.isOpen}
+      mobileNumber={duplicateModal.mobile}
+      message={duplicateModal.message}
+      onClose={() => setDuplicateModal({ isOpen: false, mobile: '', message: '' })}
+    />
+  </>
+)
 }
 
 export default AddCoInchargeModal

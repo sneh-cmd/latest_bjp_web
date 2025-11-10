@@ -2,8 +2,19 @@ import React, { useState, useEffect } from 'react'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
+import DuplicateMobileModal from './DuplicateMobileModal.jsx'
 
-const CreateOrganizationMemberModal = ({ isOpen, onClose, onSubmit, mainAdminId, editData = null, mode = 'create' }) => {
+const CreateOrganizationMemberModal = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  mainAdminId, 
+  editData = null, 
+  mode = 'create',
+  existingMobiles = [],
+  duplicateContextLabel = 'संगठन सदस्य',
+  duplicateMessage = ''
+}) => {
   const [role, setRole] = useState('')
   const [name, setName] = useState('')
   const [mobile, setMobile] = useState('')
@@ -17,6 +28,7 @@ const CreateOrganizationMemberModal = ({ isOpen, onClose, onSubmit, mainAdminId,
   const [loadingRoles, setLoadingRoles] = useState(false)
   const [rolesError, setRolesError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, mobile: '', message: '' })
 
   // Update form when editData changes
   useEffect(() => {
@@ -116,6 +128,15 @@ const CreateOrganizationMemberModal = ({ isOpen, onClose, onSubmit, mainAdminId,
     }
   }
 
+  const normalizeMobileNumber = (value) => {
+    if (!value) return ''
+    const digits = value.toString().replace(/\D/g, '')
+    if (digits.length > 10) {
+      return digits.slice(-10)
+    }
+    return digits
+  }
+
   const validateMobile = (mobileNumber) => {
     if (!mobileNumber || mobileNumber.length !== 10) {
       return false
@@ -175,6 +196,10 @@ const CreateOrganizationMemberModal = ({ isOpen, onClose, onSubmit, mainAdminId,
   }
 
   const handleSave = async () => {
+    if (duplicateModal.isOpen) {
+      setDuplicateModal({ isOpen: false, mobile: '', message: '' })
+    }
+
     // Validate name first
     if (!name.trim()) {
       alert('Name is required')
@@ -193,6 +218,34 @@ const CreateOrganizationMemberModal = ({ isOpen, onClose, onSubmit, mainAdminId,
       return
     }
     
+    const normalizedMobile = normalizeMobileNumber(mobile)
+    const sanitizedExistingMobiles = Array.isArray(existingMobiles)
+      ? existingMobiles.map(normalizeMobileNumber).filter(Boolean)
+      : []
+    const originalMobile = mode === 'edit'
+      ? normalizeMobileNumber(
+          editData?.mobile ||
+          editData?.mobileNo ||
+          editData?.mobile_no ||
+          editData?.phoneNumber ||
+          editData?.phone
+        )
+      : ''
+
+    const isDuplicateMobile = normalizedMobile &&
+      sanitizedExistingMobiles.includes(normalizedMobile) &&
+      !(mode === 'edit' && normalizedMobile === originalMobile)
+
+    if (isDuplicateMobile) {
+      const messageToShow = duplicateMessage || `यह मोबाइल नंबर पहले से ही ${duplicateContextLabel} में उपयोग किया जा चुका है।`
+      setDuplicateModal({
+        isOpen: true,
+        mobile: normalizedMobile,
+        message: messageToShow
+      })
+      return
+    }
+
     if (!role) {
       alert('कृपया पद चुनें')
       return
@@ -360,6 +413,7 @@ const CreateOrganizationMemberModal = ({ isOpen, onClose, onSubmit, mainAdminId,
   }
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm">
       <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Modal Header */}
@@ -545,6 +599,13 @@ const CreateOrganizationMemberModal = ({ isOpen, onClose, onSubmit, mainAdminId,
         />
       </div>
     </div>
+    <DuplicateMobileModal
+      isOpen={duplicateModal.isOpen}
+      mobileNumber={duplicateModal.mobile}
+      message={duplicateModal.message}
+      onClose={() => setDuplicateModal({ isOpen: false, mobile: '', message: '' })}
+    />
+    </>
   )
 }
 

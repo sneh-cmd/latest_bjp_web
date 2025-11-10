@@ -571,7 +571,6 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
     )
   })
 
-  // Filter co-incharge data based on search query
   const filteredCoInchargeData = coInchargeData.filter(person => {
     if (!searchQuery.trim()) return true
     return (
@@ -580,6 +579,13 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
       person.role?.toLowerCase().includes(searchQuery.toLowerCase())
     )
   })
+
+  const boothHeadMobileNumbers = Array.from(new Set(
+    (boothHeadData || [])
+      .map(person => person.phone || person.mobile || person.mobileNo || person.phoneNumber)
+      .filter(Boolean)
+      .map(num => num.toString().trim())
+  ))
 
   // Filter voters by surname, visit status, and search query
   const filteredVoters = voterData.filter(voter => {
@@ -643,6 +649,13 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
     return surnameMatches && visitMatches && searchMatches
   })
 
+  const coInchargeMobileNumbers = Array.from(new Set(
+    (coInchargeData || [])
+      .map(item => item.phone || item.mobile || item.mobile_no || item.mobileNo || item.phoneNumber)
+      .filter(Boolean)
+      .map(num => num.toString().trim())
+  ))
+
   return (
     <>
       <AddBoothHeadModal
@@ -655,6 +668,8 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
         onSave={handleSaveBoothHead}
         editData={personToEdit}
         mode={personToEdit ? 'edit' : 'create'}
+        existingMobiles={boothHeadMobileNumbers}
+        duplicateContextLabel="बूथ प्रमुख"
       />
       
       <AddCoInchargeModal
@@ -667,6 +682,8 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
         onSave={handleSaveCoIncharge}
         editData={personToEdit}
         mode={personToEdit ? 'edit' : 'create'}
+        existingMobiles={coInchargeMobileNumbers}
+        duplicateContextLabel="बुथ सह इनचार्ज"
       />
 
       {showDetailModal && (
