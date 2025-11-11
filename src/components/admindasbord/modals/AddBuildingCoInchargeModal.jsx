@@ -24,6 +24,7 @@ const AddBuildingCoInchargeModal = ({
   const [loading, setLoading] = useState(false)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
+  const [existingPhotoName, setExistingPhotoName] = useState('')
   const [photoBase64, setPhotoBase64] = useState('')
   const [photoName, setPhotoName] = useState('')
   const [photoRemoved, setPhotoRemoved] = useState(false)
@@ -34,6 +35,7 @@ const AddBuildingCoInchargeModal = ({
     setFormData({ name: '', phone: '', photo: null })
     setPhotoPreview(null)
     setExistingPhotoUrl(null)
+    setExistingPhotoName('')
     setPhotoBase64('')
     setPhotoName('')
     setPhotoRemoved(false)
@@ -95,8 +97,9 @@ const AddBuildingCoInchargeModal = ({
       return `${baseUrl}/${path}`
     }
 
-    const { profileImage, photoPath, photo } = entity
+    const { profileImage, photoPath, photo, photo_path } = entity
     const candidates = [
+      photo_path,
       profileImage,
       photoPath,
       photo
@@ -128,7 +131,12 @@ const AddBuildingCoInchargeModal = ({
       setExistingPhotoUrl(resolved)
       setPhotoPreview(resolved)
       setPhotoBase64('')
-      setPhotoName(person?.photoPath || person?.profileImage || person?.photo || '')
+      const originalName = person?.photo_path
+        || person?.photo
+        || (person?.photoPath ? person.photoPath.split('/').pop() : '')
+        || (typeof person?.profileImage === 'string' ? person.profileImage.split('/').pop() : '')
+      setExistingPhotoName(originalName ? originalName.toString().trim() : '')
+      setPhotoName(originalName ? originalName.toString().trim() : '')
       setPhotoRemoved(false)
       const inputId = isEditMode ? 'edit-building-coincharge-photo-input' : 'building-coincharge-photo-input'
       const fileInput = document.getElementById(inputId)
@@ -192,6 +200,7 @@ const AddBuildingCoInchargeModal = ({
     const previewUrl = URL.createObjectURL(file)
     setPhotoPreview(previewUrl)
     setExistingPhotoUrl(null)
+    setExistingPhotoName('')
 
     try {
       const base64String = await convertFileToBase64(file)
@@ -217,6 +226,7 @@ const AddBuildingCoInchargeModal = ({
     setFormData(prev => ({ ...prev, photo: null }))
     setPhotoPreview(null)
     setExistingPhotoUrl(null)
+    setExistingPhotoName('')
     setPhotoBase64('')
     setPhotoName('')
     setPhotoRemoved(true)
@@ -338,7 +348,7 @@ const AddBuildingCoInchargeModal = ({
           finalPhotoName = ''
           finalPhotoBase64 = ''
         } else if (!formData.photo) {
-          finalPhotoName = person.photoPath || person.profileImage || person.photo || ''
+          finalPhotoName = existingPhotoName || person?.photo_path || person?.photoPath || person?.profileImage || person?.photo || ''
           finalPhotoBase64 = ''
         }
 

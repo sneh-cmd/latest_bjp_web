@@ -22,6 +22,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
   const [addressError, setAddressError] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
+  const [existingPhotoName, setExistingPhotoName] = useState('')
   const [photoRemoved, setPhotoRemoved] = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [duplicateModal, setDuplicateModal] = useState({ isOpen: false, mobile: '', message: '' })
@@ -35,7 +36,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
         photo: null
       })
       setSelectedAddresses(building.addresses || [])
-      const existingPhoto = building.profileImage || building.photoPath || building.photo
+      const existingPhoto = building.photo_path || building.photoPath || building.profileImage || building.photo
       if (existingPhoto && existingPhoto.trim() !== '') {
         let photoUrl = existingPhoto.trim()
         if (!photoUrl.startsWith('http') && !photoUrl.startsWith('/') && !photoUrl.startsWith('data:')) {
@@ -48,12 +49,17 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
             photoUrl = '/' + photoUrl
           }
         }
-        setExistingPhotoUrl(building.photoPath)
-        setPhotoPreview(building.photoPath)
+        setExistingPhotoUrl(photoUrl)
+        setPhotoPreview(photoUrl)
       } else {
         setExistingPhotoUrl(null)
         setPhotoPreview(null)
       }
+      const originalName = building.photo_path
+        || building.photo
+        || (building.photoPath ? building.photoPath.split('/').pop() : '')
+        || (typeof building.profileImage === 'string' ? building.profileImage.split('/').pop() : '')
+      setExistingPhotoName(originalName ? originalName.toString().trim() : '')
       setPhotoRemoved(false)
       setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     } else if (isOpen && !building) {
@@ -61,6 +67,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
       setSelectedAddresses([])
       setPhotoPreview(null)
       setExistingPhotoUrl(null)
+      setExistingPhotoName('')
       setPhotoRemoved(false)
       setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     }
@@ -172,6 +179,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
       setFormData(prev => ({ ...prev, photo: file }))
       setPhotoRemoved(false)
       setExistingPhotoUrl(null)
+      setExistingPhotoName('')
       const previewUrl = URL.createObjectURL(file)
       setPhotoPreview(previewUrl)
     }
@@ -188,6 +196,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
     setFormData(prev => ({ ...prev, photo: null }))
     setPhotoPreview(null)
     setExistingPhotoUrl(null)
+    setExistingPhotoName('')
     setPhotoRemoved(true)
     const fileInput = document.getElementById(isEditMode ? 'edit-building-photo-input' : 'building-photo-input')
     if (fileInput) {
@@ -302,8 +311,8 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           setLoading(false)
           return
         }
-      } else if (isEditMode && existingPhotoUrl && !photoRemoved) {
-        photoName = building.photoPath || building.profileImage || building.photo || ''
+      } else if (isEditMode && !photoRemoved) {
+        photoName = existingPhotoName || building.photo_path || building.photoPath || building.profileImage || building.photo || ''
         photoBase64 = ''
       }
 
@@ -314,7 +323,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           sub_type: 'AP',
           name: formData.name.trim(),
           mobile_no: formData.phone.trim(),
-          photo: photoRemoved ? '' : (photoName || building.photoPath || building.profileImage || building.photo || ''),
+          photo: photoRemoved ? '' : (photoName || existingPhotoName || building.photo_path || building.photoPath || building.profileImage || building.photo || ''),
           base64: photoBase64 || '',
           idcard_no: '',
           booth_javabdari: '0',

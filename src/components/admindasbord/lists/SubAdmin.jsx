@@ -6,7 +6,7 @@ import CreateAdminBaseModal from '../modals/CreateAdminBaseModal.jsx'
 import SubAdminDetailModal from '../modals/SubAdminDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 
 const SubAdmin = ({ navigation }) => {
   const { navigate } = navigation
@@ -274,12 +274,33 @@ const SubAdmin = ({ navigation }) => {
       const ws = XLSX.utils.aoa_to_sheet([])
       const title = 'Sub-Admin'
       XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' })
-      ws['A1'] = { t: 's', v: title, s: { alignment: { horizontal: 'center', vertical: 'center' }, font: { bold: true, sz: 14 } } }
       ws['!merges'] = ws['!merges'] || []
       ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } })
+      if (ws['A1']) {
+        ws['A1'].s = {
+          font: { bold: true, sz: 16 },
+          alignment: { horizontal: 'center', vertical: 'center' }
+        }
+      }
 
       const headers = [['Sr. No.', 'Name', 'Phone Number', 'Status']]
       XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A2' })
+      headers[0].forEach((_, colIndex) => {
+        const cellRef = XLSX.utils.encode_cell({ r: 1, c: colIndex })
+        if (ws[cellRef]) {
+          ws[cellRef].s = {
+            font: { bold: true, color: { rgb: 'FFFFFF' } },
+            fill: { fgColor: { rgb: '4472C4' } },
+            alignment: { horizontal: 'center', vertical: 'center' },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
+            }
+          }
+        }
+      })
       XLSX.utils.sheet_add_json(ws, excelData, { origin: 'A3', skipHeader: true })
        
       // Set column widths for better readability

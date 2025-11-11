@@ -7,7 +7,7 @@ import CreateShaktiKendraPramukhModal from '../modals/CreateShaktiKendraPramukhM
 import ShaktiKendraPramukhDetailModal from '../modals/ShaktiKendraPramukhDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 
 const ShaktiKendraPramukh = ({ navigation }) => {
   const { navigate } = navigation
@@ -235,67 +235,93 @@ const ShaktiKendraPramukh = ({ navigation }) => {
 
   const handleExport = () => {
     try {
-      // Filter pramukhs based on search query (same logic as filteredPramukhs)
+      // Filter pramukhs based on search query
       const filteredData = pramukhData.filter(pramukh =>
         pramukh.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         pramukh.phoneNumber.includes(searchQuery)
       )
-      
+  
       if (filteredData.length === 0) {
         alert('No data to export')
         return
       }
-
-      // Transform data to Excel format with headers
+  
+      // Transform data
       const excelData = filteredData.map((pramukh, index) => ({
         'Sr. No.': index + 1,
         'Name': pramukh.name || '',
         'Phone Number': pramukh.phoneNumber || '',
-        'Booth Numbers': Array.isArray(pramukh.boothNumbers) ? pramukh.boothNumbers.join(', ') : '',
+        'Booth Numbers': Array.isArray(pramukh.boothNumbers)
+          ? pramukh.boothNumbers.join(', ')
+          : '',
         'Status': pramukh.status === 'active' ? 'Active' : 'Inactive'
       }))
-
-      // Create a new workbook
+  
+      // Create a workbook and sheet
       const wb = XLSX.utils.book_new()
-      
-      // Create worksheet with custom title and headers
       const ws = XLSX.utils.aoa_to_sheet([])
+  
+      // === Title ===
       const title = 'Shakti Kendra Pramukh'
       XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' })
-      ws['A1'] = { t: 's', v: title, s: { alignment: { horizontal: 'center', vertical: 'center' }, font: { bold: true, sz: 14 } } }
-      ws['!merges'] = ws['!merges'] || []
-      ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } })
-
-      // Header row
+  
+      // Merge title cells (A1:E1)
+      ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }]
+  
+      // Style title
+      ws['A1'].s = {
+        font: { bold: true, sz: 16 },
+        alignment: { horizontal: 'center', vertical: 'center' }
+      }
+  
+      // === Headers ===
       const headers = [['Sr. No.', 'Name', 'Phone Number', 'Booth Numbers', 'Status']]
       XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A2' })
-
-      // Data rows
+  
+      // Style header row
+      headers[0].forEach((_, colIndex) => {
+        const cellRef = XLSX.utils.encode_cell({ r: 1, c: colIndex })
+        if (ws[cellRef]) {
+          ws[cellRef].s = {
+            font: { bold: true, color: { rgb: 'FFFFFF' } },
+            fill: { fgColor: { rgb: '4472C4' } },
+            alignment: { horizontal: 'center', vertical: 'center' },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
+            }
+          }
+        }
+      })
+  
+      // === Data ===
       XLSX.utils.sheet_add_json(ws, excelData, { origin: 'A3', skipHeader: true })
-       
-      // Set column widths for better readability
-      const colWidths = [
-        { wch: 8 },   // Sr. No.
-        { wch: 25 },  // Name
-        { wch: 15 },  // Phone Number
-        { wch: 25 },  // Booth Numbers
-        { wch: 12 }   // Status
+  
+      // Column widths
+      ws['!cols'] = [
+        { wch: 8 },
+        { wch: 25 },
+        { wch: 15 },
+        { wch: 25 },
+        { wch: 12 }
       ]
-      ws['!cols'] = colWidths
-      
-      // Add the worksheet to the workbook
+  
+      // Append to workbook
       XLSX.utils.book_append_sheet(wb, ws, 'Shakti Kendra Pramukh')
-      
-      // Generate Excel file and download
+  
+      // Save file
       const fileName = `Shakti_Kendra_Pramukh_List_${new Date().toISOString().split('T')[0]}.xlsx`
       XLSX.writeFile(wb, fileName)
-      
+  
       console.log('Export successful:', fileName)
     } catch (error) {
       console.error('Error exporting data:', error)
       alert('Failed to export data. Please try again.')
     }
   }
+  
 
   // Get all booths already assigned to other pramukhs (excluding the one being edited)
   const getAlreadyAssignedBooths = (excludePramukhId = null) => {

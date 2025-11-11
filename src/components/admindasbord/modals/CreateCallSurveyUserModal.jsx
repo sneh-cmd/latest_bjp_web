@@ -18,6 +18,7 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
+  const [existingPhotoName, setExistingPhotoName] = useState('')
   const [photoRemoved, setPhotoRemoved] = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [photoBase64, setPhotoBase64] = useState('')
@@ -73,8 +74,8 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
       setBoothNumbersText(boothText)
       setPhoto(null) // Reset photo, user can upload new one if needed
       // Load existing photo if available
-      // Priority: photoPath > profileImage > photo
-      const existingPhoto = user.photoPath || user.profileImage || user.photo
+      // Priority: photo_path > photoPath > profileImage > photo
+      const existingPhoto = user.photo_path || user.photoPath || user.profileImage || user.photo
       
       // If photo exists and is not empty, use it
       if (existingPhoto && existingPhoto.trim() !== '') {
@@ -104,6 +105,11 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
         setExistingPhotoUrl(null)
         setPhotoPreview(null)
       }
+      const originalName = user.photo_path
+        || user.photo
+        || (user.photoPath ? user.photoPath.split('/').pop() : '')
+        || (typeof user.profileImage === 'string' ? user.profileImage.split('/').pop() : '')
+      setExistingPhotoName(originalName ? originalName.toString().trim() : '')
       setPhotoRemoved(false)
       setPhotoBase64('')
       setBoothError('')
@@ -116,6 +122,7 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
       setPhoto(null)
       setPhotoPreview(null)
       setExistingPhotoUrl(null)
+      setExistingPhotoName('')
       setPhotoRemoved(false)
       setPhotoBase64('')
       setBoothError('')
@@ -269,9 +276,9 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
       }
     }
     // If in edit mode and no new photo uploaded and photo not removed, keep existing photo
-    else if (isEditMode && existingPhotoUrl && !photoRemoved) {
+    else if (isEditMode && !photoRemoved) {
       // Keep existing photo - don't send base64, server will keep existing
-      photoName = user.photo || ''
+      photoName = existingPhotoName || user.photo || user.photo_path || ''
       photoBase64 = '' // Empty base64 means keep existing photo on server
     }
 
@@ -288,7 +295,7 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
           sub_type: 'cl',
           name,
           mobile_no: mobile,
-          photo: photoRemoved ? '' : (photoName || user.photo || ''),
+          photo: photoRemoved ? '' : (photoName || existingPhotoName || user.photo || user.photo_path || ''),
           base64: photoBase64,
           idcard_no: '',
           booth_javabdari: boothCsv || '0',
@@ -332,6 +339,7 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
       setPhoto(file)
       setPhotoRemoved(false) // Reset photoRemoved when new photo is uploaded
       setExistingPhotoUrl(null) // Clear existing photo URL when new one is uploaded
+      setExistingPhotoName('')
       // Create preview URL
       const previewUrl = URL.createObjectURL(file)
       setPhotoPreview(previewUrl)
@@ -350,6 +358,7 @@ const CreateCallSurveyUserModal = ({ isOpen, onClose, onSuccess, user, allUsers 
     setPhoto(null)
     setPhotoPreview(null)
     setExistingPhotoUrl(null)
+    setExistingPhotoName('')
     setPhotoRemoved(true)
     // Reset file input
     const fileInput = document.getElementById(isEditMode ? "edit-callsurvey-photo-upload" : "callsurvey-photo-upload")

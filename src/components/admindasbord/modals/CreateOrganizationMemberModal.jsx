@@ -254,7 +254,7 @@ const CreateOrganizationMemberModal = ({
       })
       return
     }
-
+    
     if (!role) {
       alert('कृपया पद चुनें')
       return
