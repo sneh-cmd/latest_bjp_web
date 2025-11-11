@@ -3,7 +3,7 @@ import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import CreateAdminBaseModal from '../modals/CreateAdminBaseModal.jsx'
-import SubAdminDetailModal from '../modals/SubAdminDetailModal'
+import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
 import * as XLSX from 'xlsx-js-style'
@@ -729,13 +729,15 @@ const SubAdmin = ({ navigation }) => {
         </div>
 
         {/* SubAdmin Detail Modal */}
-        <SubAdminDetailModal
-          subAdmin={selectedSubAdmin}
+        <ContactDetailModal
+          person={selectedSubAdmin}
           onClose={() => setSelectedSubAdmin(null)}
-          onCall={handleCall}
-          onToggleStatus={toggleStatus}
+          onCall={(person) => handleCall(person)}
           onEdit={handleEditSubAdmin}
           onDelete={handleDeleteClick}
+          title="Sub Admin"
+          roleLabel="Sub Admin"
+          phoneKeys={['phoneNumber', 'mobile', 'mobileNo']}
         />
 
         {/* Create Sub-Admin Modal */}

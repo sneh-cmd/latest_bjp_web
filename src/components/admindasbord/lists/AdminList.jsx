@@ -3,7 +3,7 @@ import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import CreateAdminBaseModal from '../modals/CreateAdminBaseModal.jsx'
-import AdminDetailModal from '../modals/AdminDetailModal'
+import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
 import * as XLSX from 'xlsx-js-style'
@@ -746,13 +746,15 @@ const AdminList = ({ navigation }) => {
         </div>
 
         {/* Admin Detail Modal */}
-        <AdminDetailModal
-          admin={selectedAdmin}
+        <ContactDetailModal
+          person={selectedAdmin}
           onClose={() => setSelectedAdmin(null)}
-          onCall={handleCall}
-          onToggleStatus={toggleStatus}
+          onCall={(person) => handleCall(person)}
           onEdit={handleEditAdmin}
           onDelete={handleDeleteClick}
+          title="Admin"
+          roleLabel="Admin"
+          phoneKeys={['phoneNumber', 'mobile', 'mobileNo']}
         />
 
         {/* Create Admin Modal */}

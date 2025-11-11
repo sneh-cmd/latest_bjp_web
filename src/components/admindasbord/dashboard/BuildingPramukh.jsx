@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { displayBuildingPramukh, apiService } from '../../../apidata.jsx'
 import AddBuildingPramukhModal from '../modals/AddBuildingPramukhModal.jsx'
-import BuildingPramukhDetailModal from '../modals/BuildingPramukhDetailModal.jsx'
+import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal.jsx'
 import LastLoginModal from '../modals/LastLoginModal'
 import localStorageManager from '../../../utils/localStorage.js'
@@ -788,16 +788,18 @@ const BuildingPramukh = ({ navigation }) => {
 
     {/* Building Pramukh Detail Modal */}
     {showDetailModal && (
-      <BuildingPramukhDetailModal
-        building={selectedBuilding}
+      <ContactDetailModal
+        person={selectedBuilding}
         onClose={() => {
           setShowDetailModal(false)
           setSelectedBuilding(null)
         }}
-        onCall={handleCall}
-        onToggleStatus={handleToggleStatus}
+        onCall={(person) => handleCall(person)}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        title="Building Pramukh"
+        roleLabel="Building Pramukh"
+        phoneKeys={['phoneNumber', 'mobileNo', 'mobile', 'phone']}
       />
     )}
 

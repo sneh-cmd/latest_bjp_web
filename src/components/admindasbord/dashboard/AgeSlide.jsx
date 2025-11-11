@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
 import DataSearchLoader from '../utils/DataSearchLoader'
+import ValidationModal from '../modals/ValidationModal'
 
 const AgeSlide = ({ navigation, onClose }) => {
   const { navigate } = navigation
@@ -13,6 +14,8 @@ const AgeSlide = ({ navigation, onClose }) => {
   const [showResults, setShowResults] = useState(false)
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showValidationModal, setShowValidationModal] = useState(false)
+  const [validationMessage, setValidationMessage] = useState('')
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -35,6 +38,25 @@ const AgeSlide = ({ navigation, onClose }) => {
   const handleSearch = async () => {
     if (!ageFrom || !ageTo) {
       alert('Please enter both age range values')
+      return
+    }
+
+    const from = Number(ageFrom)
+    const to = Number(ageTo)
+
+    if (Number.isNaN(from) || Number.isNaN(to)) {
+      alert('Please enter valid age values')
+      return
+    }
+
+    if (to < from) {
+      alert('कृपया "उम्र तक" का मान "उम्र से" से बड़ा रखें')
+      return
+    }
+
+    if (to - from > 5) {
+      setValidationMessage('आप इसे खोज नहीं सकते। 5 वर्ष आयु समूह की सीमा है')
+      setShowValidationModal(true)
       return
     }
     console.log('Searching for age range:', ageFrom, 'to', ageTo)
@@ -102,6 +124,11 @@ const AgeSlide = ({ navigation, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50">
+      <ValidationModal
+        isOpen={showValidationModal}
+        message={validationMessage}
+        onClose={() => setShowValidationModal(false)}
+      />
       <div className={`relative w-full h-full overflow-hidden transition-all duration-700 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}>

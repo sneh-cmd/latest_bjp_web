@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
-import KaryakartaDetailModal from '../modals/KaryakartaDetailModal.jsx'
+import ContactDetailModal from '../modals/ContactDetailModal'
 import CreateAdminBaseModal from '../modals/CreateAdminBaseModal.jsx'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
@@ -774,13 +774,15 @@ const Karyakarta = ({ navigation }) => {
         </div>
 
         {/* Karyakarta Detail Modal */}
-        <KaryakartaDetailModal
-          karyakarta={selectedKaryakarta}
+        <ContactDetailModal
+          person={selectedKaryakarta}
           onClose={() => setSelectedKaryakarta(null)}
-          onCall={handleCall}
-          onToggleStatus={toggleStatus}
+          onCall={(person) => handleCall(person)}
           onEdit={handleEditKaryakarta}
           onDelete={handleDeleteClick}
+          title="Karyakarta"
+          roleLabel="Karyakarta"
+          phoneKeys={['phoneNumber', 'mobile', 'mobileNo']}
         />
 
         {/* Edit Modal */}

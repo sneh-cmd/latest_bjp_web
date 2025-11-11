@@ -3,11 +3,23 @@ import { useNavigate } from 'react-router-dom'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import CreateOrganizationMemberModal from '../modals/CreateOrganizationMemberModal'
-import ShaktiKendraPramukhDetailModal from '../modals/ShaktiKendraPramukhDetailModal'
+import ContactDetailModal from '../modals/ContactDetailModal'
 import CreateShaktiKendraPramukhModal from '../modals/CreateShaktiKendraPramukhModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import AddBoothHeadModal from '../modals/AddBoothHeadModal'
 import BoothPramukhListModal from '../modals/BoothPramukhListModal'
+
+const resolveRoleLabel = (person) => {
+  if (!person) return 'Shakti Kendra Pramukh'
+  const subType = (person.subType || person.sub_type || '').toUpperCase()
+  const designation = person.designation || person.responsibility
+
+  if (subType === 'SS') {
+    return designation || 'Sah Shakti Kendra Pramukh'
+  }
+
+  return designation || 'Shakti Kendra Pramukh'
+}
 
 const ShaktiKendraDetailSlide = ({ 
   isVisible, 
@@ -1451,16 +1463,18 @@ const ShaktiKendraDetailSlide = ({
         duplicateContextLabel="संगठन सदस्य"
       />
       
-      <ShaktiKendraPramukhDetailModal
-        pramukh={selectedPramukhForModal}
+      <ContactDetailModal
+        person={selectedPramukhForModal}
         onClose={() => {
           setShowDetailModal(false)
           setSelectedPramukhForModal(null)
         }}
-        onCall={handleCall}
-        onToggleStatus={handleToggleStatus}
+        onCall={(person) => handleCall(person)}
         onEdit={handleEditPramukh}
         onDelete={handleDeletePramukh}
+        title={resolveRoleLabel(selectedPramukhForModal)}
+        roleLabel={resolveRoleLabel(selectedPramukhForModal)}
+        phoneKeys={['mobileNo', 'mobile_no', 'phoneNumber', 'phone']}
       />
       
       {/* Edit Modal */}

@@ -4,7 +4,7 @@ import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import ShaktiKendraDetailSlide from '../utils/ShaktiKendraDetailSlide.jsx'
 import CreateShaktiKendraPramukhModal from '../modals/CreateShaktiKendraPramukhModal'
-import ShaktiKendraPramukhDetailModal from '../modals/ShaktiKendraPramukhDetailModal'
+import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
 import * as XLSX from 'xlsx-js-style'
@@ -530,16 +530,18 @@ const ShaktiKendraPramukh = ({ navigation }) => {
       />
       
       {/* Detail Modal */}
-      <ShaktiKendraPramukhDetailModal
-        pramukh={selectedPramukhForModal}
+      <ContactDetailModal
+        person={selectedPramukhForModal}
         onClose={() => {
           setShowDetailModal(false)
           setSelectedPramukhForModal(null)
         }}
-        onCall={handleCall}
-        onToggleStatus={toggleStatus}
+        onCall={(person) => handleCall(person)}
         onEdit={handleEditPramukh}
         onDelete={handleDeleteClick}
+        title="Shakti Kendra Pramukh"
+        roleLabel="Shakti Kendra Pramukh"
+        phoneKeys={['phoneNumber', 'mobileNo', 'mobile_no', 'mobile']}
       />
       
       {/* Edit Modal */}

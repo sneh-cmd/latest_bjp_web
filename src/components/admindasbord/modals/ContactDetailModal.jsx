@@ -1,124 +1,204 @@
 import React from 'react'
 
-const BuildingCoInchargeDetailModal = ({ 
-  person, 
-  onClose, 
-  onCall,
-  onEdit,
-  onDelete
-}) => {
-  if (!person) return null
+const DEFAULT_PHONE_KEYS = ['phoneNumber', 'phone', 'mobile', 'mobileNo', 'mobile_no']
+const DEFAULT_PHOTO_KEYS = ['photoPath', 'photo_path', 'profileImage', 'photo', 'profile_image']
 
-  const renderProfileImage = (personData, size = 'w-12 h-12') => {
-    if (personData.profileImage || personData.photo) {
-      return (
-        <img
-          src={personData.profileImage || personData.photo}
-          alt={personData.name}
-          className={`${size} rounded-full object-cover border-2 border-gray-200`}
-          onError={(e) => {
-            e.target.style.display = 'none'
-            e.target.nextSibling.style.display = 'flex'
-          }}
-        />
-      )
-    } else {
-      // Generate initials from name
-      const initials = personData.name ? personData.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'CI'
-      return (
-        <div className={`${size} rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center border-2 border-gray-200`}>
-          <span className="text-white text-xs font-bold text-center leading-tight">
-            {initials}
-          </span>
-        </div>
-      )
-    }
+const extractValue = (source = {}, keys = []) => {
+  for (const key of keys) {
+    const value = source?.[key]
+    if (value) return value
+  }
+  return undefined
+}
+
+const isLikelyImage = (value = '') => {
+  if (typeof value !== 'string') return false
+  return (
+    value.startsWith('http') ||
+    value.startsWith('data:') ||
+    /\.(png|jpe?g|gif|webp|avif|svg)$/i.test(value)
+  )
+}
+
+const getInitials = (name = '', fallback = 'NA') => {
+  if (!name || typeof name !== 'string') return fallback
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  if (!parts.length) return fallback
+  const initials = parts.map((part) => part[0]).join('').toUpperCase()
+  return initials.slice(0, 2) || fallback
+}
+
+const openWhatsApp = (rawNumber) => {
+  if (!rawNumber) {
+    alert('Phone number not available')
+    return
   }
 
-  const handleWhatsApp = (personData) => {
-    const rawPhone = personData.phone || personData.phoneNumber || personData.mobile_no || personData.mobileNo
-    if (!rawPhone) {
-      alert('Phone number not available')
-      return
-    }
+  let phoneNumber = rawNumber.replace(/\D/g, '')
+  phoneNumber = phoneNumber.replace(/^0+/, '')
 
-    let phoneNumber = rawPhone.replace(/\D/g, '')
-    phoneNumber = phoneNumber.replace(/^0+/, '')
-
-    if (phoneNumber.startsWith('91')) {
-      const actualNumber = phoneNumber.substring(2)
-      if (actualNumber.length === 10) {
-        window.open(`https://wa.me/${phoneNumber}`, '_blank')
-        return
-      }
-    }
-
-    if (phoneNumber.length === 10) {
-      const formattedNumber = '91' + phoneNumber
-      window.open(`https://wa.me/${formattedNumber}`, '_blank')
-      return
-    }
-
-    if (phoneNumber.length === 12 && phoneNumber.startsWith('91')) {
+  if (phoneNumber.startsWith('91')) {
+    const actualNumber = phoneNumber.substring(2)
+    if (actualNumber.length === 10) {
       window.open(`https://wa.me/${phoneNumber}`, '_blank')
       return
     }
+  }
 
-    alert('Invalid phone number format. Please ensure it is a valid 10-digit Indian number.')
+  if (phoneNumber.length === 10) {
+    window.open(`https://wa.me/91${phoneNumber}`, '_blank')
+    return
+  }
+
+  if (phoneNumber.length === 12 && phoneNumber.startsWith('91')) {
+    window.open(`https://wa.me/${phoneNumber}`, '_blank')
+    return
+  }
+
+  alert('Invalid phone number format. Please ensure it is a valid 10-digit Indian number.')
+}
+
+const ContactDetailModal = ({
+  person,
+  onClose,
+  onCall,
+  onEdit,
+  onDelete,
+  onWhatsApp,
+  title = '',
+  roleLabel,
+  infoItems,
+  phoneLabel = 'Phone',
+  phoneKeys = DEFAULT_PHONE_KEYS,
+  phoneValue,
+  photoKeys = DEFAULT_PHOTO_KEYS,
+  primaryColor = '#103a94',
+  allowWhatsApp = true,
+  enableCall = true,
+  enableEdit = true,
+  enableDelete = true,
+}) => {
+  if (!person) return null
+
+  const phoneNumber = phoneValue || extractValue(person, phoneKeys)
+
+  const resolvedInfoItems = infoItems || [
+    {
+      label: phoneLabel,
+      value: phoneNumber || 'N/A'
+    }
+  ]
+
+  const rawPhoto = extractValue(person, photoKeys)
+  const shouldShowImage =
+    (person?.isPhoto && rawPhoto) ||
+    isLikelyImage(rawPhoto)
+
+  const badgeText =
+    !shouldShowImage &&
+    (typeof rawPhoto === 'string' && rawPhoto.length && rawPhoto.length <= 4
+      ? rawPhoto.toUpperCase()
+      : getInitials(person?.name))
+
+  const handleCall = () => {
+    if (!phoneNumber) {
+      alert('Phone number not available')
+      return
+    }
+    if (onCall) {
+      onCall(person, phoneNumber)
+    } else {
+      window.open(`tel:${phoneNumber}`, '_self')
+    }
+  }
+
+  const handleEdit = () => {
+    if (onEdit) onEdit(person)
+  }
+
+  const handleDelete = () => {
+    if (onDelete) onDelete(person)
+  }
+
+  const handleWhatsAppClick = () => {
+    if (!phoneNumber) {
+      alert('Phone number not available')
+      return
+    }
+    if (onWhatsApp) {
+      onWhatsApp(person, phoneNumber)
+    } else {
+      openWhatsApp(phoneNumber)
+    }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm">
       <div className="relative w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
-        {/* Modal Header */}
-        <div className="p-4 sm:p-6 text-white" style={{backgroundColor: '#103a94'}}>
+        <div className="p-4 sm:p-6 text-white" style={{ backgroundColor: primaryColor }}>
           <button
             onClick={onClose}
             className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all hover:scale-105"
+            aria-label="Close"
           >
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          
+
           <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shadow-sm">
-              {renderProfileImage(person, 'w-8 h-8 sm:w-12 sm:h-12')}
+              {shouldShowImage ? (
+                <img
+                  src={rawPhoto}
+                  alt={person.name}
+                  className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-gray-200"
+                  onError={(e) => {
+                    if (e?.target) {
+                      e.target.style.display = 'none'
+                    }
+                  }}
+                />
+              ) : (
+                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-blue-500 flex items-center justify-center border-2 border-gray-200">
+                  <span className="text-white text-sm font-bold text-center leading-tight">
+                    {badgeText}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold truncate">{person.name}</h2>
-              <p className="text-blue-100 text-xs sm:text-sm">{person.role || person.designation || 'बिल्डिंग सह इनचार्ज'}</p>
+              <h2 className="text-lg sm:text-xl font-bold truncate">{person.name || title || 'N/A'}</h2>
+              <p className="text-blue-100 text-xs sm:text-sm">{roleLabel || title || ''}</p>
             </div>
           </div>
         </div>
 
-        {/* Modal Content */}
         <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-3 sm:p-4 shadow-sm">
             <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2 sm:mb-3">Contact Information</h3>
             <div className="space-y-2">
-              {person.phone && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 text-sm">Phone:</span>
-                  <span className="font-semibold text-sm truncate ml-2">{person.phone}</span>
+              {resolvedInfoItems.map(({ label, value }) => (
+                <div key={label} className="flex justify-between">
+                  <span className="text-gray-600 text-sm">{label}:</span>
+                  <span className="font-semibold text-sm truncate ml-2">{value ?? 'N/A'}</span>
                 </div>
-              )}
+              ))}
             </div>
           </div>
 
           <div className="flex justify-center">
-            {/* Actions Row */}
             <div className="flex flex-row space-x-3">
-              {person.phone && (
+              {enableCall && phoneNumber && (
                 <button
-                  onClick={() => {
-                    if (onCall) onCall(person.phone)
-                    onClose()
-                  }}
+                  onClick={handleCall}
                   className="w-12 h-12 text-white font-semibold rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md hover:scale-105"
-                  style={{backgroundColor: '#103a94'}}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#0d2f7a'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#103a94'}
+                  style={{ backgroundColor: primaryColor }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0d2f7a')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = primaryColor)}
                   title="Call Now"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,9 +206,10 @@ const BuildingCoInchargeDetailModal = ({
                   </svg>
                 </button>
               )}
-              {(person.phone || person.phoneNumber || person.mobile_no || person.mobileNo) && (
+
+              {allowWhatsApp && phoneNumber && (
                 <button
-                  onClick={() => handleWhatsApp(person)}
+                  onClick={handleWhatsAppClick}
                   className="w-12 h-12 font-semibold rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md hover:scale-105 bg-green-500 hover:bg-green-600 text-white"
                   title="WhatsApp"
                 >
@@ -137,13 +218,10 @@ const BuildingCoInchargeDetailModal = ({
                   </svg>
                 </button>
               )}
-              {onEdit && (
+
+              {enableEdit && onEdit && (
                 <button
-                  onClick={() => {
-                    if (onEdit) {
-                      onEdit(person)
-                    }
-                  }}
+                  onClick={handleEdit}
                   className="w-12 h-12 font-semibold rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md hover:scale-105 bg-blue-500 hover:bg-blue-600 text-white"
                   title="Edit"
                 >
@@ -152,13 +230,10 @@ const BuildingCoInchargeDetailModal = ({
                   </svg>
                 </button>
               )}
-              {onDelete && (
+
+              {enableDelete && onDelete && (
                 <button
-                  onClick={() => {
-                    if (onDelete) {
-                      onDelete(person)
-                    }
-                  }}
+                  onClick={handleDelete}
                   className="w-12 h-12 font-semibold rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md hover:scale-105 bg-red-500 hover:bg-red-600 text-white"
                   title="Delete"
                 >
@@ -175,5 +250,4 @@ const BuildingCoInchargeDetailModal = ({
   )
 }
 
-export default BuildingCoInchargeDetailModal
-
+export default ContactDetailModal

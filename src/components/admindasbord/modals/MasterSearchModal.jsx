@@ -558,7 +558,7 @@ const MasterSearchModal = ({ isOpen, onClose, onSearch }) => {
 
   // Modal view
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
       <FormCard 
         onCloseOnly={handleClose}
         searchData={searchData}

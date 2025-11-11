@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import logoImage from '../../../assets/image/BJP-Logo.png'
 import apiService from '../../../apidata.jsx'
 import CreateCallSurveyUserModal from '../modals/CreateCallSurveyUserModal'
-import CallSurveyUserDetailModal from '../modals/CallSurveyUserDetailModal'
+import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import localStorageManager from '../../../utils/localStorage.js'
 import * as XLSX from 'xlsx-js-style'
@@ -544,12 +544,15 @@ const CallSurveyUser = ({ navigation }) => {
         </div>
 
         {/* User Detail Modal */}
-        <CallSurveyUserDetailModal
-          user={selectedUser}
+        <ContactDetailModal
+          person={selectedUser}
           onClose={() => setSelectedUser(null)}
-          onCall={handleCall}
+          onCall={(person) => handleCall(person)}
           onEdit={handleEditUser}
           onDelete={handleDeleteClick}
+          title="Call Survey User"
+          roleLabel="Call Survey User"
+          phoneKeys={['phoneNumber', 'phone', 'mobile_no', 'mobile']}
         />
         <CreateCallSurveyUserModal
           isOpen={showCreateModal || showEditModal}

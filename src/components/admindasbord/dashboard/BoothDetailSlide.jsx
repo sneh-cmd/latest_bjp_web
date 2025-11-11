@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import AddBoothHeadModal from '../modals/AddBoothHeadModal'
 import AddCoInchargeModal from '../modals/AddCoInchargeModal'
-import BoothPramukhDetailModal from '../modals/BoothPramukhDetailModal'
+import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
 import apiService from '../../../apidata'
@@ -687,16 +687,18 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
       />
 
       {showDetailModal && (
-        <BoothPramukhDetailModal
+        <ContactDetailModal
           person={selectedPerson}
           onClose={() => {
             setShowDetailModal(false)
             setSelectedPerson(null)
           }}
-          onCall={handleCall}
-          onToggleStatus={handleToggleStatus}
+          onCall={(person) => handleCall(person)}
           onEdit={handleEdit}
           onDelete={handleDeleteClick}
+          title={selectedPerson?.role || 'Booth Pramukh'}
+          roleLabel={selectedPerson?.role || 'Booth Pramukh'}
+          phoneKeys={['phone', 'phoneNumber', 'mobile', 'mobileNo']}
         />
       )}
 

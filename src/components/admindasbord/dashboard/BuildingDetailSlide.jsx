@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { displayBuildingPramukhCadreWithVoter, apiService } from '../../../apidata'
 import AddBuildingPramukhModal from '../modals/AddBuildingPramukhModal'
 import AddBuildingCoInchargeModal from '../modals/AddBuildingCoInchargeModal'
-import BuildingCoInchargeDetailModal from '../modals/BuildingCoInchargeDetailModal'
-import BuildingPramukhDetailModal from '../modals/BuildingPramukhDetailModal'
+import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
 import localStorageManager from '../../../utils/localStorage'
@@ -911,20 +910,26 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         duplicateContextLabel="बिल्डिंग प्रमुख"
       />
       
-      <BuildingCoInchargeDetailModal
+      <ContactDetailModal
         person={selectedCoIncharge}
         onClose={handleCloseCoInchargeDetailModal}
-        onCall={handleCall}
+        onCall={(person, phone) => handleCall(phone)}
         onEdit={handleEditCoIncharge}
         onDelete={handleDeleteCoIncharge}
+        title="Building Co-Incharge"
+        roleLabel="Building Co-Incharge"
+        phoneKeys={['phone', 'phoneNumber', 'mobile', 'mobileNo']}
       />
       
-      <BuildingPramukhDetailModal
-        building={selectedBuildingHead}
+      <ContactDetailModal
+        person={selectedBuildingHead}
         onClose={handleCloseBuildingHeadDetailModal}
-        onCall={(building) => handleCall(building.phoneNumber)}
+        onCall={(person, phone) => handleCall(phone)}
         onEdit={handleEditBuildingHead}
         onDelete={handleDeleteBuildingHead}
+        title="Building Pramukh"
+        roleLabel="Building Pramukh"
+        phoneKeys={['phoneNumber', 'mobileNo', 'mobile', 'phone']}
       />
       
       <div className={`fixed inset-0 z-50 flex flex-col transition-all duration-700 ${
@@ -1739,21 +1744,27 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
       )}
 
       {showCoInchargeDetailModal && (
-        <BuildingCoInchargeDetailModal
+        <ContactDetailModal
           person={selectedCoIncharge}
           onClose={handleCloseCoInchargeDetailModal}
-          onCall={handleCall}
+          onCall={(person, phone) => handleCall(phone)}
           onEdit={handleEditCoIncharge}
           onDelete={handleDeleteCoIncharge}
+          title="Building Co-Incharge"
+          roleLabel="Building Co-Incharge"
+          phoneKeys={['phone', 'phoneNumber', 'mobile', 'mobileNo']}
         />
       )}
       {showBuildingHeadDetailModal && (
-        <BuildingPramukhDetailModal
-          building={selectedBuildingHead}
+        <ContactDetailModal
+          person={selectedBuildingHead}
           onClose={handleCloseBuildingHeadDetailModal}
-          onCall={(building) => handleCall(building.phoneNumber)}
+          onCall={(person, phone) => handleCall(phone)}
           onEdit={handleEditBuildingHead}
           onDelete={handleDeleteBuildingHead}
+          title="Building Pramukh"
+          roleLabel="Building Pramukh"
+          phoneKeys={['phoneNumber', 'mobileNo', 'mobile', 'phone']}
         />
       )}
     </>
