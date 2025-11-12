@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
-import AddressVoterSlide from './AddressVoterSlide'
 import DataSearchLoader from '../utils/DataSearchLoader'
 
 const AddressDetailSlide = ({ navigation, onClose }) => {
@@ -11,8 +10,6 @@ const AddressDetailSlide = ({ navigation, onClose }) => {
   const [addresses, setAddresses] = useState([])
   const [allAddresses, setAllAddresses] = useState([])
   const [error, setError] = useState(null)
-  const [selectedAddress, setSelectedAddress] = useState(null)
-  const [showVoterSlide, setShowVoterSlide] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
@@ -82,19 +79,14 @@ const AddressDetailSlide = ({ navigation, onClose }) => {
       if (onClose) {
         onClose()
       } else {
-        navigate('/admin-dashboard')
+        navigate('/admin')
       }
     }, 300)
   }
 
   const handleAddressClick = (address) => {
-    setSelectedAddress(address)
-    setShowVoterSlide(true)
-  }
-
-  const handleCloseVoterSlide = () => {
-    setShowVoterSlide(false)
-    setSelectedAddress(null)
+    if (!address) return
+    navigate('/address-voter', { address })
   }
 
   // Calculate total addresses
@@ -207,14 +199,6 @@ const AddressDetailSlide = ({ navigation, onClose }) => {
       </div>
     </div>
 
-      {/* Address Voter Slide */}
-      {showVoterSlide && selectedAddress && (
-        <AddressVoterSlide
-          navigation={navigation}
-          onClose={handleCloseVoterSlide}
-          address={selectedAddress}
-        />
-      )}
   </div>
   )
 }

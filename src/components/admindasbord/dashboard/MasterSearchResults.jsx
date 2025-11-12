@@ -1,113 +1,38 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import apiService from '../../../apidata'
-import localStorageManager from '../../../utils/localStorage'
-import DataSearchLoader from '../utils/DataSearchLoader'
+import React, { useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import MasterSearchModal from '../modals/MasterSearchModal'
 
-const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: pollingStationProp }) => {
-  const { navigate, state = {}, params = {} } = navigation
-  const pollingStation = useMemo(
-    () => pollingStationProp || state?.pollingStation || params?.pollingStation || '',
-    [pollingStationProp, state?.pollingStation, params?.pollingStation]
-  )
-  const [isVisible, setIsVisible] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [voters, setVoters] = useState([])
-  const [allVoters, setAllVoters] = useState([])
-  const [error, setError] = useState(null)
-  const [searchQuery, setSearchQuery] = useState('')
+const MasterSearchResults = () => {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const locationState = location.state || {}
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true)
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [])
+  const results = Array.isArray(locationState.results) ? locationState.results : []
+  const total = typeof locationState.total === 'number' ? locationState.total : results.length
+  const success = typeof locationState.success === 'boolean' ? locationState.success : results.length > 0
+  const error = locationState.error || null
 
-  // Fetch voters from API
-  useEffect(() => {
-    const fetchVoters = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        
-        if (!pollingStation) {
-          throw new Error('No polling station provided')
-        }
-        
-        // Get panel API URL from localStorage
-        const userData = localStorageManager.getUserData()
-        const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com'
-        
-        console.log('Fetching voters for polling station:', pollingStation)
-        const response = await apiService.displayPollingLocationWiseVoter(pollingStation, panelApiUrl)
-        
-        console.log('API response:', response)
-        
-        // Transform the response to match our structure
-        const transformedVoters = Array.isArray(response) 
-          ? response.map((item) => ({
-              id: item.id,
-              serialNo: item.slnoinpart || item.serial_no,
-              name: `${item.eng_f_name || ''} ${item.f_eng_surname || ''}`.trim(),
-              fatherHusband: item.eng_m_name || '-',
-              address: item.eng_localityid || '-',
-              mobile: item.contact_no || '-',
-              voterId: item.idcard_no || '-',
-              boothNo: item.booth_no || item.part_no,
-              houseNo: item.eng_house_no || '-',
-              pollingStation: item.eng_polling_location || pollingStation || '-'
-            }))
-          : []
-        
-        setVoters(transformedVoters)
-        setAllVoters(transformedVoters)
-      } catch (err) {
-        console.error('Error fetching voters:', err)
-        setError(err.message || 'Failed to fetch voters')
-        setVoters([])
-        setAllVoters([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    
-    if (pollingStation) {
-      fetchVoters()
-    }
-  }, [pollingStation])
+  const [resultSearchQuery, setResultSearchQuery] = useState('')
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
 
-  // Filter voters based on search query
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setVoters(allVoters)
-      return
-    }
+  const filteredResults = useMemo(() => {
+    if (!resultSearchQuery.trim()) return results
 
-    const filtered = allVoters.filter((voter) => {
-      const query = searchQuery.toLowerCase()
-      return (
-        voter.name.toLowerCase().includes(query) ||
-        voter.voterId.toLowerCase().includes(query) ||
-        voter.mobile.includes(query) ||
-        voter.serialNo.toString().includes(query) ||
-        voter.boothNo?.toString().includes(query) ||
-        voter.fatherHusband.toLowerCase().includes(query)
-      )
-    })
-
-    setVoters(filtered)
-  }, [searchQuery, allVoters])
-
-  const handleBack = () => {
-    setIsVisible(false)
-    setTimeout(() => {
-      if (onClose) {
-        onClose()
-      } else {
-        navigate('/polling-station')
-      }
-    }, 300)
-  }
+    const query = resultSearchQuery.trim().toLowerCase()
+    return results.filter((result) => [
+      result.name,
+      result.fatherHusbandName,
+      result.address,
+      result.serialNumber,
+      result.mobileNumber,
+      result.idCardNumber,
+      result.boothNumber,
+      result.houseNumber,
+      result.pollingStation
+    ]
+      .filter(Boolean)
+      .some((value) => value.toString().toLowerCase().includes(query)))
+  }, [resultSearchQuery, results])
 
   const handleCall = (phoneNumber) => {
     if (phoneNumber && phoneNumber !== '-') {
@@ -116,41 +41,46 @@ const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: polling
   }
 
   const handleCheck = (voter) => {
-    console.log('Check voter:', voter)
+    console.log('Check voter (master search results):', voter)
   }
 
-  const handleFamily = (voter) => { 
-    if (!voter || !voter.id) return
-    navigate('/family-screen', {
-      voterId: voter.id,
-      name: voter.name,
-      buildingNumber: voter.buildingNumber
+  const handleFamily = (voter) => {
+    if (!voter) return
+    const voterId = voter.id || voter.idCardNumber || null
+    if (!voterId) return
+
+    const name = voter.name || ''
+    const boothNumber = voter.boothNumber || ''
+
+    const params = new URLSearchParams()
+    if (voterId) params.set('voterId', voterId)
+    if (name) params.set('name', name)
+    if (boothNumber) params.set('boothNumber', boothNumber)
+
+    navigate(`/family-screen${params.toString() ? `?${params.toString()}` : ''}`, {
+      state: {
+        voterId,
+        name,
+        boothNumber
+      }
     })
   }
 
-  const handleEdit = () => {
-    console.log('Edit mobile')
+  const handleBack = () => navigate('/admin')
+
+  const handleNewSearch = () => {
+    setIsSearchModalOpen(true)
   }
 
-  // Total voters
-  const totalVoters = voters.length
+  const hasResults = results.length > 0
+  const hasFilteredResults = filteredResults.length > 0
 
   return (
-    <div className="fixed inset-0 z-50">
-      <div className={`relative w-full h-full overflow-hidden transition-all duration-700 ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      }`}>
-        {/* Background */}
-        <div className="absolute inset-0 bg-gray-100"></div>
-      
-      {/* Main Container */}
-      <div className="relative z-10 h-full flex flex-col">
-        <DataSearchLoader isVisible={isLoading} />
-
-        {/* Header */}
+    <div className="fixed inset-0 z-[9999]">
+      <div className="bg-white w-full h-full overflow-hidden flex flex-col">
         <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <button
                 onClick={handleBack}
                 className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
@@ -160,71 +90,86 @@ const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: polling
                 </svg>
               </button>
 
-              <h1
-                className="text-white text-sm sm:text-lg font-semibold truncate max-w-[65vw] sm:max-w-full uppercase"
-              >
-                {pollingStation || ''}
-              </h1>
+              <div>
+                <h1 className="text-white text-base sm:text-lg font-semibold">मास्टर सर्च</h1>
+              </div>
             </div>
 
             <div className="search-box">
               <input
                 type="text"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="सर्च रिज़ल्ट"
+                value={resultSearchQuery}
+                onChange={(e) => setResultSearchQuery(e.target.value)}
               />
               <button
                 type="reset"
-                onClick={() => setSearchQuery('')}
+                onClick={() => setResultSearchQuery('')}
               />
             </div>
           </div>
         </div>
 
-        {/* Summary Bar */}
         <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="px-2 py-1 rounded-lg inline-block">
               <span className="text-sm font-bold" style={{ color: '#102463' }}>
-                टोटल : {totalVoters}
+                टोटल : {total}
               </span>
             </div>
+            <button
+              onClick={handleNewSearch}
+              className="px-3 sm:px-4 py-1.5 sm:py-2 text-white font-semibold rounded-lg sm:rounded-xl shadow-sm transition-all text-xs sm:text-sm"
+              style={{ backgroundColor: '#0f276d' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0c2059')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0f276d')}
+            >
+              फिर से सर्च कीजिए
+            </button>
           </div>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-3" style={{ backgroundColor: '#e5e8ff' }}>
-          {isLoading ? null : error ? (
-            // Error State
-            <div className="flex items-center justify-center h-full">
+        <div className="flex-1 overflow-y-auto p-4" style={{ backgroundColor: '#e5e8ff' }}>
+          {error ? (
+            <div className="flex items-center justify-center h-64">
               <div className="text-center">
-                <div className="text-red-500 text-4xl mb-4">⚠️</div>
-                <p className="text-red-600 font-medium mb-2">Error loading voters</p>
-                <p className="text-gray-600 text-sm">{error}</p>
+                <div className="text-red-500 text-6xl mb-4">⚠️</div>
+                <p className="text-red-600 font-medium mb-2">Error loading search results</p>
+                <p className="text-gray-600 text-sm mb-4">{error}</p>
+                <button
+                  onClick={handleNewSearch}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  वापस जाएं
+                </button>
               </div>
             </div>
-          ) : voters.length === 0 ? (
-            // Empty State
-            <div className="flex items-center justify-center h-full">
+          ) : !success && !hasResults ? (
+            <div className="flex items-center justify-center h-64">
               <div className="text-center">
-                <div className="text-gray-400 text-4xl mb-4">👥</div>
-                <p className="text-gray-600 font-medium">No voters found</p>
+                <div className="text-gray-400 text-6xl mb-4">🔍</div>
+                <p className="text-gray-600 font-medium">कोई परिणाम उपलब्ध नहीं है</p>
+                <p className="text-gray-500 text-sm">कृपया खोज मानदंड बदलें और पुनः प्रयास करें</p>
+              </div>
+            </div>
+          ) : hasResults && !hasFilteredResults ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="text-gray-400 text-5xl mb-4">🔄</div>
+                <p className="text-gray-600 font-medium">फ़िल्टर किए गए परिणामों में कोई मिलान नहीं</p>
+                <p className="text-gray-500 text-sm">रीसेट या अलग सर्च शब्द का प्रयोग करें</p>
               </div>
             </div>
           ) : (
-            // Voter List
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {voters.map((voter, idx) => (
-                <div key={voter.id} className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col">
-                  <div className="text-base font-extrabold tracking-wide mb-3">
-                    {idx + 1}.&nbsp;&nbsp;{voter.name || '-'}
-                  </div>
+              {filteredResults.map((voter, idx) => (
+                <div key={`${voter.id}-${idx}`} className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col">
+                  <div className="text-base font-extrabold tracking-wide mb-3">{idx + 1}.&nbsp;&nbsp;{voter.name || '-'}</div>
 
                   <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm flex-1">
                     <div className="flex flex-wrap gap-x-2">
                       <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पिता/पति:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.fatherHusband || '-'}</span>
+                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.fatherHusbandName || '-'}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-x-2 gap-y-1">
@@ -241,17 +186,14 @@ const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: polling
 
                     <div className="flex flex-wrap gap-x-2">
                       <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">क्रमांक:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.serialNo || '-'}</span>
+                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.serialNumber || '-'}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-x-2 gap-y-1">
                       <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मोबाइल:</span>
                       <div className="flex items-center min-w-0">
-                        <span className="text-gray-900 truncate">{voter.mobile || '-'}</span>
-                        <button
-                          onClick={handleEdit}
-                          className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0"
-                        >
+                        <span className="text-gray-900 truncate">{voter.mobileNumber || '-'}</span>
+                        <button className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0">
                           <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                           </svg>
@@ -261,17 +203,17 @@ const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: polling
 
                     <div className="flex flex-wrap gap-x-2">
                       <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पहचान पत्र नं.:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.voterId || '-'}</span>
+                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.idCardNumber || '-'}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-x-2">
                       <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">बूथ नं:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.boothNo || '-'}</span>
+                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.boothNumber || '-'}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-x-2">
                       <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">घर नं:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.houseNo || '-'}</span>
+                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.houseNumber || '-'}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-x-2">
@@ -282,7 +224,7 @@ const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: polling
 
                   <div className="mt-3 sm:mt-4 flex justify-center space-x-1 sm:space-x-2 flex-wrap gap-1 sm:gap-0 pt-2 sm:pt-3 border-t border-gray-100">
                     <button
-                      onClick={() => handleCall(voter.mobile)}
+                      onClick={() => handleCall(voter.mobileNumber)}
                       className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                       type="button"
                     >
@@ -319,7 +261,7 @@ const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: polling
                     >
                       <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
                         <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99L14 10.5c-.47-.62-1.21-.99-2.01-.99H9.46c-.8 0-1.54.37-2.01.99L4 10.5c-.47-.62-1.21-.99-2.01-.99H2.46c-.8 0-1.54.37-2.01.99L0 10.5v7.5h2v6h2v-6h2v6h2v-6h2v6h2v-6h2z" />
+                          <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99L14 10.5c-.47-.62-1.21-.99-2.01-.99H9.46c-.8 0-1.54.37-2.01.99L6 10.5c-.47-.62-1.21-.99-2.01-.99H2.46c-.8 0-1.54.37-2.01.99L0 10.5v7.5h2v6h2v-6h2v6h2v-6h2v6h2v-6h2z" />
                         </svg>
                       </div>
                       <span className="text-[10px] sm:text-xs text-gray-600">Family</span>
@@ -331,10 +273,12 @@ const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: polling
           )}
         </div>
       </div>
+      <MasterSearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+      />
     </div>
-  </div>
   )
 }
 
-export default PollingStationVoterSlide
-
+export default MasterSearchResults

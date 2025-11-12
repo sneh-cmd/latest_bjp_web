@@ -130,7 +130,7 @@ const BoothPramukhListModal = ({ isOpen, onClose, boothNumber, onShowCadre }) =>
     
     const initials = head.name ? head.name.charAt(0).toUpperCase() : 'B'
     return (
-      <div className={`${size} rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center border-2 border-gray-200 ${head.profileImage ? 'hidden' : ''}`}>
+      <div className={`${size} rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200 ${head.profileImage ? 'hidden' : ''}`}>
         <span className="text-white text-sm font-bold">
           {initials}
         </span>
@@ -180,7 +180,7 @@ const BoothPramukhListModal = ({ isOpen, onClose, boothNumber, onShowCadre }) =>
                     <div className="relative">
                       {renderProfileImage(head, 'w-12 h-12')}
                       {head.profileImage && (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center border-2 border-gray-200 hidden absolute inset-0">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200 hidden absolute inset-0">
                           <span className="text-white text-sm font-bold">
                             {head.name ? head.name.charAt(0).toUpperCase() : 'B'}
                           </span>

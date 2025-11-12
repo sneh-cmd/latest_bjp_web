@@ -173,6 +173,28 @@ const CreateShaktiKendraPramukhModal = ({
     return firstDigit === '6' || firstDigit === '9'
   }
 
+  const extractPhotoIdentifier = (value) => {
+    if (!value) return ''
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+
+    let pathToProcess = trimmed
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        const url = new URL(trimmed)
+        pathToProcess = url.pathname || ''
+      } catch (error) {
+        console.warn('Invalid photo URL encountered:', trimmed, error)
+      }
+    }
+
+    const cleanedPath = pathToProcess.replace(/^\/+/, '')
+    const basePart = cleanedPath.split('?')[0] || ''
+    const segments = basePart.split('/').filter(Boolean)
+    return segments.length > 0 ? segments[segments.length - 1] : basePart
+  }
+
   const handleSubmit = async () => {
     if (duplicateModal.isOpen) {
       setDuplicateModal({ isOpen: false, mobile: '', message: '' })
@@ -237,12 +259,12 @@ const CreateShaktiKendraPramukhModal = ({
     
     // Convert photo to base64 if present
     let photoBase64 = ''
-    let photoName = ''
+    let photoIdentifier = ''
     
     // If photo was removed in edit mode, send empty strings
     if (photoRemoved && mode === 'edit') {
       photoBase64 = ''
-      photoName = ''
+      photoIdentifier = ''
     } 
     // If new photo is uploaded, convert it to base64
     else if (photo) {
@@ -250,7 +272,7 @@ const CreateShaktiKendraPramukhModal = ({
         const base64String = await convertFileToBase64(photo)
         // Remove data URL prefix if present (data:image/...;base64,)
         photoBase64 = base64String.replace(/^data:image\/[a-z]+;base64,/, '')
-        photoName = photo.name
+        photoIdentifier = photo.name
       } catch (error) {
         console.error('Error converting photo to base64:', error)
         alert('Failed to process photo. Please try again.')
@@ -260,9 +282,13 @@ const CreateShaktiKendraPramukhModal = ({
     // If in edit mode and no new photo uploaded and photo not removed, keep existing photo
     else if (mode === 'edit' && existingPhotoUrl && !photoRemoved) {
       // Keep existing photo - don't send base64, server will keep existing
-      photoName = editData.photo || ''
+      photoIdentifier = extractPhotoIdentifier(editData.photo || editData.photoPath || '')
       photoBase64 = '' // Empty base64 means keep existing photo on server
     }
+
+    const preparedPhotoName = photoRemoved
+      ? ''
+      : extractPhotoIdentifier(photoIdentifier || editData.photo || editData.photoPath || '')
 
     try {
       setIsSubmitting(true)
@@ -277,7 +303,7 @@ const CreateShaktiKendraPramukhModal = ({
           sub_type: 'SP',
           name: name,
           mobile_no: mobile,
-          photo: photoRemoved ? '' : (photoName || editData.photo || ''),
+          photo: preparedPhotoName,
           base64: photoBase64,
           idcard_no: '',
           booth_javabdari: booth_javabdari || '0',
@@ -293,7 +319,7 @@ const CreateShaktiKendraPramukhModal = ({
           main_admin_id: '0',
           name: name,
           mobile_no: mobile,
-          photo: photoName,
+          photo: preparedPhotoName,
           base64: photoBase64,
           idcard_no: '',
           booth_javabdari: booth_javabdari || '0',

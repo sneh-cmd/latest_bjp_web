@@ -2,20 +2,12 @@ import React, { useState, useEffect } from 'react'
 import logoImage from '../../../assets/image/BJP-Logo.png'
 import localStorageManager from '../../../utils/localStorage.js'
 import MasterSearchModal from '../modals/MasterSearchModal.jsx'
-import AddressDetailSlide from './AddressDetailSlide.jsx'
-import PollingStationSlide from './PollingStationSlide.jsx'
-import SurnameSlide from './SurnameSlide.jsx'
-import AgeSlide from './AgeSlide.jsx'
 
 const AdminDashboard = ({ navigation }) => {
   const { navigate, state } = navigation
   const [isVisible, setIsVisible] = useState(false)
   const [hoveredCard, setHoveredCard] = useState(null)
   const [showMasterSearchModal, setShowMasterSearchModal] = useState(false)
-  const [showAddressSlide, setShowAddressSlide] = useState(false)
-  const [showPollingStationSlide, setShowPollingStationSlide] = useState(false)
-  const [showSurnameSlide, setShowSurnameSlide] = useState(false)
-  const [showAgeSlide, setShowAgeSlide] = useState(false)
 
   // Get user data from localStorage or navigation state
   const getUserData = () => {
@@ -84,38 +76,22 @@ const AdminDashboard = ({ navigation }) => {
 
   const handleAddressClick = () => {
     console.log('Address clicked - showing loading slide')
-    setShowAddressSlide(true)
-  }
-
-  const handleCloseAddressSlide = () => {
-    setShowAddressSlide(false)
+    navigate('/address-detail')
   }
 
   const handlePollingStationClick = () => {
     console.log('Polling Station clicked - showing loading slide')
-    setShowPollingStationSlide(true)
-  }
-
-  const handleClosePollingStationSlide = () => {
-    setShowPollingStationSlide(false)
+    navigate('/polling-station')
   }
 
   const handleSurnameClick = () => {
     console.log('Surname clicked - showing loading slide')
-    setShowSurnameSlide(true)
-  }
-
-  const handleCloseSurnameSlide = () => {
-    setShowSurnameSlide(false)
+    navigate('/surname')
   }
 
   const handleAgeClick = () => {
-    console.log('Age clicked - showing slide')
-    setShowAgeSlide(true)
-  }
-
-  const handleCloseAgeSlide = () => {
-    setShowAgeSlide(false)
+    console.log('Age clicked - navigating to age route')
+    navigate('/age')
   }
 
   const handleRoleClick = (role) => {
@@ -852,44 +828,11 @@ const AdminDashboard = ({ navigation }) => {
       <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-blue-100/15 via-indigo-100/10 to-transparent pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-orange-100/10 via-amber-100/5 to-transparent pointer-events-none"></div>
 
-      {/* Master Search Modal */}
       <MasterSearchModal
         isOpen={showMasterSearchModal}
         onClose={handleCloseMasterSearchModal}
         onSearch={handleMasterSearchSubmit}
       />
-
-      {/* Address Detail Slide */}
-      {showAddressSlide && (
-        <AddressDetailSlide
-          navigation={navigation}
-          onClose={handleCloseAddressSlide}
-        />
-      )}
-
-      {/* Polling Station Slide */}
-      {showPollingStationSlide && (
-        <PollingStationSlide
-          navigation={navigation}
-          onClose={handleClosePollingStationSlide}
-        />
-      )}
-
-      {/* Surname Slide */}
-      {showSurnameSlide && (
-        <SurnameSlide
-          navigation={navigation}
-          onClose={handleCloseSurnameSlide}
-        />
-      )}
-
-      {/* Age Slide */}
-      {showAgeSlide && (
-        <AgeSlide
-          navigation={navigation}
-          onClose={handleCloseAgeSlide}
-        />
-      )}
       
     </div>
   )

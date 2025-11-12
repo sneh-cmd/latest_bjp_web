@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
-import SurnameVoterSlide from './SurnameVoterSlide'
 
 const SurnameSlide = ({ navigation, onClose }) => {
   const { navigate } = navigation
@@ -12,7 +11,6 @@ const SurnameSlide = ({ navigation, onClose }) => {
   const [selectedSurnames, setSelectedSurnames] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [error, setError] = useState(null)
-  const [showVoterSlide, setShowVoterSlide] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -66,7 +64,7 @@ const SurnameSlide = ({ navigation, onClose }) => {
       if (onClose) {
         onClose()
       } else {
-        navigate('/admin-dashboard')
+        navigate('/admin')
       }
     }, 300)
   }
@@ -86,12 +84,15 @@ const SurnameSlide = ({ navigation, onClose }) => {
   }
 
   const handleViewVoters = () => {
-    console.log('Selected surnames:', selectedSurnames)
-    setShowVoterSlide(true)
-  }
-
-  const handleCloseVoterSlide = () => {
-    setShowVoterSlide(false)
+    if (selectedSurnames.length === 0) return
+    const selectedSurnameObjects = surnames.filter((s) => selectedSurnames.includes(s.id))
+    const surnameList = selectedSurnameObjects.map((s) => s.name).join(',')
+    const formattedList = surnameList ? (surnameList.endsWith(',') ? surnameList : `${surnameList},`) : ''
+    const query = formattedList ? `?surnames=${encodeURIComponent(formattedList)}` : ''
+    navigate(`/surname-voter${query}`, {
+      selectedSurnames: selectedSurnameObjects,
+      surnameListString: formattedList
+    })
   }
 
   // Filter surnames based on search
@@ -262,15 +263,6 @@ const SurnameSlide = ({ navigation, onClose }) => {
       </div>
     </div>
 
-      {/* Surname Voter Slide */}
-      {showVoterSlide && (
-        <SurnameVoterSlide
-          navigation={navigation}
-          onClose={handleCloseVoterSlide}
-          surnames={surnames.filter(s => selectedSurnames.includes(s.id))}
-          surnameListString={surnames.filter(s => selectedSurnames.includes(s.id)).map(s => s.name).join(',')}
-        />
-      )}
     </div>
   )
 }

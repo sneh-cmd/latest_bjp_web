@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import AddBoothHeadModal from '../modals/AddBoothHeadModal'
 import AddCoInchargeModal from '../modals/AddCoInchargeModal'
 import ContactDetailModal from '../modals/ContactDetailModal'
@@ -7,12 +7,52 @@ import LastLoginModal from '../modals/LastLoginModal'
 import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
 
+const normalizeMobileNumber = (value) => {
+  if (!value) return ''
+  const digits = value.toString().replace(/\D/g, '')
+  if (!digits) return ''
+  return digits.length > 10 ? digits.slice(-10) : digits
+}
+
+const collectMobilesFromBoothList = (boothList = []) => {
+  if (!Array.isArray(boothList)) return []
+  const numbers = new Set()
+  boothList.forEach((booth) => {
+    ;[
+      booth?.mobileNo,
+      booth?.mobile_no,
+      booth?.mobile,
+      booth?.phoneNumber,
+      booth?.phone
+    ].forEach((candidate) => {
+      const normalized = normalizeMobileNumber(candidate)
+      if (normalized) numbers.add(normalized)
+    })
+    if (Array.isArray(booth?.headDetails)) {
+      booth.headDetails.forEach((head) => {
+        ;[
+          head?.mobile,
+          head?.mobileNo,
+          head?.mobile_no,
+          head?.phone,
+          head?.phoneNumber
+        ].forEach((candidate) => {
+          const normalized = normalizeMobileNumber(candidate)
+          if (normalized) numbers.add(normalized)
+        })
+      })
+    }
+  })
+  return Array.from(numbers)
+}
+
 const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
   const { navigate, state } = navigation
   const [isVisible, setIsVisible] = useState(false)
   const [activeTab, setActiveTab] = useState('organization') // 'organization' or 'voter'
   const [boothHeadData, setBoothHeadData] = useState([])
   const [coInchargeData, setCoInchargeData] = useState([])
+  const [globalBoothHeadMobiles, setGlobalBoothHeadMobiles] = useState([])
   const [voterData, setVoterData] = useState([])
   const [voterStats, setVoterStats] = useState({
     total: 0,
@@ -86,11 +126,25 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
       // Use boothData.boothNumber if available, otherwise use boothId from URL
       const boothNumber = boothData?.boothNumber || boothId || 1
       
-      // Get booth-wise voters using the new API endpoint
-      const voters = await apiService.displayBoothPramukhWiseVoter(boothNumber, panelApiUrl)
-      
-      // Get booth pramukh cadre
-      const boothPramukhCadre = await apiService.displayBoothPramukhCadre(boothNumber, panelApiUrl)
+      const boothPramukhListPromise = apiService
+        .displayBoothPramukh(panelApiUrl)
+        .then((list) => (Array.isArray(list) ? list : []))
+        .catch((error) => {
+          console.error('Error fetching global booth pramukh list:', error)
+          return []
+        })
+
+      const [voters, boothPramukhCadre, boothPramukhList] = await Promise.all([
+        apiService.displayBoothPramukhWiseVoter(boothNumber, panelApiUrl),
+        apiService.displayBoothPramukhCadre(boothNumber, panelApiUrl),
+        boothPramukhListPromise
+      ])
+
+      if (boothPramukhList && Array.isArray(boothPramukhList)) {
+        setGlobalBoothHeadMobiles(collectMobilesFromBoothList(boothPramukhList))
+      } else {
+        setGlobalBoothHeadMobiles([])
+      }
       
       // Update state with fetched data
       if (voters && Array.isArray(voters)) {
@@ -471,31 +525,17 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
     }
   }
 
-  const handleVoterText = (voter) => {
-    const phone = voter.mobile || voter.mobile_no || voter.phone
-    if (phone && phone !== '-') {
-      window.open(`sms:${phone}`, '_self')
-    }
-  }
-
-  const handleVoterSlip = (voter) => {
-    console.log('Generate slip for:', voter)
-  }
-
   const handleVoterCheck = (voter) => {
     console.log('Mark as checked:', voter)
   }
 
-  const handleVoterPrachar = (voter) => {
-    console.log('Prachar for:', voter)
-  }
-
-  const handleVoterPrint = (voter) => {
-    console.log('Print voter details:', voter)
-  }
-
-  const handleVoterFamily = (voter) => {
-    console.log('View family for:', voter)
+  const handleVoterFamily = (voter) => { 
+    if (!voter || !voter.id) return
+    navigate('/family-screen', {
+      voterId: voter.id,
+      name: voter.name,
+      boothNumber: voter.boothNumber
+    })
   }
 
   const handleSurnameFilter = (surname) => {
@@ -580,12 +620,20 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
     )
   })
 
-  const boothHeadMobileNumbers = Array.from(new Set(
-    (boothHeadData || [])
-      .map(person => person.phone || person.mobile || person.mobileNo || person.phoneNumber)
-      .filter(Boolean)
-      .map(num => num.toString().trim())
-  ))
+  const boothHeadMobileNumbers = useMemo(() => {
+    const numbers = new Set()
+    ;(boothHeadData || []).forEach(person => {
+      const normalized = normalizeMobileNumber(
+        person.phone ||
+        person.mobile ||
+        person.mobileNo ||
+        person.mobile_no ||
+        person.phoneNumber
+      )
+      if (normalized) numbers.add(normalized)
+    })
+    return Array.from(numbers)
+  }, [boothHeadData])
 
   // Filter voters by surname, visit status, and search query
   const filteredVoters = voterData.filter(voter => {
@@ -649,12 +697,24 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
     return surnameMatches && visitMatches && searchMatches
   })
 
-  const coInchargeMobileNumbers = Array.from(new Set(
-    (coInchargeData || [])
-      .map(item => item.phone || item.mobile || item.mobile_no || item.mobileNo || item.phoneNumber)
-      .filter(Boolean)
-      .map(num => num.toString().trim())
-  ))
+  const coInchargeMobileNumbers = useMemo(() => {
+    const numbers = new Set()
+    ;(coInchargeData || []).forEach(item => {
+      const normalized = normalizeMobileNumber(
+        item.phone ||
+        item.mobile ||
+        item.mobile_no ||
+        item.mobileNo ||
+        item.phoneNumber
+      )
+      if (normalized) numbers.add(normalized)
+    })
+    return Array.from(numbers)
+  }, [coInchargeData])
+
+  const combinedBoothHeadMobiles = useMemo(() => {
+    return Array.from(new Set([...(boothHeadMobileNumbers || []), ...(globalBoothHeadMobiles || [])]))
+  }, [boothHeadMobileNumbers, globalBoothHeadMobiles])
 
   return (
     <>
@@ -668,7 +728,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
         onSave={handleSaveBoothHead}
         editData={personToEdit}
         mode={personToEdit ? 'edit' : 'create'}
-        existingMobiles={boothHeadMobileNumbers}
+        existingMobiles={combinedBoothHeadMobiles}
         duplicateContextLabel="बूथ प्रमुख"
       />
       
@@ -1043,7 +1103,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
               <div className="space-y-2 sm:space-y-4">
                 {/* Voter Statistics */}
                 <div className="grid grid-cols-4 gap-1 sm:gap-2 mb-2 sm:mb-3">
-                  <button onClick={() => setVisitFilter('all')} className={`bg-gray-200 rounded-lg px-1 sm:px-2 py-1 sm:py-1.5 text-center transition-colors ${visitFilter === 'all' ? 'ring-2 ring-blue-900' : ''}`}>
+                  <button onClick={() => setVisitFilter('all')} className={`bg-white rounded-lg px-1 sm:px-2 py-1 sm:py-1.5 text-center transition-colors ${visitFilter === 'all' ? 'ring-2 ring-blue-900' : ''}`}>
                     <div className="text-[10px] sm:text-xs font-bold text-gray-800">टोटल</div>
                     <div className="text-sm sm:text-lg font-bold text-gray-900">{voterStats.total}</div>
                   </button>
@@ -1179,30 +1239,6 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                         </button>
 
                         <button
-                          onClick={() => handleVoterText(voter)}
-                          className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                        >
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-                            </svg>
-                          </div>
-                          <span className="text-[10px] sm:text-xs text-gray-600">Text</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleVoterSlip(voter)}
-                          className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                        >
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                            </svg>
-                          </div>
-                          <span className="text-[10px] sm:text-xs text-gray-600">Slip</span>
-                        </button>
-
-                        <button
                           onClick={() => handleVoterCheck(voter)}
                           className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                         >
@@ -1215,34 +1251,10 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                         </button>
 
                         <button
-                          onClick={() => handleVoterPrachar(voter)}
-                          className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                        >
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-red-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-                            </svg>
-                          </div>
-                          <span className="text-[10px] sm:text-xs text-gray-600">Prachar</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleVoterPrint(voter)}
-                          className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                        >
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/>
-                            </svg>
-                          </div>
-                          <span className="text-[10px] sm:text-xs text-gray-600">Print</span>
-                        </button>
-
-                        <button
                           onClick={() => handleVoterFamily(voter)}
                           className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                         >
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
                             <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 7H17c-.8 0-1.54.37-2.01.99L14 9l-1.99-2.01A2.5 2.5 0 0 0 10.01 7H9.46c-.8 0-1.54.37-2.01.99L5 9l-1.99-2.01A2.5 2.5 0 0 0 1.01 7H.5L3 14.5V22h2v-6h2v6h2v-6h2v6h2v-6h2v6h2v-6h2v6h2v-6h2v6h2z"/>
                             </svg>

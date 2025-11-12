@@ -54,8 +54,9 @@ const CreateOrganizationMemberModal = ({
                                existingPhoto.includes('.gif'))
       
       if (isValidPhotoUrl) {
-        setExistingPhotoUrl(existingPhoto)
-        setPhotoPreview(existingPhoto)
+        const normalizedUrl = normalizePhotoUrl(existingPhoto)
+        setExistingPhotoUrl(normalizedUrl)
+        setPhotoPreview(normalizedUrl)
       } else {
         setExistingPhotoUrl(null)
         setPhotoPreview(null)
@@ -152,6 +153,44 @@ const CreateOrganizationMemberModal = ({
     }
     const firstDigit = mobileNumber.charAt(0)
     return firstDigit === '6' || firstDigit === '9'
+  }
+
+  const normalizePhotoUrl = (value) => {
+    if (!value) return null
+    let trimmed = value.trim()
+    if (!trimmed) return null
+    if (trimmed.startsWith('data:')) return trimmed
+
+    const lastHttpIndex = Math.max(trimmed.lastIndexOf('http://'), trimmed.lastIndexOf('https://'))
+    if (lastHttpIndex >= 0) {
+      return trimmed.slice(lastHttpIndex)
+    }
+
+    trimmed = trimmed.replace(/^\/+/, '')
+    if (!trimmed) return null
+    return `/${trimmed}`
+  }
+
+  const extractPhotoIdentifier = (value) => {
+    if (!value) return ''
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+
+    let pathToProcess = trimmed
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        const url = new URL(trimmed)
+        pathToProcess = url.pathname || ''
+      } catch (error) {
+        console.warn('Invalid photo URL encountered:', trimmed, error)
+      }
+    }
+
+    const cleanedPath = pathToProcess.replace(/^\/+/, '')
+    const basePart = cleanedPath.split('?')[0] || ''
+    const segments = basePart.split('/').filter(Boolean)
+    return segments.length > 0 ? segments[segments.length - 1] : basePart
   }
 
   const handlePhotoUpload = (event) => {
@@ -275,12 +314,12 @@ const CreateOrganizationMemberModal = ({
     try {
       // Convert photo to base64 if present
       let photoBase64 = ''
-      let photoName = ''
+      let photoIdentifier = ''
       
       // If photo was removed in edit mode, send empty strings
       if (photoRemoved && mode === 'edit') {
         photoBase64 = ''
-        photoName = ''
+        photoIdentifier = ''
       } 
       // If new photo is uploaded, convert it to base64
       else if (photo) {
@@ -288,7 +327,7 @@ const CreateOrganizationMemberModal = ({
           const base64String = await convertFileToBase64(photo)
           // Remove data URL prefix if present (data:image/...;base64,)
           photoBase64 = base64String.replace(/^data:image\/[a-z]+;base64,/, '')
-          photoName = photo.name
+          photoIdentifier = photo.name
         } catch (error) {
           console.error('Error converting photo to base64:', error)
           alert('फोटो प्रोसेस करने में त्रुटि. कृपया पुनः प्रयास करें.')
@@ -299,9 +338,13 @@ const CreateOrganizationMemberModal = ({
       // If in edit mode and no new photo uploaded and photo not removed, keep existing photo
       else if (mode === 'edit' && existingPhotoUrl && !photoRemoved) {
         // Keep existing photo - don't send base64, server will keep existing
-        photoName = editData.photo || ''
+        photoIdentifier = extractPhotoIdentifier(editData.photo || editData.photoPath || '')
         photoBase64 = '' // Empty base64 means keep existing photo on server
       }
+
+      const preparedPhotoName = photoRemoved
+        ? ''
+        : extractPhotoIdentifier(photoIdentifier || editData?.photo || editData?.photoPath || '')
 
       const userData = localStorageManager.getUserData()
       const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
@@ -317,7 +360,7 @@ const CreateOrganizationMemberModal = ({
           sub_type: editData.subType || editData.sub_type || 'SS',
           name: name.trim(),
           mobile_no: mobile.trim(),
-          photo: photoName || editData.photo || '',
+          photo: preparedPhotoName,
           base64: photoBase64 || '', // Only send base64 if a new photo was uploaded
           idcard_no: editData.idcardNo || editData.idcard_no || '0',
           booth_javabdari: '0',
@@ -339,7 +382,7 @@ const CreateOrganizationMemberModal = ({
           main_admin_id: String(finalMainAdminId),
           name: name.trim(),
           mobile_no: mobile.trim(),
-          photo: photoName || '',
+          photo: preparedPhotoName,
           base64: photoBase64 || '',
           idcard_no: '0',
           booth_javabdari: '0',

@@ -13,6 +13,12 @@ import BoothPramukh from './components/admindasbord/dashboard/BoothPramukh'
 import BuildingPramukh from './components/admindasbord/dashboard/BuildingPramukh'
 import BoothDetailSlide from './components/admindasbord/dashboard/BoothDetailSlide'
 import BuildingDetailSlide from './components/admindasbord/dashboard/BuildingDetailSlide'
+import PollingStationSlide from './components/admindasbord/dashboard/PollingStationSlide'
+import PollingStationVoterSlide from './components/admindasbord/dashboard/PollingStationVoterSlide'
+import SurnameSlide from './components/admindasbord/dashboard/SurnameSlide'
+import SurnameVoterSlide from './components/admindasbord/dashboard/SurnameVoterSlide'
+import MasterSearchResults from './components/admindasbord/dashboard/MasterSearchResults'
+import AgeSlide from './components/admindasbord/dashboard/AgeSlide'
 import CallSurveyUser from './components/admindasbord/lists/CallSurveyUser'
 import BoothList from './components/admindasbord/lists/BoothList'
 import VoterList from './components/admindasbord/lists/VoterList'
@@ -42,6 +48,9 @@ import RedevelopmentBuilding from './components/admindasbord/dashboard/report/Re
 import DeathSurvey from './components/admindasbord/dashboard/report/DeathSurvey'
 import TransferredSurvey from './components/admindasbord/dashboard/report/TransferredSurvey'
 import BoothSurveyDetailSlide from './components/admindasbord/dashboard/report/BoothDetailSlide'
+import Familyscreen from './components/admindasbord/dashboard/Familyscreen'
+import AddressDetailSlide from './components/admindasbord/dashboard/AddressDetailSlide'
+import AddressVoterSlide from './components/admindasbord/dashboard/AddressVoterSlide'
 import './App.css'
 
 function NavigationProvider({ children }) {
@@ -158,6 +167,78 @@ function BoothPramukhWrapper() {
   return (
     <NavigationProvider>
       <BoothPramukh />
+    </NavigationProvider>
+  )
+}
+
+function FamilyscreenWrapper() {
+  return (
+    <NavigationProvider>
+      <Familyscreen />
+    </NavigationProvider>
+  )
+}
+
+function AddressDetailSlideWrapper() {
+  return (
+    <NavigationProvider>
+      <AddressDetailSlide />
+    </NavigationProvider>
+  )
+}
+
+function AddressVoterSlideWrapper() {
+  return (
+    <NavigationProvider>
+      <AddressVoterSlide />
+    </NavigationProvider>
+  )
+}
+
+function PollingStationSlideWrapper() {
+  return (
+    <NavigationProvider>
+      <PollingStationSlide />
+    </NavigationProvider>
+  )
+}
+
+function PollingStationVoterSlideWrapper() {
+  return (
+    <NavigationProvider>
+      <PollingStationVoterSlide />
+    </NavigationProvider>
+  )
+}
+
+function SurnameSlideWrapper() {
+  return (
+    <NavigationProvider>
+      <SurnameSlide />
+    </NavigationProvider>
+  )
+}
+
+function SurnameVoterSlideWrapper() {
+  return (
+    <NavigationProvider>
+      <SurnameVoterSlide />
+    </NavigationProvider>
+  )
+}
+
+function MasterSearchResultsWrapper() {
+  return (
+    <NavigationProvider>
+      <MasterSearchResults />
+    </NavigationProvider>
+  )
+}
+
+function AgeSlideWrapper() {
+  return (
+    <NavigationProvider>
+      <AgeSlide />
     </NavigationProvider>
   )
 }
@@ -445,6 +526,15 @@ function App() {
           <Route path="/shakti-kendra-pramukh" element={<ShaktiKendraPramukhWrapper />} />
           <Route path="/karyakarta" element={<KaryakartaWrapper />} />
           <Route path="/booth-pramukh" element={<BoothPramukhWrapper />} />
+          <Route path="/family-screen" element={<FamilyscreenWrapper />} />
+          <Route path="/address-detail" element={<AddressDetailSlideWrapper />} />
+          <Route path="/address-voter" element={<AddressVoterSlideWrapper />} />
+          <Route path="/polling-station" element={<PollingStationSlideWrapper />} />
+          <Route path="/polling-station-voter" element={<PollingStationVoterSlideWrapper />} />
+          <Route path="/surname" element={<SurnameSlideWrapper />} />
+          <Route path="/surname-voter" element={<SurnameVoterSlideWrapper />} />
+          <Route path="/master-search-results" element={<MasterSearchResultsWrapper />} />
+          <Route path="/age" element={<AgeSlideWrapper />} />
 
           <Route path="/building-pramukh" element={<BuildingPramukhWrapper />} />
           <Route path="/building-detail" element={<BuildingDetailWrapper />} />

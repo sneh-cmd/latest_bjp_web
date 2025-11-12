@@ -1,11 +1,35 @@
-import React, { useEffect, useState } from 'react'
-import { displayBuildingPramukhCadreWithVoter, apiService } from '../../../apidata'
+import React, { useEffect, useMemo, useState } from 'react'
+import { displayBuildingPramukhCadreWithVoter, apiService, displayBuildingPramukh } from '../../../apidata'
 import AddBuildingPramukhModal from '../modals/AddBuildingPramukhModal'
 import AddBuildingCoInchargeModal from '../modals/AddBuildingCoInchargeModal'
 import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
 import localStorageManager from '../../../utils/localStorage'
+
+const normalizeMobileNumber = (value) => {
+  if (!value) return ''
+  const digits = value.toString().replace(/\D/g, '')
+  if (!digits) return ''
+  return digits.length > 10 ? digits.slice(-10) : digits
+}
+
+const collectMobilesFromBuildingList = (buildingList = []) => {
+  if (!Array.isArray(buildingList)) return []
+  const numbers = new Set()
+  buildingList.forEach(item => {
+    ;[
+      item?.phoneNumber,
+      item?.mobileNo,
+      item?.mobile,
+      item?.phone
+    ].forEach(candidate => {
+      const normalized = normalizeMobileNumber(candidate)
+      if (normalized) numbers.add(normalized)
+    })
+  })
+  return Array.from(numbers)
+}
 
 const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
   const { navigate } = navigation
@@ -38,6 +62,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
   const [showLastLoginModal, setShowLastLoginModal] = useState(false)
   const [selectedUserForLastLogin, setSelectedUserForLastLogin] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [globalBuildingMobiles, setGlobalBuildingMobiles] = useState([])
 
   useEffect(() => {
     const t = setTimeout(() => setIsVisible(true), 100)
@@ -61,7 +86,27 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         const userData = localStorageManager.getUserData()
         const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
         
-        const response = await displayBuildingPramukhCadreWithVoter(mainAdminId, panelApiUrl)
+        const buildingListPromise = displayBuildingPramukh(panelApiUrl)
+          .then(resp => {
+            if (resp && Array.isArray(resp.list)) {
+              return resp.list
+            }
+            if (Array.isArray(resp)) {
+              return resp
+            }
+            return []
+          })
+          .catch(error => {
+            console.error('Error fetching building pramukh list:', error)
+            return []
+          })
+
+        const [response, buildingList] = await Promise.all([
+          displayBuildingPramukhCadreWithVoter(mainAdminId, panelApiUrl),
+          buildingListPromise
+        ])
+
+        setGlobalBuildingMobiles(collectMobilesFromBuildingList(buildingList))
 
         console.log('📦 Building data response:', response)
         setBuildingPramukh(response.buildingPramukh || null)
@@ -336,8 +381,12 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
   }
 
   const handleFamily = (voter) => {
-    console.log('Family for voter:', voter)
-    // Implement family functionality
+    if (!voter || !voter.id) return
+    navigate('/family-screen', {
+      voterId: voter.id,
+      name: voter.name,
+      buildingNumber: voter.buildingNumber
+    })
   }
 
   const handleAddBuildingHead = () => {
@@ -827,27 +876,44 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
     last_login: buildingPramukh?.last_login || buildingPramukh?.lastLogin || buildingData?.last_login || buildingData?.lastLogin || ''
   }
 
-  const buildingCoInchargeMobiles = Array.from(new Set(
-    (coInchargeData || [])
-      .map(item => item.phone || item.mobile || item.mobile_no || item.mobileNo || item.phoneNumber)
-      .filter(Boolean)
-      .map(num => num.toString().trim())
-  ))
+  const buildingCoInchargeMobiles = useMemo(() => {
+    const numbers = new Set()
+    ;(coInchargeData || []).forEach(item => {
+      const normalized = normalizeMobileNumber(
+        item.phone ||
+        item.mobile ||
+        item.mobile_no ||
+        item.mobileNo ||
+        item.phoneNumber
+      )
+      if (normalized) numbers.add(normalized)
+    })
+    return Array.from(numbers)
+  }, [coInchargeData])
 
-  const buildingPramukhNumbers = Array.from(new Set(
-    [
+  const buildingPramukhNumbers = useMemo(() => {
+    const numbers = new Set()
+    ;[
       current.phoneNumber,
       current.mobileNo,
       buildingPramukh?.phoneNumber,
       buildingPramukh?.mobileNo,
       buildingData?.phoneNumber,
       buildingData?.mobileNo
-    ]
-      .filter(Boolean)
-      .map(num => num.toString().trim())
-  ))
+    ].forEach(candidate => {
+      const normalized = normalizeMobileNumber(candidate)
+      if (normalized) numbers.add(normalized)
+    })
+    return Array.from(numbers)
+  }, [current.phoneNumber, current.mobileNo, buildingPramukh?.phoneNumber, buildingPramukh?.mobileNo, buildingData?.phoneNumber, buildingData?.mobileNo])
 
-  const buildingPramukhExistingMobiles = Array.from(new Set([...buildingPramukhNumbers, ...buildingCoInchargeMobiles]))
+  const buildingPramukhExistingMobiles = useMemo(() => {
+    return Array.from(new Set([
+      ...(buildingPramukhNumbers || []),
+      ...(buildingCoInchargeMobiles || []),
+      ...(globalBuildingMobiles || [])
+    ]))
+  }, [buildingPramukhNumbers, buildingCoInchargeMobiles, globalBuildingMobiles])
 
   const currentLastLoginRaw = (current.last_login || current.lastLogin || '').toString().trim()
   const hasValidLastLogin = currentLastLoginRaw.length > 0
@@ -1441,7 +1507,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
               )}
             </div>
           ) : (
-            <div className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
+            <div className="flex-1 px-4 py-4 space-y-4 overflow-y-auto" style={{ backgroundColor: '#e5e8ff' }}>
               {loading ? (
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
@@ -1470,7 +1536,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                 <>
                   {/* Voter Statistics */}
                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                    <button onClick={() => setSelectedFilter('total')} className={`bg-gray-200 rounded-lg px-1 sm:px-2 py-1 sm:py-1.5 text-center transition-colors ${selectedFilter === 'total' ? 'ring-2 ring-blue-900' : ''}`}>
+                    <button onClick={() => setSelectedFilter('total')} className={`bg-white rounded-lg px-1 sm:px-2 py-1 sm:py-1.5 text-center transition-colors ${selectedFilter === 'total' ? 'ring-2 ring-blue-900' : ''}`}>
                       <div className="text-[10px] sm:text-xs font-bold text-gray-800">टोटल</div>
                       <div className="text-sm sm:text-lg font-bold text-gray-900">{totalVoters}</div>
                     </button>
@@ -1490,13 +1556,13 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
 
               {/* Address Dropdown */}
               {addresses.length > 0 && (
-                <div className="bg-gray-100 rounded-lg px-1.5 sm:px-2 py-1 sm:py-2 flex items-center justify-between gap-1 sm:gap-2">
+                <div className="bg-white rounded-lg px-1.5 sm:px-2 py-1 sm:py-2 flex items-center justify-between gap-1 sm:gap-2">
                   <select 
                     value={selectedAddress} 
                     onChange={(e) => setSelectedAddress(e.target.value)}
                     className="bg-transparent text-gray-700 font-medium focus:outline-none text-[10px] sm:text-xs flex-1 min-w-0 truncate"
                   >
-                    <option value="">पता</option>
+                    <option value="">पता (All)</option>
                     {addresses.map((addrItem, index) => {
                       // Handle both string (backward compatibility) and object format
                       const address = typeof addrItem === 'string' ? addrItem : addrItem.address

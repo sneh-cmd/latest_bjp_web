@@ -3,8 +3,9 @@ import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
 import DataSearchLoader from '../utils/DataSearchLoader'
 
-const AddressVoterSlide = ({ navigation, onClose, address }) => {
-  const { navigate } = navigation
+const AddressVoterSlide = ({ navigation }) => {
+  const { navigate, state = {}, params = {} } = navigation
+  const address = state?.address || params?.address || ''
   const [isVisible, setIsVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [voters, setVoters] = useState([])
@@ -97,11 +98,7 @@ const AddressVoterSlide = ({ navigation, onClose, address }) => {
   const handleBack = () => {
     setIsVisible(false)
     setTimeout(() => {
-      if (onClose) {
-        onClose()
-      } else {
-        navigate('/admin-dashboard')
-      }
+      navigate('/address-detail', { address })
     }, 300)
   }
 
@@ -115,8 +112,13 @@ const AddressVoterSlide = ({ navigation, onClose, address }) => {
     console.log('Check voter:', voter)
   }
 
-  const handleFamily = (voter) => {
-    console.log('View family for:', voter)
+  const handleFamily = (voter) => { 
+    if (!voter || !voter.id) return
+    navigate('/family-screen', {
+      voterId: voter.id,
+      name: voter.name,
+      buildingNumber: voter.buildingNumber
+    })
   }
 
   const handleEdit = () => {
@@ -154,7 +156,7 @@ const AddressVoterSlide = ({ navigation, onClose, address }) => {
               <h1
                 className="text-white text-sm sm:text-lg font-semibold truncate max-w-[65vw] sm:max-w-full"
               >
-                {address || ''}
+                {address || 'पता उपलब्ध नहीं'}
               </h1>
             </div>
 

@@ -4,6 +4,8 @@ import localStorageManager from '../../../utils/localStorage'
 import DataSearchLoader from '../utils/DataSearchLoader'
 import ValidationModal from '../modals/ValidationModal'
 
+const AGE_SEARCH_CACHE_KEY = 'age-search-cache'
+
 const AgeSlide = ({ navigation, onClose }) => {
   const { navigate } = navigation
   const [isVisible, setIsVisible] = useState(false)
@@ -24,13 +26,49 @@ const AgeSlide = ({ navigation, onClose }) => {
     return () => clearTimeout(timer)
   }, [])
 
+  useEffect(() => {
+    try {
+      const cachedRaw = sessionStorage.getItem(AGE_SEARCH_CACHE_KEY)
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw)
+        if (cached.ageFrom !== undefined) setAgeFrom(`${cached.ageFrom}`)
+        if (cached.ageTo !== undefined) setAgeTo(`${cached.ageTo}`)
+        if (Array.isArray(cached.voters)) setVoters(cached.voters)
+        if (typeof cached.searchQuery === 'string') setSearchQuery(cached.searchQuery)
+        setError(cached.error || null)
+        setShowResults(Boolean(cached.showResults))
+      }
+    } catch (err) {
+      console.error('Failed to restore age search cache:', err)
+      sessionStorage.removeItem(AGE_SEARCH_CACHE_KEY)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!showResults) return
+    try {
+      const cachePayload = {
+        ageFrom,
+        ageTo,
+        voters,
+        searchQuery,
+        error,
+        showResults
+      }
+      sessionStorage.setItem(AGE_SEARCH_CACHE_KEY, JSON.stringify(cachePayload))
+    } catch (err) {
+      console.error('Failed to persist age search cache:', err)
+    }
+  }, [ageFrom, ageTo, voters, searchQuery, showResults, error])
+
   const handleBack = () => {
+    sessionStorage.removeItem(AGE_SEARCH_CACHE_KEY)
     setIsVisible(false)
     setTimeout(() => {
       if (onClose) {
         onClose()
       } else {
-        navigate('/admin-dashboard')
+        navigate('/admin')
       }
     }, 300)
   }
@@ -54,7 +92,7 @@ const AgeSlide = ({ navigation, onClose }) => {
       return
     }
 
-    if (to - from > 5) {
+    if (to - from > 4) {
       setValidationMessage('आप इसे खोज नहीं सकते। 5 वर्ष आयु समूह की सीमा है')
       setShowValidationModal(true)
       return
@@ -112,8 +150,13 @@ const AgeSlide = ({ navigation, onClose }) => {
     console.log('Check voter:', voter)
   }
 
-  const handleFamily = (voter) => {
-    console.log('View family for:', voter)
+  const handleFamily = (voter) => { 
+    if (!voter || !voter.id) return
+    navigate('/family-screen', {
+      voterId: voter.id,
+      name: voter.name,
+      buildingNumber: voter.buildingNumber
+    })
   }
 
   const handleEdit = () => {

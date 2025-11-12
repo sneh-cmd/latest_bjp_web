@@ -1,10 +1,46 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
 import DataSearchLoader from '../utils/DataSearchLoader'
 
-const SurnameVoterSlide = ({ navigation, onClose, surnames, surnameListString }) => {
-  const { navigate } = navigation
+const ensureTrailingComma = (value) => {
+  if (!value) return ''
+  return value.endsWith(',') ? value : `${value},`
+}
+
+const SurnameVoterSlide = ({
+  navigation,
+  onClose,
+  surnames: surnamesProp,
+  surnameListString: surnameListStringProp
+}) => {
+  const { navigate, state = {}, params = {} } = navigation
+  const querySurnameList = typeof params?.surnames === 'string' ? params.surnames : ''
+  const derivedSurnameListString = ensureTrailingComma(
+    surnameListStringProp ||
+      state?.surnameListString ||
+      decodeURIComponent(querySurnameList || '')
+  )
+  const derivedSurnames = useMemo(() => {
+    if (Array.isArray(surnamesProp) && surnamesProp.length > 0) {
+      return surnamesProp
+    }
+    if (Array.isArray(state?.selectedSurnames) && state.selectedSurnames.length > 0) {
+      return state.selectedSurnames
+    }
+    if (derivedSurnameListString) {
+      return derivedSurnameListString
+        .split(',')
+        .map((name) => name.trim())
+        .filter(Boolean)
+        .map((name, index) => ({
+          id: index + 1,
+          name
+        }))
+    }
+    return []
+  }, [surnamesProp, state?.selectedSurnames, derivedSurnameListString])
+
   const [isVisible, setIsVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [voters, setVoters] = useState([])
@@ -28,7 +64,7 @@ const SurnameVoterSlide = ({ navigation, onClose, surnames, surnameListString })
         setIsLoading(true)
         setError(null)
         
-        if (!surnames || surnames.length === 0) {
+        if (!derivedSurnames || derivedSurnames.length === 0) {
           throw new Error('No surnames provided')
         }
         
@@ -37,11 +73,11 @@ const SurnameVoterSlide = ({ navigation, onClose, surnames, surnameListString })
         const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com'
         
         // Create surname list string from selected surnames (prefer provided string)
-        const surnameList = (surnameListString && surnameListString.trim())
-          ? surnameListString
-          : surnames.map(s => s.name).join(',')
+        const surnameList = derivedSurnameListString
+          ? derivedSurnameListString
+          : ensureTrailingComma(derivedSurnames.map((s) => s.name).join(','))
         
-        const apiSurnameList = surnameList.endsWith(',') ? surnameList : `${surnameList},`
+        const apiSurnameList = ensureTrailingComma(surnameList)
         console.log('Fetching voters for surnames:', apiSurnameList)
         const response = await apiService.surnameWiseSearch(apiSurnameList, panelApiUrl)
         
@@ -76,7 +112,7 @@ const SurnameVoterSlide = ({ navigation, onClose, surnames, surnameListString })
     }
     
     fetchVoters()
-  }, [surnames])
+  }, [derivedSurnames, derivedSurnameListString])
 
   // Filter voters based on search query and booth selection
   useEffect(() => {
@@ -108,7 +144,7 @@ const SurnameVoterSlide = ({ navigation, onClose, surnames, surnameListString })
       if (onClose) {
         onClose()
       } else {
-        navigate('/admin-dashboard')
+        navigate('/surname')
       }
     }, 300)
   }
@@ -124,7 +160,12 @@ const SurnameVoterSlide = ({ navigation, onClose, surnames, surnameListString })
   }
 
   const handleFamily = (voter) => {
-    console.log('View family for:', voter)
+    if (!voter || !voter.id) return
+    navigate('/family-screen', {
+      voterId: voter.id,
+      name: voter.name,
+      buildingNumber: voter.buildingNumber
+    })
   }
 
   const handleEdit = () => {
@@ -151,14 +192,11 @@ const SurnameVoterSlide = ({ navigation, onClose, surnames, surnameListString })
   const totalVoters = voters.length
 
   // Get selected surnames text
-  const baseList = (surnameListString && surnameListString.trim())
-    ? surnameListString
-    : (surnames && surnames.length > 0 
-      ? surnames.map(s => s.name).join(',')
+  const baseList = derivedSurnameListString
+    || (derivedSurnames && derivedSurnames.length > 0
+      ? derivedSurnames.map((s) => s.name).join(',')
       : '')
-  const selectedSurnamesText = baseList
-    ? (baseList.endsWith(',') ? baseList : `${baseList},`)
-    : 'Selected Surnames'
+  const selectedSurnamesText = ensureTrailingComma(baseList) || 'Selected Surnames'
 
   return (
     <div className="fixed inset-0 z-50">

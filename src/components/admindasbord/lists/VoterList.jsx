@@ -110,8 +110,12 @@ const VoterList = ({ navigation }) => {
   }
 
   const handleFamilyAction = (voter) => {
-    console.log('View family for voter:', voter)
-    // TODO: Navigate to family details view
+    if (!voter || !voter.id) return
+    navigate('/family-screen', {
+      voterId: voter.id,
+      name: voter.name,
+      boothNumber: voter.boothNumber
+    })
   }
 
   const filteredVoters = voterData.filter(voter => {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
-import PollingStationVoterSlide from './PollingStationVoterSlide'
 import DataSearchLoader from '../utils/DataSearchLoader'
 
 const PollingStationSlide = ({ navigation, onClose }) => {
@@ -11,8 +10,6 @@ const PollingStationSlide = ({ navigation, onClose }) => {
   const [pollingStations, setPollingStations] = useState([])
   const [allPollingStations, setAllPollingStations] = useState([])
   const [error, setError] = useState(null)
-  const [selectedPollingStation, setSelectedPollingStation] = useState(null)
-  const [showVoterSlide, setShowVoterSlide] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
@@ -82,19 +79,14 @@ const PollingStationSlide = ({ navigation, onClose }) => {
       if (onClose) {
         onClose()
       } else {
-        navigate('/admin-dashboard')
+        navigate('/admin')
       }
     }, 300)
   }
 
   const handlePollingStationClick = (station) => {
-    setSelectedPollingStation(station)
-    setShowVoterSlide(true)
-  }
-
-  const handleCloseVoterSlide = () => {
-    setShowVoterSlide(false)
-    setSelectedPollingStation(null)
+    if (!station) return
+    navigate('/polling-station-voter', { pollingStation: station })
   }
 
   // Total stations
@@ -206,14 +198,6 @@ const PollingStationSlide = ({ navigation, onClose }) => {
       </div>
     </div>
 
-      {/* Polling Station Voter Slide */}
-      {showVoterSlide && selectedPollingStation && (
-        <PollingStationVoterSlide
-          navigation={navigation}
-          onClose={handleCloseVoterSlide}
-          pollingStation={selectedPollingStation}
-        />
-      )}
   </div>
   )
 }
