@@ -72,6 +72,16 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
     return () => clearTimeout(t)
   }, [])
 
+  // Check sessionStorage for activeTab when coming back from family screen
+  useEffect(() => {
+    const showVoterTab = sessionStorage.getItem('showVoterTab')
+    if (showVoterTab === 'true') {
+      setActiveTab('voter')
+      // Clear the flag after using it
+      sessionStorage.removeItem('showVoterTab')
+    }
+  }, [])
+
   // Load building pramukh and voter data
   useEffect(() => {
     const loadBuildingData = async () => {

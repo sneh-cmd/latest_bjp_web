@@ -350,7 +350,7 @@ const CreateOrganizationMemberModal = ({
       const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com/webservice.asmx'
 
       let response
-      let payload
+      let payload 
 
       if (mode === 'edit' && editData) {
         // Prepare payload for update_admin API

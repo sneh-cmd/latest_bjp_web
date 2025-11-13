@@ -86,6 +86,16 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
     return () => clearTimeout(timer)
   }, [])
 
+  // Check sessionStorage for activeTab when coming back from family screen
+  useEffect(() => {
+    const showVoterTab = sessionStorage.getItem('showVoterTab')
+    if (showVoterTab === 'true') {
+      setActiveTab('voter')
+      // Clear the flag after using it
+      sessionStorage.removeItem('showVoterTab')
+    }
+  }, [])
+
   // Function to fetch booth data when boothData is not available (e.g., on page refresh)
   const fetchBoothDataFromAPI = async (boothNumber) => {
     try {
@@ -509,6 +519,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
       
       setShowDeleteConfirm(false)
       setPersonToDelete(null)
+      
     } catch (error) {
       console.error('Error deleting person:', error)
       alert('Failed to delete person')

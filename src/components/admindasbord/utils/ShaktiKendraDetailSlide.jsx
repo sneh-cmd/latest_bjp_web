@@ -1015,7 +1015,7 @@ const ShaktiKendraDetailSlide = ({
     }
 
     return (
-      <div className="flex-1 px-4 py-4 space-y-4" style={{ backgroundColor: '#e5e8ff' }}>
+      <div className="flex-1 px-4 py-4 space-y-4 overflow-y-auto" style={{ backgroundColor: '#e5e8ff' }}>
         {/* Main Shakti Kendra Pramukh Section */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="text-white px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between" style={{ backgroundColor: '#102463' }}>

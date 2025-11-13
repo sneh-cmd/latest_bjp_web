@@ -112,6 +112,8 @@ const Familyscreen = () => {
   }, [voterId])
 
   const handleBack = () => {
+    // Set flag in sessionStorage to show voter tab when returning
+    sessionStorage.setItem('showVoterTab', 'true')
     navigate(-1)
   }
 
