@@ -46,8 +46,8 @@ const ShaktiKendraSurvey = ({ navigation }) => {
 
   const handleCardClick = (item) => {
     // Navigate to detail slide with category data
-    console.log('Navigating to ShaktiKendraDetailSlide with item:', item)
-    navigate('/shakti-kendra-detail-slide', {
+    console.log('Navigating to ShaktiDetailSlide with item:', item)
+    navigate('/shakti-detail-slide', {
       categoryData: item
     })
   }

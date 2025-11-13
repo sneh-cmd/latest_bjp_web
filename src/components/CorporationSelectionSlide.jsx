@@ -108,47 +108,46 @@ const CorporationSelectionSlide = ({ navigation }) => {
             <div className="w-7 sm:w-8"></div> {/* Spacer */}
           </div>
 
-          {/* BJP Logo */}
-          <div className="flex-1 flex items-center justify-center sm:items-start sm:justify-start sm:ml-[5%] mt-[3%]">
-            <img 
-              src={logoImage} 
-              alt="BJP Logo" 
-              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain drop-shadow-2xl"
-              style={{
-                filter: 'drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 20px rgba(255, 153, 51, 0.8)) drop-shadow(0 0 15px rgba(37, 125, 35, 0.4))'
-              }}
-            />
-          </div>
+          {/* Logo and Search Bar Row */}
+          <div className="flex-1 flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-8 mt-[3%] gap-3 sm:gap-4">
+            {/* BJP Logo */}
+            <div className="flex items-center justify-start">
+              <img 
+                src={logoImage} 
+                alt="BJP Logo" 
+                className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain drop-shadow-2xl"
+                style={{
+                  filter: 'drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 20px rgba(255, 153, 51, 0.8)) drop-shadow(0 0 15px rgba(37, 125, 35, 0.4))'
+                }}
+              />
+            </div>
 
-          {/* Attractive Header Text */}
-          <div className="px-3 sm:px-4 pb-2 text-center sm:text-left">
-            <h2 className="text-white text-base sm:text-lg font-semibold mb-1" style={{
-              textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-              letterSpacing: '0.5px'
-            }}>
-              Select Your Corporation
-            </h2>
-            <p className="text-white/80 text-xs sm:text-sm" style={{
-              textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
-            }}>
-              Choose your municipal corporation to continue
-            </p>
-          </div>
-
-          {/* Search Bar - Responsive */}
-          <div className="absolute top-24 sm:top-28 md:top-32 left-1/2 transform -translate-x-1/2 px-3 sm:px-4 pb-2 flex justify-center">
-            <div className="relative w-64 sm:w-80 md:w-96 lg:w-112">
+            {/* Search Bar - Responsive */}
+            <div className="flex-1 flex justify-center sm:justify-end w-full sm:w-auto max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl">
+              <div className="relative w-full">
                 <input
                   type="text"
-                  placeholder="Search by Corporation or City Name..."
+                  placeholder="Search Corporation Name"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-8 sm:pr-10 bg-white rounded-xl border-0 focus:outline-none text-gray-800 placeholder-gray-500 shadow-lg text-sm sm:text-base"
+                  className="w-full pl-2.5 sm:pl-4 pr-8 sm:pr-12 py-1.5 sm:py-3 bg-white rounded-lg sm:rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-500 shadow-lg text-xs sm:text-base"
                 />
-              <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-4 pointer-events-none">
+                  <svg 
+                    className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth="2.5"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -203,7 +202,7 @@ const CorporationSelectionSlide = ({ navigation }) => {
 
             {/* Simple Grid Layout */}
             {!loading && !error && corporations.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 pb-4 sm:pb-6">
                 {filteredCorporations.map((corporation, index) => (
                 <div
                   key={corporation.id}
@@ -214,7 +213,7 @@ const CorporationSelectionSlide = ({ navigation }) => {
                   }}
                 >
                    {/* Small Box Design */}
-                   <div className={`relative h-auto rounded-2xl overflow-hidden transition-all duration-300 ${
+                   <div className={`relative h-auto rounded-lg sm:rounded-2xl overflow-hidden transition-all duration-300 ${
                      selectedCorporation === corporation.id
                        ? 'bg-gradient-to-br from-[#203D8C] to-[#102463] shadow-2xl scale-105'
                        : 'bg-white shadow-lg'
@@ -225,8 +224,8 @@ const CorporationSelectionSlide = ({ navigation }) => {
                    }}>
                     
                      {/* Top Number Box */}
-                     <div className="p-4">
-                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg transition-all duration-300 ${
+                     <div className="p-2 sm:p-4">
+                       <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-md sm:rounded-lg flex items-center justify-center font-bold text-base sm:text-lg transition-all duration-300 ${
                          selectedCorporation === corporation.id
                            ? 'bg-white text-[#102463]'
                            : 'bg-gradient-to-br from-orange-400 to-orange-500 text-white'
@@ -240,8 +239,8 @@ const CorporationSelectionSlide = ({ navigation }) => {
                      </div>
                      
                      {/* Corporation Info */}
-                     <div className="px-4 pb-4">
-                       <div className={`p-4 rounded-md transition-all duration-300 ${
+                     <div className="px-2 sm:px-4 pb-2 sm:pb-4">
+                       <div className={`p-2 sm:p-4 rounded-md transition-all duration-300 ${
                          selectedCorporation === corporation.id
                            ? 'bg-white/20 backdrop-blur-sm'
                            : 'bg-gray-50'
@@ -250,7 +249,7 @@ const CorporationSelectionSlide = ({ navigation }) => {
                            ? 'inset 0 1px 3px rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1)'
                            : 'inset 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.05)'
                        }}>
-                         <h3 className={`font-bold text-sm leading-tight transition-colors duration-300 mb-1 ${
+                         <h3 className={`font-bold text-xs sm:text-sm leading-tight transition-colors duration-300 mb-0.5 sm:mb-1 ${
                            selectedCorporation === corporation.id
                              ? 'text-white'
                              : 'text-gray-800'
@@ -259,7 +258,7 @@ const CorporationSelectionSlide = ({ navigation }) => {
                          }}>
                            {corporation.name}
                          </h3>
-                         <p className={`text-xs transition-colors duration-300 ${
+                         <p className={`text-[10px] sm:text-xs transition-colors duration-300 ${
                            selectedCorporation === corporation.id
                              ? 'text-blue-100'
                              : 'text-gray-600'
@@ -274,9 +273,9 @@ const CorporationSelectionSlide = ({ navigation }) => {
                     
                      {/* Selection Indicator */}
                      {selectedCorporation === corporation.id && (
-                       <div className="absolute top-2 right-2">
-                         <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <div className="absolute top-1.5 sm:top-2 right-1.5 sm:right-2">
+                         <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                           <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                            </svg>
                          </div>
@@ -284,7 +283,7 @@ const CorporationSelectionSlide = ({ navigation }) => {
                      )}
                     
                      {/* Bottom Accent Line */}
-                     <div className={`absolute bottom-0 left-0 h-1 w-full transition-all duration-300 ${
+                     <div className={`absolute bottom-0 left-0 h-0.5 sm:h-1 w-full transition-all duration-300 ${
                        selectedCorporation === corporation.id
                          ? 'bg-gradient-to-r from-[#203D8C] to-[#0A1A4A]'
                          : ''

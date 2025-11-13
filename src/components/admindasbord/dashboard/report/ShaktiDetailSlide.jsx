@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { displayUserWiseSurveyVoter } from '../../../../apidata'
 import localStorageManager from '../../../../utils/localStorage'
 
-const ShaktiKendraDetailSlide = ({ navigation }) => {
+const ShaktiDetailSlide = ({ navigation }) => {
   const { navigate, state } = navigation
   const categoryData = state?.categoryData || {}
   const [activeTab, setActiveTab] = useState('positive')
@@ -411,5 +411,5 @@ const ShaktiKendraDetailSlide = ({ navigation }) => {
   )
 }
 
-export default ShaktiKendraDetailSlide
+export default ShaktiDetailSlide
 

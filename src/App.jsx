@@ -26,7 +26,7 @@ import CadreSurveyReport from './components/admindasbord/dashboard/report/CadreS
 import BuildingHeadSurvey from './components/admindasbord/dashboard/report/BuildingHeadSurvey'
 import BuildingHeadDetailSlide from './components/admindasbord/dashboard/report/BuildingHeadDetailSlide'
 import ShaktiKendraSurvey from './components/admindasbord/dashboard/report/ShaktiKendraSurvey'
-import ShaktiKendraDetailSlide from './components/admindasbord/dashboard/report/ShaktiKendraDetailSlide'
+import ShaktiDetailSlide from './components/admindasbord/dashboard/report/ShaktiDetailSlide'
 import BoothPramukhSurvey from './components/admindasbord/dashboard/report/BoothPramukhSurvey'
 import BoothPramukhDetailSlide from './components/admindasbord/dashboard/report/BoothPramukhDetailSlide'
 import PhonebookSurvey from './components/admindasbord/dashboard/report/PhonebookSurvey'
@@ -327,10 +327,10 @@ function BuildingHeadDetailSlideWrapper() {
   )
 }
 
-function ShaktiKendraDetailSlideWrapper() {
+function ShaktiDetailSlideWrapper() {
   return (
     <NavigationProvider>
-      <ShaktiKendraDetailSlide />
+      <ShaktiDetailSlide />
     </NavigationProvider>
   )
 }
@@ -548,7 +548,7 @@ function App() {
           <Route path="/building-head-survey" element={<BuildingHeadSurveyWrapper />} />
           <Route path="/building-head-detail-slide" element={<BuildingHeadDetailSlideWrapper />} />
           <Route path="/shakti-kendra-survey" element={<ShaktiKendraSurveyWrapper />} />
-          <Route path="/shakti-kendra-detail-slide" element={<ShaktiKendraDetailSlideWrapper />} />
+          <Route path="/shakti-detail-slide" element={<ShaktiDetailSlideWrapper />} />
           <Route path="/booth-pramukh-survey" element={<BoothPramukhSurveyWrapper />} />
           <Route path="/booth-pramukh-detail-slide" element={<BoothPramukhDetailSlideWrapper />} />
           <Route path="/phonebook-survey" element={<PhonebookSurveyWrapper />} />

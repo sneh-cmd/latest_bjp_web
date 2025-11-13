@@ -173,24 +173,24 @@ const CadreSurveyReport = ({ navigation }) => {
         {!loading && !error && dashboardData && (
           <div className="bg-white rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 lg:p-8 shadow-xl w-full border border-gray-200 overflow-hidden hover:shadow-2xl transition-shadow duration-300">
             {/* First Row - Key Metrics */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 md:gap-5 lg:gap-8 pb-4 sm:pb-5 md:pb-6 border-b-2 border-gray-200 mb-4 sm:mb-5 md:mb-6">
-              <div className="text-center p-2 sm:p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
-                <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold break-words mb-1 sm:mb-1.5" style={{ color: '#102463' }}>
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-5 lg:gap-8 pb-2 sm:pb-3 md:pb-5 lg:pb-6 border-b-2 border-gray-200 mb-2 sm:mb-3 md:mb-5 lg:mb-6">
+              <div className="text-center p-1 sm:p-1.5 md:p-3 rounded-lg hover:bg-blue-50 transition-colors duration-200">
+                <div className="text-base sm:text-lg md:text-3xl lg:text-4xl font-extrabold break-words mb-0.5 sm:mb-1 md:mb-1.5" style={{ color: '#102463' }}>
                   {dashboardData?.total_voter ? dashboardData.total_voter.toLocaleString('en-IN') : '0'}
                 </div>
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 font-semibold">मतदाता</div>
+                <div className="text-[10px] sm:text-xs md:text-base lg:text-lg text-gray-700 font-semibold">मतदाता</div>
               </div>
-              <div className="text-center p-2 sm:p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
-                <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold mb-1 sm:mb-1.5" style={{ color: '#102463' }}>
+              <div className="text-center p-1 sm:p-1.5 md:p-3 rounded-lg hover:bg-green-50 transition-colors duration-200">
+                <div className="text-base sm:text-lg md:text-3xl lg:text-4xl font-extrabold mb-0.5 sm:mb-1 md:mb-1.5" style={{ color: '#102463' }}>
                   {dashboardData?.total_survey || '0'}
                 </div>
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 font-semibold">सर्वे</div>
+                <div className="text-[10px] sm:text-xs md:text-base lg:text-lg text-gray-700 font-semibold">सर्वे</div>
               </div>
-              <div className="text-center p-2 sm:p-3 rounded-lg hover:bg-orange-50 transition-colors duration-200">
-                <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold mb-1 sm:mb-1.5" style={{ color: '#102463' }}>
+              <div className="text-center p-1 sm:p-1.5 md:p-3 rounded-lg hover:bg-orange-50 transition-colors duration-200">
+                <div className="text-base sm:text-lg md:text-3xl lg:text-4xl font-extrabold mb-0.5 sm:mb-1 md:mb-1.5" style={{ color: '#102463' }}>
                   {dashboardData?.not_available || '0'}
                 </div>
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 font-semibold">अनुपलब्ध</div>
+                <div className="text-[10px] sm:text-xs md:text-base lg:text-lg text-gray-700 font-semibold">अनुपलब्ध</div>
               </div>
             </div>
 

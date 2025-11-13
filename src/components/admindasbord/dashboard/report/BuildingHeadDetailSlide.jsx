@@ -10,6 +10,7 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedVoterIndex, setSelectedVoterIndex] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Fetch voters from API
   const fetchVoters = useCallback(async () => {
@@ -177,70 +178,89 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
       style={{ backgroundColor: '#e5e8ff' }}
     >
       {/* Header */}
-      <div className="sticky top-0 z-20 w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-md" style={{ backgroundColor: '#102463' }}>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={handleBack}
-            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-white text-sm sm:text-base md:text-lg font-bold">{categoryData.name || 'बिल्डिंग प्रमुख'}</h1>
+      <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <button
+              onClick={handleBack}
+              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <h1 className="text-white text-base sm:text-lg font-semibold">{categoryData.name || 'बिल्डिंग प्रमुख'}</h1>
+          </div>
+
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              type="reset"
+              onClick={() => setSearchQuery('')}
+            />
+          </div>
         </div>
-        
-        <button 
-          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
       </div>
 
-      {/* Tabs - Below Header */}
-      <div className="w-full px-3 sm:px-4 md:px-6 py-2 bg-white border-b flex items-center space-x-2 sm:space-x-4 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('positive')}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
-            activeTab === 'positive' 
-              ? 'bg-green-500 text-white' 
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          पॉजिटिव-{tabCounts.positive || categoryData.positive || 0}
-        </button>
-        <button
-          onClick={() => setActiveTab('negative')}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
-            activeTab === 'negative' 
-              ? 'bg-red-500 text-white' 
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          नेगेटिव-{tabCounts.negative || categoryData.negative || 0}
-        </button>
-        <button
-          onClick={() => setActiveTab('doubtful')}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
-            activeTab === 'doubtful' 
-              ? 'bg-orange-500 text-white' 
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          डाउटफुल-{tabCounts.doubtful || categoryData.doubtful || 0}
-        </button>
-        <button
-          onClick={() => setActiveTab('nothing')}
-          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors ${
-            activeTab === 'nothing' 
-              ? 'bg-blue-500 text-white' 
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          कुछ नहीं-{tabCounts.nothing || categoryData.nothing || 0}
-        </button>
+      {/* Summary Bar with Tabs */}
+      <div className="px-2 sm:px-4 py-1.5 sm:py-3 flex-shrink-0" style={{ backgroundColor: '#e5e8ff' }}>
+        <div className="flex items-center justify-between gap-1.5 sm:gap-3 flex-wrap">
+          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg inline-block">
+            <span className="text-xs sm:text-sm font-bold" style={{ color: '#102463' }}>
+              टोटल : {totalVoters || 0}
+            </span>
+          </div>
+          
+          {/* Tabs */}
+          <div className="flex items-center space-x-1.5 sm:space-x-4 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('positive')}
+              className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                activeTab === 'positive' 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              पॉजिटिव-{tabCounts.positive || categoryData.positive || 0}
+            </button>
+            <button
+              onClick={() => setActiveTab('negative')}
+              className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                activeTab === 'negative' 
+                  ? 'bg-red-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              नेगेटिव-{tabCounts.negative || categoryData.negative || 0}
+            </button>
+            <button
+              onClick={() => setActiveTab('doubtful')}
+              className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                activeTab === 'doubtful' 
+                  ? 'bg-orange-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              डाउटफुल-{tabCounts.doubtful || categoryData.doubtful || 0}
+            </button>
+            <button
+              onClick={() => setActiveTab('nothing')}
+              className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                activeTab === 'nothing' 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              कुछ नहीं-{tabCounts.nothing || categoryData.nothing || 0}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -470,12 +490,6 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black px-3 sm:px-4 py-2 z-20">
-        <div className="bg-white rounded-md px-2.5 sm:px-3 py-1 sm:py-1.5 inline-block">
-          <span className="text-xs sm:text-sm md:text-base font-bold text-gray-900">टोटल : {totalVoters || 0}</span>
-        </div>
-      </div>
     </div>
   )
 }
