@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
+import ValidationModal from '../modals/ValidationModal.jsx'
+import CheckButton from '../common/CheckButton.jsx'
 
 const VoterList = ({ navigation }) => {
   const { navigate, params, state } = navigation
@@ -10,6 +12,7 @@ const VoterList = ({ navigation }) => {
   const [loading, setLoading] = useState(true)
   const [boothNumber, setBoothNumber] = useState(5) // Default booth number
   const [error, setError] = useState(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     // Get booth number from state (navigation params) or default
@@ -99,15 +102,16 @@ const VoterList = ({ navigation }) => {
 
   const handleCallAction = (phoneNumber) => {
     const sanitized = (phoneNumber || '').toString().trim()
-    if (sanitized && sanitized !== '-' && sanitized !== 'N/A') {
+    
+    // Check if mobile number exists and is valid (not empty, not '-', not 'N/A', and length >= 10)
+    if (sanitized && sanitized !== '-' && sanitized !== 'N/A' && sanitized.length >= 10) {
       window.open(`tel:${sanitized}`, '_self')
+    } else {
+      // Show modal if mobile number not found or invalid
+      setShowModal(true)
     }
   }
 
-  const handleCheckAction = (voter) => {
-    console.log('Check voter:', voter)
-    // TODO: Integrate voter verification flow
-  }
 
   const handleFamilyAction = (voter) => {
     if (!voter || !voter.id) return
@@ -305,18 +309,10 @@ const VoterList = ({ navigation }) => {
                   <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
                 </button>
 
-                <button
-                  onClick={() => handleCheckAction(voter)}
-                  className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                  type="button"
-                >
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                    </svg>
-                  </div>
-                  <span className="text-[10px] sm:text-xs text-gray-600">Check</span>
-                </button>
+                <CheckButton
+                  voter={voter}
+                  onShowModal={() => setShowModal(true)}
+                />
 
                 <button
                   onClick={() => handleFamilyAction(voter)}
@@ -347,6 +343,14 @@ const VoterList = ({ navigation }) => {
           )}
         </div>
       </div>
+      
+      {/* Validation Modal */}
+      <ValidationModal
+        isOpen={showModal}
+        message="मोबाइल नंबर नहीं मिला"
+        onClose={() => setShowModal(false)}
+        okText="Ok"
+      />
       </div>
     </div>
   )

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react'
 import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
 import DataSearchLoader from '../utils/DataSearchLoader'
+import CheckButton from '../common/CheckButton.jsx'
+import ValidationModal from '../modals/ValidationModal.jsx'
 
 const ensureTrailingComma = (value) => {
   if (!value) return ''
@@ -49,6 +51,7 @@ const SurnameVoterSlide = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [showBoothModal, setShowBoothModal] = useState(false)
   const [selectedBooth, setSelectedBooth] = useState(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -150,14 +153,17 @@ const SurnameVoterSlide = ({
   }
 
   const handleCall = (phoneNumber) => {
-    if (phoneNumber && phoneNumber !== '-') {
-      window.open(`tel:${phoneNumber}`, '_self')
+    const sanitized = (phoneNumber || '').toString().trim()
+    
+    // Check if mobile number exists and is valid (not empty, not '-', not 'N/A', and length >= 10)
+    if (sanitized && sanitized !== '-' && sanitized !== 'N/A' && sanitized.length >= 10) {
+      window.open(`tel:${sanitized}`, '_self')
+    } else {
+      // Show modal if mobile number not found or invalid
+      setShowModal(true)
     }
   }
 
-  const handleCheck = (voter) => {
-    console.log('Check voter:', voter)
-  }
 
   const handleFamily = (voter) => {
     if (!voter || !voter.id) return
@@ -397,18 +403,10 @@ const SurnameVoterSlide = ({
                       <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
                     </button>
 
-                    <button
-                      onClick={() => handleCheck(voter)}
-                      className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                      type="button"
-                    >
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                        </svg>
-                      </div>
-                      <span className="text-[10px] sm:text-xs text-gray-600">Check</span>
-                    </button>
+                    <CheckButton
+                      voter={voter}
+                      onShowModal={() => setShowModal(true)}
+                    />
 
                     <button
                       onClick={() => handleFamily(voter)}
@@ -479,6 +477,14 @@ const SurnameVoterSlide = ({
           </div>
         </div>
       )}
+      
+      {/* Validation Modal */}
+      <ValidationModal
+        isOpen={showModal}
+        message="मोबाइल नंबर नहीं मिला"
+        onClose={() => setShowModal(false)}
+        okText="Ok"
+      />
     </div>
   )
 }

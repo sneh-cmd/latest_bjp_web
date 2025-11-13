@@ -5,6 +5,8 @@ import AddBuildingCoInchargeModal from '../modals/AddBuildingCoInchargeModal'
 import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
+import CheckButton from '../common/CheckButton.jsx'
+import ValidationModal from '../modals/ValidationModal.jsx'
 import localStorageManager from '../../../utils/localStorage'
 
 const normalizeMobileNumber = (value) => {
@@ -63,6 +65,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
   const [selectedUserForLastLogin, setSelectedUserForLastLogin] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [globalBuildingMobiles, setGlobalBuildingMobiles] = useState([])
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     const t = setTimeout(() => setIsVisible(true), 100)
@@ -180,12 +183,9 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         setAddresses(regularAddrs)
         setReDevelopmentAddresses(reDevAddrs)
         
-        // Set initial selected address
-        if (regularAddrs.length > 0) {
-          setSelectedAddress(typeof regularAddrs[0] === 'string' ? regularAddrs[0] : regularAddrs[0].address)
-        } else if (reDevAddrs.length > 0) {
-          setSelectedAddress(reDevAddrs[0].address)
-        }
+        // Set initial selected address to "All" (empty string) - default option
+        // This ensures "पता (All)" option is selected by default when screen first loads
+        setSelectedAddress('')
         
         // Use co-incharge data directly from API response (already extracted in apidata.jsx)
         if (response.coIncharge && Array.isArray(response.coIncharge) && response.coIncharge.length > 0) {
@@ -370,15 +370,17 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
   }
 
   const handleCall = (phoneNumber) => {
-    if (phoneNumber && phoneNumber !== '-') {
-      window.open(`tel:${phoneNumber}`, '_self')
+    const sanitized = (phoneNumber || '').toString().trim()
+    
+    // Check if mobile number exists and is valid (not empty, not '-', not 'N/A', and length >= 10)
+    if (sanitized && sanitized !== '-' && sanitized !== 'N/A' && sanitized.length >= 10) {
+      window.open(`tel:${sanitized}`, '_self')
+    } else {
+      // Show modal if mobile number not found or invalid
+      setShowModal(true)
     }
   }
 
-  const handleCheck = (voter) => {
-    console.log('Check voter:', voter)
-    // Implement check functionality
-  }
 
   const handleFamily = (voter) => {
     if (!voter || !voter.id) return
@@ -1694,17 +1696,10 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                             <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
                           </button>
 
-                          <button 
-                            onClick={() => handleCheck(voter)}
-                            className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                          >
-                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
-                              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                              </svg>
-                            </div>
-                            <span className="text-[10px] sm:text-xs text-gray-600">Check</span>
-                          </button>
+                          <CheckButton
+                            voter={voter}
+                            onShowModal={() => setShowModal(true)}
+                          />
 
                           <button 
                             onClick={() => handleFamily(voter)}
@@ -1833,6 +1828,14 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
           phoneKeys={['phoneNumber', 'mobileNo', 'mobile', 'phone']}
         />
       )}
+      
+      {/* Validation Modal */}
+      <ValidationModal
+        isOpen={showModal}
+        message="मोबाइल नंबर नहीं मिला"
+        onClose={() => setShowModal(false)}
+        okText="Ok"
+      />
     </>
   )
 }

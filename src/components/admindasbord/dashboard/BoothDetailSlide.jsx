@@ -4,6 +4,8 @@ import AddCoInchargeModal from '../modals/AddCoInchargeModal'
 import ContactDetailModal from '../modals/ContactDetailModal'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal'
 import LastLoginModal from '../modals/LastLoginModal'
+import CheckButton from '../common/CheckButton.jsx'
+import ValidationModal from '../modals/ValidationModal.jsx'
 import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
 
@@ -49,7 +51,9 @@ const collectMobilesFromBoothList = (boothList = []) => {
 const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
   const { navigate, state } = navigation
   const [isVisible, setIsVisible] = useState(false)
-  const [activeTab, setActiveTab] = useState('organization') // 'organization' or 'voter'
+  // If coming from shakti-kendra-detail, show only voter tab
+  const isFromShaktiKendra = state?.from === 'shakti-kendra-detail'
+  const [activeTab, setActiveTab] = useState(isFromShaktiKendra ? 'voter' : 'organization') // 'organization' or 'voter'
   const [boothHeadData, setBoothHeadData] = useState([])
   const [coInchargeData, setCoInchargeData] = useState([])
   const [globalBoothHeadMobiles, setGlobalBoothHeadMobiles] = useState([])
@@ -73,6 +77,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
   const [personToEdit, setPersonToEdit] = useState(null)
   const [showLastLoginModal, setShowLastLoginModal] = useState(false)
   const [selectedUserForLastLogin, setSelectedUserForLastLogin] = useState(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -520,14 +525,17 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
   // Voter-related handlers
   const handleVoterCall = (voter) => {
     const phone = voter.mobile || voter.mobile_no || voter.phone
-    if (phone && phone !== '-') {
-      window.open(`tel:${phone}`, '_self')
+    const sanitized = (phone || '').toString().trim()
+    
+    // Check if mobile number exists and is valid (not empty, not '-', not 'N/A', and length >= 10)
+    if (sanitized && sanitized !== '-' && sanitized !== 'N/A' && sanitized.length >= 10) {
+      window.open(`tel:${sanitized}`, '_self')
+    } else {
+      // Show modal if mobile number not found or invalid
+      setShowModal(true)
     }
   }
 
-  const handleVoterCheck = (voter) => {
-    console.log('Mark as checked:', voter)
-  }
 
   const handleVoterFamily = (voter) => { 
     if (!voter || !voter.id) return
@@ -809,72 +817,74 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
             </div>
           </div>
 
-          {/* Navigation Tabs and Search Bar Section */}
-          <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
-            {/* Desktop: Row layout (unchanged) | Mobile: Column layout */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
-              {/* Mobile: Navigation Tabs First | Desktop: Left side - Empty space */}
-              <div className="flex-1 sm:flex-1 w-full sm:w-auto">
-                {/* Mobile: Show navigation tabs */}
-                <div className="flex justify-center sm:hidden mb-2">
-                  <div className="flex space-x-2 bg-white rounded-lg p-1">
-                    <button 
-                      onClick={() => setActiveTab('organization')}
-                      className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
-                        activeTab === 'organization' 
-                          ? 'text-white' 
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                      style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
-                    >
-                      संगठन
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab('voter')}
-                      className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
-                        activeTab === 'voter' 
-                          ? 'text-white' 
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                      style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
-                    >
-                      मतदाता
-                    </button>
+          {/* Navigation Tabs and Search Bar Section - Hide if coming from shakti-kendra-detail */}
+          {!isFromShaktiKendra && (
+            <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
+              {/* Desktop: Row layout (unchanged) | Mobile: Column layout */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3">
+                {/* Mobile: Navigation Tabs First | Desktop: Left side - Empty space */}
+                <div className="flex-1 sm:flex-1 w-full sm:w-auto">
+                  {/* Mobile: Show navigation tabs */}
+                  <div className="flex justify-center sm:hidden mb-2">
+                    <div className="flex space-x-2 bg-white rounded-lg p-1">
+                      <button 
+                        onClick={() => setActiveTab('organization')}
+                        className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                          activeTab === 'organization' 
+                            ? 'text-white' 
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                        style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
+                      >
+                        संगठन
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('voter')}
+                        className={`px-3 py-1 rounded-lg font-medium transition-colors text-sm ${
+                          activeTab === 'voter' 
+                            ? 'text-white' 
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                        style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
+                      >
+                        मतदाता
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Desktop: Center - Navigation Tabs */}
-              <div className="hidden sm:flex space-x-2 sm:space-x-4 bg-white rounded-lg p-1">
-                <button 
-                  onClick={() => setActiveTab('organization')}
-                  className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
-                    activeTab === 'organization' 
-                      ? 'text-white' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                  style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
-                >
-                  संगठन
-                </button>
-                <button 
-                  onClick={() => setActiveTab('voter')}
-                  className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
-                    activeTab === 'voter' 
-                      ? 'text-white' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                  style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
-                >
-                  मतदाता
-                </button>
-              </div>
+                {/* Desktop: Center - Navigation Tabs */}
+                <div className="hidden sm:flex space-x-2 sm:space-x-4 bg-white rounded-lg p-1">
+                  <button 
+                    onClick={() => setActiveTab('organization')}
+                    className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                      activeTab === 'organization' 
+                        ? 'text-white' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    style={activeTab === 'organization' ? {backgroundColor: '#102463'} : {}}
+                  >
+                    संगठन
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('voter')}
+                    className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg font-medium transition-colors text-sm ${
+                      activeTab === 'voter' 
+                        ? 'text-white' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    style={activeTab === 'voter' ? {backgroundColor: '#102463'} : {}}
+                  >
+                    मतदाता
+                  </button>
+                </div>
 
-              {/* Right side - Empty space for consistency */}
-              <div className="flex-1 sm:flex-1 flex justify-end w-full sm:w-auto">
+                {/* Right side - Empty space for consistency */}
+                <div className="flex-1 sm:flex-1 flex justify-end w-full sm:w-auto">
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto bg-gray-100 px-4 py-4" style={{ backgroundColor: '#e5e8ff' }}>
@@ -885,7 +895,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                   <p className="text-gray-600">डेटा लोड हो रहा है...</p>
                 </div>
               </div>
-            ) : activeTab === 'organization' ? (
+            ) : activeTab === 'organization' && !isFromShaktiKendra ? (
               <div className="space-y-4">
                 {/* Booth Head Section */}
                 <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -1238,17 +1248,10 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                           <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
                         </button>
 
-                        <button
-                          onClick={() => handleVoterCheck(voter)}
-                          className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                        >
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                            </svg>
-                          </div>
-                          <span className="text-[10px] sm:text-xs text-gray-600">Check</span>
-                        </button>
+                        <CheckButton
+                          voter={voter}
+                          onShowModal={() => setShowModal(true)}
+                        />
 
                         <button
                           onClick={() => handleVoterFamily(voter)}
@@ -1341,6 +1344,14 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
           }}
         />
       )}
+      
+      {/* Validation Modal */}
+      <ValidationModal
+        isOpen={showModal}
+        message="मोबाइल नंबर नहीं मिला"
+        onClose={() => setShowModal(false)}
+        okText="Ok"
+      />
     </>
   )
 }

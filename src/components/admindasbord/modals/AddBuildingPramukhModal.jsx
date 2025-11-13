@@ -407,7 +407,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
   const modalMarkup = (
     <>
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-4 bg-black/60 backdrop-blur-sm"
       style={{ zIndex: 1000 }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -415,35 +415,35 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
         }
       }}
     >
-      <div className="relative w-full max-w-md sm:max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
-        <div className="p-3 sm:p-5 text-white" style={{backgroundColor: '#103a94'}}>
+      <div className="relative w-full max-w-xs sm:max-w-lg bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
+        <div className="p-2.5 sm:p-5 text-white" style={{backgroundColor: '#103a94'}}>
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 sm:top-4 sm:right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all hover:scale-105"
+            className="absolute top-1.5 right-1.5 sm:top-4 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all hover:scale-105"
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <div>
-              <h2 className="text-lg sm:text-xl font-bold">
+              <h2 className="text-sm sm:text-xl font-bold">
                 {isEditMode ? 'बिल्डिंग प्रमुख संपादित करें' : 'बिल्डिंग प्रमुख'}
               </h2>
-              <p className="text-blue-100 text-xs sm:text-sm">
+              <p className="text-blue-100 text-[10px] sm:text-sm">
                 {isEditMode ? 'Edit Building Pramukh' : 'Create New Building Pramukh'}
               </p>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3 sm:space-y-4" style={{backgroundColor:'#f4f6ff'}} noValidate>
+        <form onSubmit={handleSubmit} className="p-2.5 sm:p-5 space-y-2 sm:space-y-4" style={{backgroundColor:'#f4f6ff'}} noValidate>
           <div className="relative address-picker-container">
-            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>पता</label>
+            <label className="block text-[10px] sm:text-sm font-semibold mb-1 sm:mb-2" style={{color: '#103a94'}}>पता</label>
             <button
               type="button"
               onClick={() => setShowAddressPicker(!showAddressPicker)}
-              className="flex w-full items-center justify-between rounded-lg border px-2.5 sm:px-4 py-1.5 sm:py-2.5 text-left transition-all text-sm sm:text-base"
+              className="flex w-full items-center justify-between rounded-lg border px-2 sm:px-4 py-1.5 sm:py-2.5 text-left transition-all text-xs sm:text-base"
               style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
               onMouseEnter={(e) => e.target.style.borderColor = '#0d2f7a'}
               onMouseLeave={(e) => e.target.style.borderColor = '#103a94'}
@@ -451,58 +451,58 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
               <span className="text-gray-800">
                 {selectedAddresses.length > 0 ? `${selectedAddresses.length} पता` : 'चुनें'}
               </span>
-              <svg className="h-4 w-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </button>
 
             {showAddressPicker && (
               <div className="absolute left-0 right-0 z-[200] mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-                <div className="p-2 border-b">
+                <div className="p-1.5 sm:p-2 border-b">
                   <input
                     type="text"
                     value={addressSearch}
                     onChange={(e) => setAddressSearch(e.target.value)}
                     placeholder="सर्च दर्ज करें"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm sm:text-base"
+                    className="w-full rounded-md border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base"
                     disabled={addressLoading}
                   />
                 </div>
-                <div className="max-h-72 overflow-y-auto">
+                <div className="max-h-60 sm:max-h-72 overflow-y-auto">
                   {addressLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="text-sm text-gray-600">पते लोड हो रहे हैं...</div>
+                    <div className="flex items-center justify-center py-6 sm:py-8">
+                      <div className="text-xs sm:text-sm text-gray-600">पते लोड हो रहे हैं...</div>
                     </div>
                   ) : addressError ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="text-sm text-red-600">{addressError}</div>
+                    <div className="flex items-center justify-center py-6 sm:py-8">
+                      <div className="text-xs sm:text-sm text-red-600">{addressError}</div>
                     </div>
                   ) : filteredAddresses.length === 0 ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="text-sm text-gray-600">कोई पता नहीं मिला</div>
+                    <div className="flex items-center justify-center py-6 sm:py-8">
+                      <div className="text-xs sm:text-sm text-gray-600">कोई पता नहीं मिला</div>
                     </div>
                   ) : (
                     filteredAddresses.map((addr, idx) => {
                       const checked = selectedAddresses.includes(addr)
                       return (
-                        <label key={`${addr}-${idx}`} className="flex cursor-pointer items-center space-x-3 px-3 py-2 border-b last:border-b-0 hover:bg-gray-50">
+                        <label key={`${addr}-${idx}`} className="flex cursor-pointer items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-1.5 sm:py-2 border-b last:border-b-0 hover:bg-gray-50">
                           <input
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleAddress(addr)}
-                            className="h-4 w-4"
+                            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                           />
-                          <span className="text-sm text-gray-800">{addr}</span>
+                          <span className="text-xs sm:text-sm text-gray-800">{addr}</span>
                         </label>
                       )
                     })
                   )}
                 </div>
-                <div className="p-2" style={{ backgroundColor: '#103a94' }}>
+                <div className="p-1.5 sm:p-2" style={{ backgroundColor: '#103a94' }}>
                   <button
                     type="button"
                     onClick={() => setShowAddressPicker(false)}
-                    className="w-full rounded-md py-2 text-center text-white font-semibold text-sm sm:text-base"
+                    className="w-full rounded-md py-1.5 sm:py-2 text-center text-white font-semibold text-xs sm:text-base"
                   >
                     ठीक है
                   </button>
@@ -511,12 +511,12 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
             )}
 
             {selectedAddresses.length > 0 && (
-              <div className="mt-2 max-h-60 overflow-y-auto divide-y divide-gray-200 rounded-lg border border-gray-200">
+              <div className="mt-1.5 sm:mt-2 max-h-48 sm:max-h-60 overflow-y-auto divide-y divide-gray-200 rounded-lg border border-gray-200">
                 {selectedAddresses.map((addr, i) => (
-                  <div key={`${addr}-${i}`} className="flex items-start justify-between p-3">
-                    <div className="pr-3 text-sm text-gray-800">{addr}</div>
-                    <button type="button" onClick={() => removeAddress(addr)} className="text-gray-500 hover:text-gray-700">
-                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div key={`${addr}-${i}`} className="flex items-start justify-between p-2 sm:p-3">
+                    <div className="pr-2 sm:pr-3 text-xs sm:text-sm text-gray-800 break-words flex-1">{addr}</div>
+                    <button type="button" onClick={() => removeAddress(addr)} className="text-gray-500 hover:text-gray-700 flex-shrink-0">
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -527,7 +527,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           </div>
 
           <div>
-            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
+            <label className="block text-[10px] sm:text-sm font-semibold mb-1 sm:mb-2" style={{color: '#103a94'}}>
               नाम
             </label>
             <input
@@ -535,7 +535,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-sm sm:text-base"
+              className="w-full px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-xs sm:text-base"
               style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
               onFocus={(e) => e.target.style.borderColor = '#103a94'}
               onBlur={(e) => e.target.style.borderColor = '#103a94'}
@@ -544,7 +544,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           </div>
 
           <div>
-            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
+            <label className="block text-[10px] sm:text-sm font-semibold mb-1 sm:mb-2" style={{color: '#103a94'}}>
               मोबाइल नं.
             </label>
             <input
@@ -553,7 +553,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
               value={formData.phone}
               onChange={handleChange}
               maxLength={10}
-              className="w-full px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-sm sm:text-base"
+              className="w-full px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-lg border focus:outline-none focus:bg-white transition-all text-gray-800 text-xs sm:text-base"
               style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
               onFocus={(e) => e.target.style.borderColor = '#103a94'}
               onBlur={(e) => e.target.style.borderColor = '#103a94'}
@@ -562,7 +562,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           </div>
 
           <div>
-            <label className="block text-xs sm:text-sm font-semibold mb-1.5 sm:mb-2" style={{color: '#103a94'}}>
+            <label className="block text-[10px] sm:text-sm font-semibold mb-1 sm:mb-2" style={{color: '#103a94'}}>
               फोटो
             </label>
             <div className="relative">
@@ -577,7 +577,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
                 <div className="relative">
                   <label
                     htmlFor={isEditMode ? 'edit-building-photo-input' : 'building-photo-input'}
-                    className="block w-full h-28 sm:h-32 rounded-lg border overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer transition-all hover:bg-gray-100"
+                    className="block w-full h-20 sm:h-32 rounded-lg border overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer transition-all hover:bg-gray-100"
                     style={{borderColor: '#103a94'}}
                     onMouseEnter={(e) => e.target.style.borderColor = '#0d2f7a'}
                     onMouseLeave={(e) => e.target.style.borderColor = '#103a94'}
@@ -591,9 +591,9 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
                   <button
                     type="button"
                     onClick={handleRemovePhotoClick}
-                    className="mt-1.5 text-red-600 text-xs sm:text-sm hover:text-red-700 transition-colors flex items-center space-x-1"
+                    className="mt-1 text-red-600 text-[10px] sm:text-sm hover:text-red-700 transition-colors flex items-center space-x-1"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                     <span>Remove Photo</span>
@@ -602,34 +602,34 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
               ) : (
                 <label
                   htmlFor={isEditMode ? 'edit-building-photo-input' : 'building-photo-input'}
-                  className="w-full h-20 sm:h-28 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
+                  className="w-full h-16 sm:h-28 rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-all"
                   style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
                   onMouseEnter={(e) => e.target.style.backgroundColor = '#e6f0ff'}
                   onMouseLeave={(e) => e.target.style.backgroundColor = '#f0f4ff'}
                 >
                   <div className="text-center">
-                    <svg className="w-5 h-5 sm:w-7 sm:h-7 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
+                    <svg className="w-4 h-4 sm:w-7 sm:h-7 mx-auto mb-0.5 sm:mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{color: '#103a94'}}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    <p className="text-xs sm:text-sm" style={{color: '#103a94'}}>Click to upload photo</p>
+                    <p className="text-[10px] sm:text-sm" style={{color: '#103a94'}}>Click to upload photo</p>
                   </div>
                 </label>
               )}
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
+          <div className="flex flex-col sm:flex-row space-y-1.5 sm:space-y-0 sm:space-x-3 pt-1.5 sm:pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-sm sm:text-base"
+              className="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-semibold py-1.5 sm:py-3 px-2.5 sm:px-4 rounded-lg sm:rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-xs sm:text-base"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 text-white font-semibold py-2 sm:py-3 px-3 sm:px-4 rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-sm sm:text-base disabled:opacity-60"
+              className="flex-1 text-white font-semibold py-1.5 sm:py-3 px-2.5 sm:px-4 rounded-lg sm:rounded-xl transition-all flex items-center justify-center shadow-sm hover:shadow-md text-xs sm:text-base disabled:opacity-60"
               style={{backgroundColor: '#103a94'}}
               onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#0d2f7a')}
               onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#103a94')}
