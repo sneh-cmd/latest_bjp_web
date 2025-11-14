@@ -78,11 +78,11 @@ const CorporationSelectionSlide = ({ navigation }) => {
 
 
   return (
-    <div className={`relative w-screen h-screen overflow-hidden transition-all duration-500 ${
+    <div className={`relative w-screen h-screen overflow-hidden transition-all duration-500 flex flex-col ${
       isVisible ? 'opacity-100' : 'opacity-0'
     }`}>
       {/* Header Section with Background Image */}
-      <div className="relative h-[35%] sm:h-[40%] md:h-[35%] lg:h-[30%] w-full">
+      <div className="relative h-[35%] sm:h-[40%] md:h-[35%] lg:h-[30%] w-full flex-shrink-0">
         {/* Background Image */}
         <div className="absolute top-0 left-0 w-full h-full">
           <img 
@@ -95,23 +95,17 @@ const CorporationSelectionSlide = ({ navigation }) => {
 
         {/* Header Content */}
         <div className="relative z-20 h-full flex flex-col">
-          {/* Top Bar with Back Button */}
-          <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3">
+          {/* Back Button and Logo Row */}
+          <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3">
             <button 
               onClick={handleBack}
-              className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-300"
+              className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-300 flex-shrink-0 absolute left-4 top-4"
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <div className="w-7 sm:w-8"></div> {/* Spacer */}
-          </div>
-
-          {/* Logo and Search Bar Row */}
-          <div className="flex-1 flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-8 mt-[3%] gap-3 sm:gap-4">
-            {/* BJP Logo */}
-            <div className="flex items-center justify-start">
+            <div className="flex items-center justify-center flex-1">
               <img 
                 src={logoImage} 
                 alt="BJP Logo" 
@@ -121,20 +115,23 @@ const CorporationSelectionSlide = ({ navigation }) => {
                 }}
               />
             </div>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0"></div> {/* Spacer to balance */}
+          </div>
 
-            {/* Search Bar - Responsive */}
-            <div className="flex-1 flex justify-center sm:justify-end w-full sm:w-auto max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl">
+          {/* Search Bar Section */}
+          <div className="flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-4 xl:px-8">
+            <div className="flex justify-center w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-lg xl:max-w-2xl">
               <div className="relative w-full">
                 <input
                   type="text"
                   placeholder="Search Corporation Name"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-2.5 sm:pl-4 pr-8 sm:pr-12 py-1.5 sm:py-3 bg-white rounded-lg sm:rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-500 shadow-lg text-xs sm:text-base"
+                  className="w-full pl-2.5 sm:pl-4 lg:pl-3 xl:pl-4 pr-8 sm:pr-12 lg:pr-10 xl:pr-12 py-1.5 sm:py-3 lg:py-2 xl:py-3 bg-white rounded-lg sm:rounded-xl lg:rounded-lg xl:rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-500 shadow-lg text-xs sm:text-base lg:text-sm xl:text-base"
                 />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-4 pointer-events-none">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-4 lg:pr-3 xl:pr-4 pointer-events-none">
                   <svg 
-                    className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" 
+                    className="w-4 h-4 sm:w-6 sm:h-6 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-gray-400" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24" 
@@ -156,8 +153,8 @@ const CorporationSelectionSlide = ({ navigation }) => {
       </div>
 
       {/* Body Section with Small Boxes Side by Side */}
-      <div className="relative h-[65%] bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 overflow-hidden">
-        <div className="h-full px-4 pt-6 pb-2 overflow-y-auto" style={{
+      <div className="relative flex-1 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 overflow-hidden">
+        <div className="h-full px-4 pt-6 overflow-y-auto" style={{
           scrollbarWidth: 'thin',
           scrollbarColor: '#d1d5db #f3f4f6'
         }}>
@@ -202,7 +199,7 @@ const CorporationSelectionSlide = ({ navigation }) => {
 
             {/* Simple Grid Layout */}
             {!loading && !error && corporations.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 pb-4 sm:pb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
                 {filteredCorporations.map((corporation, index) => (
                 <div
                   key={corporation.id}

@@ -3,7 +3,6 @@ import { displayTypeWiseUserListFromSurvey } from '../../../../apidata'
 
 const PhonebookSurvey = ({ navigation }) => {
   const { navigate } = navigation
-  const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [surveyData, setSurveyData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -45,13 +44,6 @@ const PhonebookSurvey = ({ navigation }) => {
     })
   }
 
-  const handleSearchToggle = () => {
-    setShowSearch(!showSearch)
-    if (showSearch) {
-      setSearchQuery('')
-    }
-  }
-
   // Filter data based on search query
   const filteredData = surveyData.filter(item => {
     if (!searchQuery.trim()) return true
@@ -70,57 +62,49 @@ const PhonebookSurvey = ({ navigation }) => {
       style={{ backgroundColor: '#e5e8ff' }}
     >
       {/* Header */}
-      <div className="sticky top-0 z-20 w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-md" style={{ backgroundColor: '#102463' }}>
-        <button
-          onClick={handleBack}
-          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        
-        <h1 className="text-white text-base sm:text-lg md:text-xl font-bold text-center flex-1 px-2">फोनबूक सर्वे</h1>
-        
-        <button 
-          onClick={handleSearchToggle}
-          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-      </div>
+      <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <button
+              onClick={handleBack}
+              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
 
-      {/* Search Input */}
-      {showSearch && (
-        <div className="sticky top-[60px] sm:top-[64px] z-10 w-full px-3 sm:px-4 md:px-6 py-2 bg-white border-b shadow-md">
-          <div className="flex items-center space-x-2">
+            <h1 className="text-white text-base sm:text-lg font-semibold">फोनबूक सर्वे</h1>
+          </div>
+
+          <div className="search-box">
             <input
               type="text"
+              placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="नाम या फोन नंबर से खोजें..."
-              className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-              autoFocus
             />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
+            <button
+              type="reset"
+              onClick={() => setSearchQuery('')}
+            />
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Summary Bar */}
+      <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0" style={{ backgroundColor: '#e5e8ff' }}>
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <div className="px-2 py-1 rounded-lg inline-block">
+            <span className="text-sm font-bold" style={{ color: '#102463' }}>
+              टोटल : {totalCount}
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <div className="
-w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4 pb-20 space-y-3 sm:space-y-4 mb-7">
+      <div className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4 pb-20 mb-7 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         {/* Loading State */}
         {loading && (
           <div className="text-center py-12">
@@ -153,110 +137,110 @@ w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4 pb-20 space-y-3 sm:space-y-4 mb-7">
               </div>
             ) : (
               filteredData.map((item, index) => (
-          <div 
-            key={item.id}
-            onClick={() => handleCardClick(item)}
-            className="bg-white rounded-lg sm:rounded-xl shadow-md w-full overflow-hidden relative cursor-pointer hover:shadow-lg transition-shadow duration-200"
-          >
-            {/* Left border indicator */}
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 sm:w-2" style={{ backgroundColor: '#102463' }}></div>
-            
-            <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 py-3 sm:py-4">
-              {/* Top Section */}
-              <div className="flex items-start justify-between mb-3 sm:mb-4">
-                {/* Left: User Icon and Info */}
-                <div className="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0">
-                  {/* User Icon */}
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#d4a574' }}>
-                    <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
-                  </div>
+                <div 
+                  key={item.id}
+                  onClick={() => handleCardClick(item)}
+                  className="bg-white rounded-lg sm:rounded-xl shadow-md w-full overflow-hidden relative cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                >
+                  {/* Left border indicator */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 sm:w-2" style={{ backgroundColor: '#102463' }}></div>
                   
-                  {/* Name and Phone */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-1">
-                      {item.name} {item.designation ? `(${item.designation})` : ''}
-                    </div>
-                    {item.phone && (
-                      <div className="text-sm sm:text-base text-gray-600 mt-0.5">
-                        {item.phone}
+                  <div className="pl-2 sm:pl-5 pr-2 sm:pr-4 py-2 sm:py-4">
+                    {/* Top Section */}
+                    <div className="flex items-start justify-between mb-2 sm:mb-4">
+                      {/* Left: User Icon and Info */}
+                      <div className="flex items-start space-x-2 sm:space-x-4 flex-1 min-w-0">
+                        {/* User Icon */}
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#d4a574' }}>
+                          <svg className="w-5 h-5 sm:w-8 sm:h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                          </svg>
+                        </div>
+                        
+                        {/* Name and Phone */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs sm:text-lg md:text-xl font-bold text-gray-900 mb-0 sm:mb-1">
+                            {item.name}
+                          </div>
+                          {item.phone && (
+                            <div className="text-xs sm:text-base text-gray-600 mt-0 sm:mt-0.5">
+                              {item.phone} {item.designation ? `(${item.designation})` : ''}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
+
+                       {/* Right: Total Survey */}
+                       <div className="flex items-center space-x-1.5 sm:space-x-3 flex-shrink-0 ml-1.5 sm:ml-2">
+                         <div className="flex items-baseline space-x-1 sm:space-x-1.5">
+                           <div className="text-[10px] sm:text-sm text-gray-600 leading-tight" style={{ color: '#8B4513' }}>टोटल सर्वे :</div>
+                           <div className="text-sm sm:text-lg md:text-xl font-bold text-gray-900 leading-tight">{item.totalSurvey || 0}</div>
+                         </div>
+                         {item.phone && (
+                           <a 
+                             href={`tel:${item.phone}`}
+                             className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center rounded-full transition-colors flex-shrink-0" 
+                             style={{ 
+                               backgroundColor: '#E3F2FD',
+                               color: '#102463'
+                             }}
+                             onMouseEnter={(e) => {
+                               e.currentTarget.style.backgroundColor = '#BBDEFB'
+                             }}
+                             onMouseLeave={(e) => {
+                               e.currentTarget.style.backgroundColor = '#E3F2FD'
+                             }}
+                             onClick={(e) => {
+                               e.stopPropagation()
+                             }}
+                           >
+                            <div
+                              className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all hover:scale-105"
+                              style={{ backgroundColor: '#103a94' }}
+                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0d2f7a')}
+                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#103a94')}
+                            >
+                              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                              </svg>
+                            </div>
+                           </a>
+                         )}
+                       </div>
+                    </div>
+
+                    {/* Bottom Section - Survey Breakdown */}
+                    <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
+                      {/* पॉजिटिव */}
+                      <div className="bg-green-50 rounded-md sm:rounded-lg p-1.5 sm:p-3 text-center">
+                        <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">पॉजिटिव</div>
+                        <div className="text-sm sm:text-lg md:text-xl font-bold" style={{ color: '#16a34a' }}>{item.positive}</div>
+                      </div>
+
+                      {/* नेगेटिव */}
+                      <div className="bg-red-50 rounded-md sm:rounded-lg p-1.5 sm:p-3 text-center">
+                        <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">नेगेटिव</div>
+                        <div className="text-sm sm:text-lg md:text-xl font-bold" style={{ color: '#dc2626' }}>{item.negative}</div>
+                      </div>
+
+                      {/* डाउटफुल */}
+                      <div className="bg-orange-50 rounded-md sm:rounded-lg p-1.5 sm:p-3 text-center">
+                        <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">डाउटफुल</div>
+                        <div className="text-sm sm:text-lg md:text-xl font-bold" style={{ color: '#ea580c' }}>{item.doubtful}</div>
+                      </div>
+
+                      {/* कुछ नहीं */}
+                      <div className="bg-blue-50 rounded-md sm:rounded-lg p-1.5 sm:p-3 text-center">
+                        <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">कुछ नहीं</div>
+                        <div className="text-sm sm:text-lg md:text-xl font-bold" style={{ color: '#2563eb' }}>{item.nothing}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                 {/* Right: Total Survey */}
-                 <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0 ml-2">
-                   <div className="flex items-baseline space-x-1.5">
-                     <div className="text-xs sm:text-sm text-gray-600 leading-tight" style={{ color: '#8B4513' }}>टोटल सर्वे :</div>
-                     <div className="text-base sm:text-lg md:text-xl font-bold text-gray-900 leading-tight">{item.totalSurvey || 0}</div>
-                   </div>
-                   {item.phone && (
-                     <a 
-                       href={`tel:${item.phone}`}
-                       className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full transition-colors flex-shrink-0" 
-                       style={{ 
-                         backgroundColor: '#E3F2FD',
-                         color: '#102463'
-                       }}
-                       onMouseEnter={(e) => {
-                         e.currentTarget.style.backgroundColor = '#BBDEFB'
-                       }}
-                       onMouseLeave={(e) => {
-                         e.currentTarget.style.backgroundColor = '#E3F2FD'
-                       }}
-                       onClick={(e) => {
-                         e.stopPropagation()
-                       }}
-                     >
-                       <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
-                         <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                       </svg>
-                     </a>
-                   )}
-                 </div>
-              </div>
-
-              {/* Bottom Section - Survey Breakdown */}
-              <div className="grid grid-cols-4 gap-2 sm:gap-3">
-                {/* पॉजिटिव */}
-                <div className="bg-green-50 rounded-md sm:rounded-lg p-2 sm:p-3 text-center">
-                  <div className="text-xs sm:text-sm text-gray-700 mb-1">पॉजिटिव</div>
-                  <div className="text-base sm:text-lg md:text-xl font-bold" style={{ color: '#16a34a' }}>{item.positive}</div>
-                </div>
-
-                {/* नेगेटिव */}
-                <div className="bg-red-50 rounded-md sm:rounded-lg p-2 sm:p-3 text-center">
-                  <div className="text-xs sm:text-sm text-gray-700 mb-1">नेगेटिव</div>
-                  <div className="text-base sm:text-lg md:text-xl font-bold" style={{ color: '#dc2626' }}>{item.negative}</div>
-                </div>
-
-                {/* डाउटफुल */}
-                <div className="bg-orange-50 rounded-md sm:rounded-lg p-2 sm:p-3 text-center">
-                  <div className="text-xs sm:text-sm text-gray-700 mb-1">डाउटफुल</div>
-                  <div className="text-base sm:text-lg md:text-xl font-bold" style={{ color: '#ea580c' }}>{item.doubtful}</div>
-                </div>
-
-                {/* कुछ नहीं */}
-                <div className="bg-blue-50 rounded-md sm:rounded-lg p-2 sm:p-3 text-center">
-                  <div className="text-xs sm:text-sm text-gray-700 mb-1">कुछ नहीं</div>
-                  <div className="text-base sm:text-lg md:text-xl font-bold" style={{ color: '#2563eb' }}>{item.nothing}</div>
-                </div>
-              </div>
-            </div>
-          </div>
               ))
             )}
           </>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black px-4 sm:px-6 py-2 sm:py-3 z-20">
-        <div className="bg-white rounded-md sm:rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 inline-block">
-          <span className="text-sm sm:text-base md:text-lg font-bold text-gray-900">टोटल : {totalCount}</span>
-        </div>
       </div>
     </div>
   )

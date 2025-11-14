@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { displayUserWiseSurveyVoter } from '../../../../apidata'
 import localStorageManager from '../../../../utils/localStorage'
+import CheckButton from '../../common/CheckButton.jsx'
+import ValidationModal from '../../modals/ValidationModal.jsx'
 
 const BuildingHeadDetailSlide = ({ navigation }) => {
   const { navigate, state } = navigation
@@ -11,6 +13,23 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
   const [error, setError] = useState(null)
   const [selectedVoterIndex, setSelectedVoterIndex] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showModal, setShowModal] = useState(false)
+
+  const sanitizePhoneNumber = (phoneNumber) => (phoneNumber || '').toString().trim()
+
+  const hasValidPhoneNumber = (phoneNumber) => {
+    const sanitized = sanitizePhoneNumber(phoneNumber)
+    return sanitized && sanitized !== '-' && sanitized !== 'N/A' && sanitized.length >= 10
+  }
+
+  const handleCallAction = (phoneNumber) => {
+    const sanitized = sanitizePhoneNumber(phoneNumber)
+    if (hasValidPhoneNumber(phoneNumber)) {
+      window.open(`tel:${sanitized}`, '_self')
+    } else {
+      setShowModal(true)
+    }
+  }
 
   // Fetch voters from API
   const fetchVoters = useCallback(async () => {
@@ -137,6 +156,9 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
     const index = Math.min(selectedVoterIndex, filteredVoters.length - 1)
     return filteredVoters[index]
   }, [filteredVoters, selectedVoterIndex])
+  const currentVoterContact =
+    currentVoter?.contact_no || currentVoter?.mobile || currentVoter?.phone || ''
+  const hasValidCurrentContact = hasValidPhoneNumber(currentVoterContact)
 
   const currentVoterIndex = filteredVoters.length > 0 ? Math.min(selectedVoterIndex, filteredVoters.length - 1) : -1
   const totalVoters = filteredVoters.length
@@ -264,7 +286,7 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
       </div>
 
       {/* Main Content */}
-      <div className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4 pb-24">
+      <div className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4 pb-24 ">
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#102463' }}></div>
@@ -321,41 +343,39 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
               </div>
             )}
 
-            {/* White Card */}
-            <div className="bg-white rounded-md sm:rounded-lg shadow-sm p-3 sm:p-4 mb-3 relative">
-              {/* Left border indicator */}
-              <div className="absolute left-0 top-0 bottom-0 w-1 sm:w-1.5 bg-green-500 rounded-l-md"></div>
+            {/* White Card Grid Container */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
+              {/* White Card */}
+              <div className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col relative">
               
               {/* Name */}
-              <div className="mb-3">
-                <div className="text-sm sm:text-base font-bold" style={{ color: '#102463' }}>
-                  {currentVoterIndex + 1}. {(currentVoter.eng_f_name || '') + ' ' + (currentVoter.f_eng_surname || '')}
-                </div>
+              <div className="text-base font-extrabold tracking-wide mb-3">
+                {currentVoterIndex + 1}.&nbsp;&nbsp;{(currentVoter.eng_f_name || '') + ' ' + (currentVoter.f_eng_surname || '')}
               </div>
 
               {/* Information Fields */}
-              <div className="space-y-2 sm:space-y-2.5">
+              <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm flex-1">
                 {/* पिता/पति */}
-                <div className="flex items-start">
-                  <div className="text-xs text-gray-600 w-20 sm:w-24 flex-shrink-0">पिता/पति:</div>
-                  <div className="text-xs text-gray-900 flex-1">{currentVoter.eng_m_name || '-'}</div>
+                <div className="flex flex-wrap gap-x-2">
+                  <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पिता/पति:</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.eng_m_name || '-'}</span>
                 </div>
 
                 {/* पता */}
-                <div className="flex items-start">
-                  <div className="text-xs text-gray-600 w-20 sm:w-24 flex-shrink-0">पता:</div>
-                  <div className="flex-1 flex items-start justify-between">
-                    <div className="text-xs text-gray-900 flex-1">{currentVoter.eng_localityid || '-'}</div>
+                <div className="flex flex-wrap gap-x-2 gap-y-1">
+                  <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पता:</span>
+                  <div className="flex-1 min-w-0 flex items-start gap-1 sm:gap-2">
+                    <span className="text-gray-900 break-words flex-1">{currentVoter.eng_localityid || '-'}</span>
                     {currentVoter.lat_long && (
                       <button 
-                        className="ml-2 flex-shrink-0"
+                        className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                         onClick={() => {
                           const [lat, lng] = currentVoter.lat_long.split(',')
                           window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank')
                         }}
                       >
-                        <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                         </svg>
                       </button>
                     )}
@@ -363,20 +383,20 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
                 </div>
 
                 {/* क्रमांक */}
-                <div className="flex items-start">
-                  <div className="text-xs text-gray-600 w-20 sm:w-24 flex-shrink-0">क्रमांक:</div>
-                  <div className="text-xs text-gray-900 flex-1">{currentVoter.slnoinpart || currentVoter.serialNo || '-'}</div>
+                <div className="flex flex-wrap gap-x-2">
+                  <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">क्रमांक:</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.slnoinpart || currentVoter.serialNo || '-'}</span>
                 </div>
 
                 {/* मोबाइल */}
-                <div className="flex items-start">
-                  <div className="text-xs text-gray-600 w-20 sm:w-24 flex-shrink-0">मोबाइल:</div>
-                  <div className="flex items-center space-x-1 flex-1">
-                    <span className="text-xs text-gray-900">{currentVoter.contact_no || currentVoter.mobile || '-'}</span>
+                <div className="flex flex-wrap gap-x-2 gap-y-1">
+                  <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मोबाइल:</span>
+                  <div className="flex items-center min-w-0">
+                    <span className="text-gray-900 truncate">{currentVoter.contact_no || currentVoter.mobile || '-'}</span>
                     {currentVoter.contact_no && (
-                      <button className="flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                      <button className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0">
+                        <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                         </svg>
                       </button>
                     )}
@@ -384,93 +404,83 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
                 </div>
 
                 {/* पहचान पत्र नं. */}
-                <div className="flex items-start">
-                  <div className="text-xs text-gray-600 w-20 sm:w-24 flex-shrink-0">पहचान पत्र नं.:</div>
-                  <div className="text-xs text-gray-900 flex-1">{currentVoter.idcard_no || '-'}</div>
+                <div className="flex flex-wrap gap-x-2">
+                  <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पहचान पत्र नं.:</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.idcard_no || '-'}</span>
                 </div>
 
                 {/* बूथ नं */}
-                <div className="flex items-start">
-                  <div className="text-xs text-gray-600 w-20 sm:w-24 flex-shrink-0">बूथ नं.:</div>
-                  <div className="text-xs text-gray-900 flex-1">{currentVoter.part_no || currentVoter.booth_no || '-'}</div>
+                <div className="flex flex-wrap gap-x-2">
+                  <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">बूथ नं:</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.part_no || currentVoter.booth_no || '-'}</span>
                 </div>
 
                 {/* घर नं */}
-                <div className="flex items-start">
-                  <div className="text-xs text-gray-600 w-20 sm:w-24 flex-shrink-0">घर नं.:</div>
-                  <div className="text-xs text-gray-900 flex-1">{currentVoter.eng_house_no || currentVoter.houseNo || '-'}</div>
+                <div className="flex flex-wrap gap-x-2">
+                  <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">घर नं:</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.eng_house_no || currentVoter.houseNo || '-'}</span>
                 </div>
 
                 {/* मतदान स्थान */}
-                <div className="flex items-start">
-                  <div className="text-xs text-gray-600 w-20 sm:w-24 flex-shrink-0">मतदान स्थान:</div>
-                  <div className="text-xs text-gray-900 flex-1">{currentVoter.eng_polling_location || currentVoter.pollingStation || '-'}</div>
+                <div className="flex flex-wrap gap-x-2">
+                  <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मतदान स्थान:</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.eng_polling_location || currentVoter.pollingStation || '-'}</span>
                 </div>
 
                 {/* दूसरा पता */}
-                <div className="flex items-start">
-                  <div className="text-xs text-gray-600 w-20 sm:w-24 flex-shrink-0">दूसरा पता:</div>
-                  <div className="text-xs text-gray-900 flex-1">{currentVoter.add_add || currentVoter.secondAddress || '-'}</div>
+                <div className="flex flex-wrap gap-x-2">
+                  <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">दूसरा पता:</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.add_add || currentVoter.secondAddress || '-'}</span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-center space-x-3 sm:space-x-4 mt-4 pt-3 border-t border-gray-200">
+              <div className="mt-3 sm:mt-4 flex justify-center space-x-1 sm:space-x-2 flex-wrap gap-1 sm:gap-0 pt-2 sm:pt-3 border-t border-gray-100">
                 {/* Call Button */}
-                {currentVoter.contact_no ? (
-                  <a
-                    href={`tel:${currentVoter.contact_no}`}
-                    className="flex flex-col items-center space-y-1"
+                <button
+                  onClick={() => handleCallAction(currentVoterContact)}
+                  className="flex flex-col items-center space-y-0.5 sm:space-y-1"
+                  type="button"
+                >
+                  <div
+                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all hover:scale-105"
+                    style={{ backgroundColor: '#103a94' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0d2f7a')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#103a94')}
                   >
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-blue-600 flex items-center justify-center shadow-sm hover:bg-blue-700 transition-colors">
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                      </svg>
-                    </div>
-                    <span className="text-xs font-semibold text-gray-900">Call</span>
-                  </a>
-                ) : (
-                  <div className="flex flex-col items-center space-y-1 opacity-50">
-                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gray-400 flex items-center justify-center shadow-sm">
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                      </svg>
-                    </div>
-                    <span className="text-xs font-semibold text-gray-900">Call</span>
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
                   </div>
-                )}
+                  <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
+                </button>
 
                 {/* Check Button */}
-                <button className="flex flex-col items-center space-y-1">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-green-600 flex items-center justify-center shadow-sm hover:bg-green-700 transition-colors">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                  </div>
-                  <span className="text-xs font-semibold text-gray-900">Check</span>
-                </button>
+                <CheckButton
+                  voter={currentVoter}
+                  onShowModal={() => setShowModal(true)}
+                />
 
                 {/* Family Button */}
-                <button className="flex flex-col items-center space-y-1">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-sm transition-colors" style={{ backgroundColor: '#FFA500' }}>
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                      <path d="M12 14a3 3 0 100-6 3 3 0 000 6z"/>
+                <button className="flex flex-col items-center space-y-0.5 sm:space-y-1">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99L14 10.5c-.47-.62-1.21-.99-2.01-.99H9.46c-.8 0-1.54.37-2.01.99L6 10.5c-.47-.62-1.21-.99-2.01-.99H2.46c-.8 0-1.54.37-2.01.99L0 10.5v7.5h2v6h2v-6h2v6h2v-6h2v6h2v-6h2z" />
                     </svg>
                   </div>
-                  <span className="text-xs font-semibold text-gray-900">Family</span>
+                  <span className="text-[10px] sm:text-xs text-gray-600">Family</span>
                 </button>
-
                 {/* Log Button */}
-                <button className="flex flex-col items-center space-y-1">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-red-600 flex items-center justify-center shadow-sm hover:bg-red-700 transition-colors">
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" fill="white" opacity="0.2"/>
-                      <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                <button className="flex flex-col items-center space-y-0.5 sm:space-y-1">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-600 flex items-center justify-center transition-all hover:scale-105">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" fill="white" opacity="0.2" />
+                      <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
                     </svg>
                   </div>
-                  <span className="text-xs font-semibold text-gray-900">Log</span>
+                  <span className="text-[10px] sm:text-xs text-gray-600">Log</span>
                 </button>
+              </div>
               </div>
             </div>
           </>
@@ -490,6 +500,13 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
         </div>
       </div>
 
+      {/* Validation Modal */}
+      <ValidationModal
+        isOpen={showModal}
+        message="मोबाइल नंबर नहीं मिला"
+        onClose={() => setShowModal(false)}
+        okText="Ok"
+      />
     </div>
   )
 }

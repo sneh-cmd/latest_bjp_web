@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { displayBuildingPramukh, apiService } from '../../../apidata.jsx'
 import AddBuildingPramukhModal from '../modals/AddBuildingPramukhModal.jsx'
-import ContactDetailModal from '../modals/ContactDetailModal'
+import ContactDetailModal from '../modals/ContactDetailModal.jsx'
 import DeleteConfirmationModal from '../modals/DeleteConfirmationModal.jsx'
-import LastLoginModal from '../modals/LastLoginModal'
+import LastLoginModal from '../modals/LastLoginModal.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import * as XLSX from 'xlsx-js-style'
 
