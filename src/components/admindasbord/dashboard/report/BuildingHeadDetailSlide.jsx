@@ -11,7 +11,6 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
   const [voters, setVoters] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedVoterIndex, setSelectedVoterIndex] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
 
@@ -64,13 +63,11 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
       if (response && Array.isArray(response)) {
         console.log('Voters fetched:', response.length)
         setVoters(response)
-        setSelectedVoterIndex(0)
       } else if (response && typeof response === 'object') {
         const votersList = response.result || response.data || response.voters || []
         if (Array.isArray(votersList)) {
           console.log('Voters fetched from wrapped response:', votersList.length)
           setVoters(votersList)
-          setSelectedVoterIndex(0)
         } else {
           console.warn('Unexpected response format:', response)
           setVoters([])
@@ -92,32 +89,51 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
     fetchVoters()
   }, [fetchVoters])
 
-  // Filter voters based on active tab
+  // Filter voters based on active tab and search
   const filteredVoters = useMemo(() => {
     if (!voters || voters.length === 0) return []
+    const query = searchQuery.trim().toLowerCase()
     
     return voters.filter(voter => {
-      // Get voter status - try multiple field names
       const rawStatus = voter.voter_status || voter.voter_status1 || voter.voterStatus
-      
-      // Handle null, undefined, empty string, or whitespace-only strings
       const status = rawStatus ? String(rawStatus).toLowerCase().trim() : ''
-      
+
+      let statusMatch = false
       switch(activeTab) {
         case 'positive':
-          return status === 'p'
+          statusMatch = status === 'p'
+          break
         case 'negative':
-          return status === 'n'
+          statusMatch = status === 'n'
+          break
         case 'doubtful':
-          return status === 'd'
+          statusMatch = status === 'd'
+          break
         case 'nothing':
-          // Show voters with status 'c' (cant say) only
-          return status === 'c'
+          statusMatch = status === 'c'
+          break
         default:
-          return true
+          statusMatch = true
       }
+
+      if (!statusMatch) return false
+      if (!query) return true
+
+      const searchable = [
+        voter.eng_f_name,
+        voter.f_eng_surname,
+        voter.eng_m_name,
+        voter.contact_no,
+        voter.mobile,
+        voter.idcard_no
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+
+      return searchable.includes(query)
     })
-  }, [voters, activeTab])
+  }, [voters, activeTab, searchQuery])
 
   // Calculate counts for each tab
   const tabCounts = useMemo(() => {
@@ -150,45 +166,7 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
     }
   }, [voters])
 
-  // Get current voter to display
-  const currentVoter = useMemo(() => {
-    if (filteredVoters.length === 0) return null
-    const index = Math.min(selectedVoterIndex, filteredVoters.length - 1)
-    return filteredVoters[index]
-  }, [filteredVoters, selectedVoterIndex])
-  const currentVoterContact =
-    currentVoter?.contact_no || currentVoter?.mobile || currentVoter?.phone || ''
-  const hasValidCurrentContact = hasValidPhoneNumber(currentVoterContact)
-
-  const currentVoterIndex = filteredVoters.length > 0 ? Math.min(selectedVoterIndex, filteredVoters.length - 1) : -1
   const totalVoters = filteredVoters.length
-
-  // Navigation handlers
-  const handleNextVoter = () => {
-    if (currentVoterIndex < totalVoters - 1) {
-      setSelectedVoterIndex(currentVoterIndex + 1)
-    }
-  }
-
-  const handlePrevVoter = () => {
-    if (currentVoterIndex > 0) {
-      setSelectedVoterIndex(currentVoterIndex - 1)
-    }
-  }
-
-  // Reset voter index when tab changes
-  useEffect(() => {
-    setSelectedVoterIndex(0)
-  }, [activeTab])
-
-  // Ensure voter index is within bounds when filtered voters change
-  useEffect(() => {
-    if (filteredVoters.length > 0 && selectedVoterIndex >= filteredVoters.length) {
-      setSelectedVoterIndex(0)
-    } else if (filteredVoters.length === 0) {
-      setSelectedVoterIndex(0)
-    }
-  }, [filteredVoters.length, selectedVoterIndex])
 
   const handleBack = () => {
     navigate('/building-head-survey')
@@ -304,53 +282,18 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
               पुनः प्रयास करें
             </button>
           </div>
-        ) : currentVoter ? (
-          <>
-            {/* Navigation Controls */}
-            {totalVoters > 1 && (
-              <div className="flex items-center justify-between mb-3 px-2">
-                <button
-                  onClick={handlePrevVoter}
-                  disabled={currentVoterIndex === 0}
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                    currentVoterIndex === 0
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 shadow-md hover:shadow-lg hover:bg-gray-50'
-                  }`}
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                
-                <div className="text-xs sm:text-sm font-medium text-gray-700 px-3 sm:px-4">
-                  {currentVoterIndex + 1} / {totalVoters}
-                </div>
-                
-                <button
-                  onClick={handleNextVoter}
-                  disabled={currentVoterIndex === totalVoters - 1}
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                    currentVoterIndex === totalVoters - 1
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 shadow-md hover:shadow-lg hover:bg-gray-50'
-                  }`}
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            )}
-
-            {/* White Card Grid Container */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
-              {/* White Card */}
-              <div className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col relative">
+        ) : totalVoters > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
+              {filteredVoters.map((voter, index) => {
+                const voterContact = voter.contact_no || voter.mobile || voter.phone || ''
+                const hasValidContact = hasValidPhoneNumber(voterContact)
+                const cardKey = voter.id || voter.voter_id || voter.admin_id || `${voter.idcard_no || ''}-${index}`
+                return (
+                  <div key={cardKey} className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col relative">
               
               {/* Name */}
               <div className="text-base font-extrabold tracking-wide mb-3">
-                {currentVoterIndex + 1}.&nbsp;&nbsp;{(currentVoter.eng_f_name || '') + ' ' + (currentVoter.f_eng_surname || '')}
+                {index + 1}.&nbsp;&nbsp;{(voter.eng_f_name || '') + ' ' + (voter.f_eng_surname || '')}
               </div>
 
               {/* Information Fields */}
@@ -358,19 +301,19 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
                 {/* पिता/पति */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पिता/पति:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.eng_m_name || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.eng_m_name || '-'}</span>
                 </div>
 
                 {/* पता */}
                 <div className="flex flex-wrap gap-x-2 gap-y-1">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पता:</span>
                   <div className="flex-1 min-w-0 flex items-start gap-1 sm:gap-2">
-                    <span className="text-gray-900 break-words flex-1">{currentVoter.eng_localityid || '-'}</span>
-                    {currentVoter.lat_long && (
+                    <span className="text-gray-900 break-words flex-1">{voter.eng_localityid || '-'}</span>
+                    {voter.lat_long && (
                       <button 
                         className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                         onClick={() => {
-                          const [lat, lng] = currentVoter.lat_long.split(',')
+                          const [lat, lng] = voter.lat_long.split(',')
                           window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank')
                         }}
                       >
@@ -385,15 +328,15 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
                 {/* क्रमांक */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">क्रमांक:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.slnoinpart || currentVoter.serialNo || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.slnoinpart || voter.serialNo || '-'}</span>
                 </div>
 
                 {/* मोबाइल */}
                 <div className="flex flex-wrap gap-x-2 gap-y-1">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मोबाइल:</span>
                   <div className="flex items-center min-w-0">
-                    <span className="text-gray-900 truncate">{currentVoter.contact_no || currentVoter.mobile || '-'}</span>
-                    {currentVoter.contact_no && (
+                    <span className="text-gray-900 truncate">{voter.contact_no || voter.mobile || '-'}</span>
+                    {voter.contact_no && (
                       <button className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0">
                         <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
@@ -406,31 +349,31 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
                 {/* पहचान पत्र नं. */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पहचान पत्र नं.:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.idcard_no || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.idcard_no || '-'}</span>
                 </div>
 
                 {/* बूथ नं */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">बूथ नं:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.part_no || currentVoter.booth_no || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.part_no || voter.booth_no || '-'}</span>
                 </div>
 
                 {/* घर नं */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">घर नं:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.eng_house_no || currentVoter.houseNo || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.eng_house_no || voter.houseNo || '-'}</span>
                 </div>
 
                 {/* मतदान स्थान */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मतदान स्थान:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.eng_polling_location || currentVoter.pollingStation || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.eng_polling_location || voter.pollingStation || '-'}</span>
                 </div>
 
                 {/* दूसरा पता */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">दूसरा पता:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.add_add || currentVoter.secondAddress || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.add_add || voter.secondAddress || '-'}</span>
                 </div>
               </div>
 
@@ -438,7 +381,7 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
               <div className="mt-3 sm:mt-4 flex justify-center space-x-1 sm:space-x-2 flex-wrap gap-1 sm:gap-0 pt-2 sm:pt-3 border-t border-gray-100">
                 {/* Call Button */}
                 <button
-                  onClick={() => handleCallAction(currentVoterContact)}
+                  onClick={() => handleCallAction(voterContact)}
                   className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                   type="button"
                 >
@@ -457,7 +400,7 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
 
                 {/* Check Button */}
                 <CheckButton
-                  voter={currentVoter}
+                  voter={voter}
                   onShowModal={() => setShowModal(true)}
                 />
 
@@ -481,9 +424,10 @@ const BuildingHeadDetailSlide = ({ navigation }) => {
                   <span className="text-[10px] sm:text-xs text-gray-600">Log</span>
                 </button>
               </div>
-              </div>
             </div>
-          </>
+                );
+          })}
+          </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
             <p className="text-xs sm:text-sm">कोई डेटा उपलब्ध नहीं है</p>

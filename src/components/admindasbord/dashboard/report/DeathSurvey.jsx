@@ -8,7 +8,6 @@ const DeathSurvey = ({ navigation }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [showSearch, setShowSearch] = useState(false)
   const [selectedBooth, setSelectedBooth] = useState('all')
   const [boothOptions, setBoothOptions] = useState([])
   const [showBoothDropdown, setShowBoothDropdown] = useState(false)
@@ -111,13 +110,6 @@ const DeathSurvey = ({ navigation }) => {
     navigate('/cadre-survey-report')
   }
 
-  const handleSearchToggle = () => {
-    setShowSearch(!showSearch)
-    if (showSearch) {
-      setSearchQuery('')
-    }
-  }
-
   const handleClearSearch = () => {
     setSearchQuery('')
   }
@@ -148,90 +140,79 @@ const DeathSurvey = ({ navigation }) => {
       className="relative w-full h-screen overflow-y-auto overflow-x-hidden scroll-smooth"
       style={{ backgroundColor: '#e5e8ff' }}
     >
-      {/* Header */}
-      <div className="sticky top-0 z-20 w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-md" style={{ backgroundColor: '#102463' }}>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleBack}
-            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-white text-sm sm:text-base md:text-lg font-bold">मृत्यु</h1>
-        </div>
-        
-        <button 
-          onClick={handleSearchToggle}
-          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Booth Filter */}
-      <div className="sticky top-[60px] sm:top-[64px] z-10 w-full bg-white border-b border-gray-200 shadow-sm px-3 sm:px-4 md:px-6 py-2">
-        <div className="relative">
-          <button
-            onClick={() => setShowBoothDropdown(!showBoothDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-white border border-gray-300 rounded-lg text-left"
-          >
-            <span className="text-sm font-medium text-gray-700">
-              {selectedBooth === 'all' ? 'बूथ' : `बूथ: ${selectedBooth}`}
-            </span>
-            <svg className={`w-4 h-4 text-gray-500 transition-transform ${showBoothDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          
-          {showBoothDropdown && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
-              {boothOptions.map((booth) => (
-                <button
-                  key={booth}
-                  onClick={() => handleBoothChange(booth)}
-                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
-                    selectedBooth === booth ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                  }`}
-                >
-                  {booth === 'all' ? 'सभी' : booth}
-                </button>
-              ))}
+      <div className="sticky top-0 z-20">
+        {/* Header */}
+        <div className="px-2 sm:px-4 py-2 sm:py-3 shadow-md" style={{ backgroundColor: '#102463' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <button
+                onClick={handleBack}
+                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1 className="text-white text-base sm:text-lg font-semibold">मृत्यु</h1>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Search Bar */}
-      {showSearch && (
-        <div className="sticky top-[120px] sm:top-[128px] z-10 w-full px-3 sm:px-4 md:px-6 py-2 bg-white border-b border-gray-200 shadow-sm">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 relative">
+            <div className="search-box">
               <input
                 type="text"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="खोजें..."
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            {searchQuery && (
               <button
+                type="reset"
                 onClick={handleClearSearch}
-                className="px-3 py-2 text-gray-600 hover:text-gray-800"
-              >
-                ✕
-              </button>
-            )}
+              />
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Summary Bar + Booth Filter */}
+        <div className="px-2 sm:px-4 py-2 sm:py-3" style={{ backgroundColor: '#e5e8ff' }}>
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+            <div className="px-2 py-1 rounded-lg inline-block">
+              <span className="text-sm font-bold" style={{ color: '#102463' }}>
+                टोटल : {filteredVoters.length}
+              </span>
+            </div>
+
+            <div className="relative sm:w-auto">
+              <button
+                onClick={() => setShowBoothDropdown(!showBoothDropdown)}
+                className="w-full sm:w-32 flex items-center justify-between px-3 py-2 bg-white border border-gray-300 rounded-lg text-left"
+              >
+                <span className="text-sm font-medium text-gray-700">
+                  {selectedBooth === 'all' ? 'बूथ' : `बूथ: ${selectedBooth}`}
+                </span>
+                <svg className={`w-4 h-4 text-gray-500 transition-transform ${showBoothDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showBoothDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
+                  {boothOptions.map((booth) => (
+                    <button
+                      key={booth}
+                      onClick={() => handleBoothChange(booth)}
+                      className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
+                        selectedBooth === booth ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                      }`}
+                    >
+                      {booth === 'all' ? 'सभी' : booth}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
 
       {/* Main Content */}
       <div className="px-3 sm:px-4 py-3 sm:py-4 pb-24 sm:pb-28">
@@ -410,17 +391,6 @@ const DeathSurvey = ({ navigation }) => {
             )}
           </>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 w-full px-3 sm:px-4 md:px-6 py-3 bg-gray-800 shadow-lg">
-        <div className="flex items-center justify-start">
-          <div className="bg-gray-700 px-4 py-2 rounded-lg">
-            <span className="text-white text-sm sm:text-base font-semibold">
-              टोटल : {filteredVoters.length}
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   )

@@ -29,7 +29,6 @@ const DateWiseSurvey = ({ navigation }) => {
   const [dateSurveyData, setDateSurveyData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showMonthYearPicker, setShowMonthYearPicker] = useState(false)
   const [tempMonthIndex, setTempMonthIndex] = useState(9)
@@ -184,13 +183,6 @@ const DateWiseSurvey = ({ navigation }) => {
     navigate('/cadre-survey-report')
   }
 
-  const handleSearchToggle = () => {
-    setShowSearch(!showSearch)
-    if (showSearch) {
-      setSearchQuery('')
-    }
-  }
-
   const handleMonthYearClick = () => {
     setTempMonthIndex(selectedMonthIndex)
     setTempYear(selectedYear)
@@ -274,77 +266,66 @@ const DateWiseSurvey = ({ navigation }) => {
       className="relative w-full h-screen overflow-y-auto overflow-x-hidden scroll-smooth"
       style={{ backgroundColor: '#e5e8ff' }}
     >
-      {/* Header */}
-      <div className="sticky top-0 z-20 w-full flex flex-col shadow-md" style={{ backgroundColor: '#102463' }}>
-        {/* Top Navigation Bar */}
-        <div className="w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex items-center justify-between">
-          <button
-            onClick={handleBack}
-            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          
-          <h1 className="text-white text-base sm:text-lg md:text-xl font-bold mx-auto" style={{ width: 'fit-content' }}>तारीख अनुसार सर्वे</h1>
-          
-          <button 
-            onClick={handleSearchToggle}
-            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-        </div>
+      <div className="sticky top-0 z-20">
+        {/* Header */}
+        <div className="px-2 sm:px-4 py-2 sm:py-3 shadow-md" style={{ backgroundColor: '#102463' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <button
+                onClick={handleBack}
+                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
 
-        {/* Search Input */}
-        {showSearch && (
-          <div className="w-full px-3 sm:px-4 md:px-6 py-2 bg-white border-b shadow-md">
-            <div className="flex items-center space-x-2">
+              <h1 className="text-white text-base sm:text-lg font-semibold">तारीख अनुसार सर्वे</h1>
+            </div>
+
+            <div className="search-box">
               <input
                 type="text"
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="तारीख से खोजें..."
-                className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-                autoFocus
               />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
+              <button
+                type="reset"
+                onClick={() => setSearchQuery('')}
+              />
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Month and Year Display - Clickable Button */}
-        <div className="w-full px-3 sm:px-4 pb-2 sm:pb-2.5 relative month-year-picker-container flex justify-center">
-          <button
-            onClick={handleMonthYearClick}
-            className="w-fit flex items-center justify-center py-2 sm:py-2.5 px-4 sm:px-6 rounded-lg hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg group"
-            style={{ 
-              background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%)',
-              border: '1px solid rgba(99, 102, 241, 0.3)'
-            }}
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-blue-700 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span className="text-blue-800 text-sm sm:text-base md:text-lg font-bold">
-              {selectedMonth} {selectedYear}
-            </span>
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 ml-2 text-blue-600 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+        {/* Summary Bar */}
+        <div className="px-2 sm:px-4 py-2 sm:py-3" style={{ backgroundColor: '#e5e8ff' }}>
+          <div className="flex items-center justify-between gap-2 sm:gap-3 flex-wrap">
+            <div className="px-2 py-1 rounded-lg inline-block">
+              <span className="text-sm font-bold" style={{ color: '#102463' }}>
+                टोटल : {totalDays}
+              </span>
+            </div>
+
+            <button
+              onClick={handleMonthYearClick}
+              className="flex items-center justify-center py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+              style={{ 
+                background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 50%, #a5b4fc 100%)',
+                border: '1px solid rgba(99, 102, 241, 0.3)'
+              }}
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-blue-800 text-sm sm:text-base font-bold">
+                {selectedMonth} {selectedYear}
+              </span>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 ml-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -414,17 +395,6 @@ w-full px-3 sm:px-4 md:px-6 py-4 sm:py-4 pb-20 mb-8">
             )}
           </div>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-6 py-2.5 sm:py-3 z-20 shadow-2xl" style={{ backgroundColor: '#102463' }}>
-        <div className="flex items-center justify-center">
-          <div className="flex items-center space-x-2" style={{ width: 'fit-content' }}>
-            <span className="text-sm sm:text-base md:text-lg font-bold text-white">
-              टोटल : <span className="text-blue-300">{totalDays}</span>
-            </span>
-          </div>
-        </div>
       </div>
 
       <style>{`
@@ -531,4 +501,5 @@ w-full px-3 sm:px-4 md:px-6 py-4 sm:py-4 pb-20 mb-8">
 }
 
 export default DateWiseSurvey
+
 

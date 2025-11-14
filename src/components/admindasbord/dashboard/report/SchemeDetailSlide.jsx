@@ -9,6 +9,7 @@ const SchemeDetailSlide = ({ navigation }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedVoter, setSelectedVoter] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Fetch voters based on category id and active tab
   const fetchVoters = useCallback(async () => {
@@ -95,6 +96,7 @@ const SchemeDetailSlide = ({ navigation }) => {
   // Filter voters based on active tab and voter_status
   const filteredVoters = useMemo(() => {
     if (!voters || voters.length === 0) return []
+    const query = searchQuery.trim().toLowerCase()
     
     // Map voter_status to tabs
     // p = positive, n = negative, d = doubtful, c = cant_say/nothing
@@ -116,13 +118,29 @@ const SchemeDetailSlide = ({ navigation }) => {
       
       // Compare voter_status (case-insensitive)
       const voterStatus = voter.voterStatus.toString().toLowerCase().trim()
-      return voterStatus === expectedStatus
+      if (voterStatus !== expectedStatus) return false
+
+      if (!query) return true
+
+      const searchable = [
+        voter.name,
+        voter.fatherHusband,
+        voter.address,
+        voter.mobile,
+        voter.idCardNo,
+        voter.boothNo
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+
+      return searchable.includes(query)
     })
     
     console.log(`Filtering voters - Tab: ${activeTab}, Expected Status: ${expectedStatus}, Found: ${filtered.length} voters`)
     
     return filtered
-  }, [voters, activeTab])
+  }, [voters, activeTab, searchQuery])
   
   // Update selected voter when filtered list or tab changes
   useEffect(() => {
@@ -147,6 +165,7 @@ const SchemeDetailSlide = ({ navigation }) => {
 
   // Get current voter data to display
   const currentVoter = selectedVoter || filteredVoters[0] || null
+  const totalFiltered = filteredVoters.length
 
   const handleBack = () => {
     navigate('/scheme-wise-survey')
@@ -182,85 +201,90 @@ const SchemeDetailSlide = ({ navigation }) => {
       className="relative w-full h-screen overflow-y-auto overflow-x-hidden scroll-smooth"
       style={{ backgroundColor: '#e5e8ff' }}
     >
-      {/* Header */}
-      <div className="sticky top-0 z-20 w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-md" style={{ backgroundColor: '#102463' }}>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleBack}
-            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-white text-sm sm:text-base font-medium">{categoryData.schemeName || 'विवरण'}</h1>
-        </div>
-        
-        <button className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors">
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-      </div>
+      <div className="sticky top-0 z-20">
+        {/* Header */}
+        <div className="px-2 sm:px-4 py-2 sm:py-3 shadow-md" style={{ backgroundColor: '#102463' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <button
+                onClick={handleBack}
+                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
 
-      {/* Tab Navigation */}
-      <div className="sticky top-[60px] sm:top-[64px] z-10 w-full bg-white border-b border-gray-200 shadow-sm">
-        <div className="flex overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('positive')}
-            className={`flex-shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all relative ${
-              activeTab === 'positive'
-                ? 'text-gray-900 bg-green-50'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            पॉजिटिव-{tabCounts.positive || categoryData.positive || 0}
-            {activeTab === 'positive' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600"></div>
-            )}
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('negative')}
-            className={`flex-shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all relative ${
-              activeTab === 'negative'
-                ? 'text-gray-900 bg-red-50'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            नेगेटिव-{tabCounts.negative || categoryData.negative || 0}
-            {activeTab === 'negative' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"></div>
-            )}
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('doubtful')}
-            className={`flex-shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all relative ${
-              activeTab === 'doubtful'
-                ? 'text-gray-900 bg-orange-50'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            डाउटफुल-{tabCounts.doubtful || categoryData.doubtful || 0}
-            {activeTab === 'doubtful' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600"></div>
-            )}
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('nothing')}
-            className={`flex-shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all relative ${
-              activeTab === 'nothing'
-                ? 'text-gray-900 bg-blue-50'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            कुछ नहीं-{tabCounts.nothing || categoryData.nothing || 0}
-            {activeTab === 'nothing' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
-            )}
-          </button>
+              <h1 className="text-white text-base sm:text-lg font-semibold">{categoryData.schemeName || 'विवरण'}</h1>
+            </div>
+
+            <div className="search-box">
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                type="reset"
+                onClick={() => setSearchQuery('')}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Summary Bar with Tabs */}
+        <div className="px-2 sm:px-4 py-1.5 sm:py-3 flex-shrink-0" style={{ backgroundColor: '#e5e8ff' }}>
+          <div className="flex items-center justify-between gap-1.5 sm:gap-3 flex-wrap">
+            <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg inline-block">
+              <span className="text-xs sm:text-sm font-bold" style={{ color: '#102463' }}>
+                टोटल : {totalFiltered}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-1.5 sm:space-x-4 overflow-x-auto">
+              <button
+                onClick={() => setActiveTab('positive')}
+                className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  activeTab === 'positive' 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                पॉजिटिव-{tabCounts.positive || categoryData.positive || 0}
+              </button>
+              <button
+                onClick={() => setActiveTab('negative')}
+                className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  activeTab === 'negative' 
+                    ? 'bg-red-500 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                नेगेटिव-{tabCounts.negative || categoryData.negative || 0}
+              </button>
+              <button
+                onClick={() => setActiveTab('doubtful')}
+                className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  activeTab === 'doubtful' 
+                    ? 'bg-orange-500 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                डाउटफुल-{tabCounts.doubtful || categoryData.doubtful || 0}
+              </button>
+              <button
+                onClick={() => setActiveTab('nothing')}
+                className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  activeTab === 'nothing' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                कुछ नहीं-{tabCounts.nothing || categoryData.nothing || 0}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -457,13 +481,6 @@ const SchemeDetailSlide = ({ navigation }) => {
             )}
           </>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-6 py-2.5 sm:py-3 z-20 shadow-lg bg-black">
-        <div className="text-sm sm:text-base md:text-lg font-bold text-white text-center">
-          टोटल : {filteredVoters.length || 0}
-        </div>
       </div>
     </div>
   )

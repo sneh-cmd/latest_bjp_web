@@ -9,6 +9,7 @@ const DateDetailSlide = ({ navigation }) => {
   const [voters, setVoters] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Fetch voters based on date
   const fetchVoters = useCallback(async () => {
@@ -89,6 +90,7 @@ const DateDetailSlide = ({ navigation }) => {
     if (!voters || voters.length === 0) {
       return []
     }
+    const query = searchQuery.trim().toLowerCase()
     
     const statusMap = {
       'positive': 'p',
@@ -114,17 +116,24 @@ const DateDetailSlide = ({ navigation }) => {
       
       // Convert to string and normalize to lowercase
       const voterStatus = String(voter.voterStatus).toLowerCase().trim()
-      
-      // Only match exact status - 'p' for positive, 'n' for negative, 'd' for doubtful, 'c' for nothing
       const matches = voterStatus === expectedStatus
-      
-      if (matches) {
-        console.log(`✓ Matched: ${voter.name}, status: "${voterStatus}" === expected: "${expectedStatus}"`)
-      } else {
-        console.log(`✗ Not matched: ${voter.name}, status: "${voterStatus}" !== expected: "${expectedStatus}"`)
-      }
-      
-      return matches
+      if (!matches) return false
+
+      if (!query) return true
+
+      const searchable = [
+        voter.name,
+        voter.fatherHusband,
+        voter.address,
+        voter.mobile,
+        voter.idCardNo,
+        voter.boothNo
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+
+      return searchable.includes(query)
     })
     
     console.log(`✅ Filtered Result - Tab: ${activeTab}, Found: ${filtered.length} voters`)
@@ -133,7 +142,7 @@ const DateDetailSlide = ({ navigation }) => {
     }
     
     return filtered
-  }, [voters, activeTab])
+  }, [voters, activeTab, searchQuery])
 
   // Calculate counts for each tab from fetched voters - strict matching
   const tabCounts = useMemo(() => {
@@ -195,111 +204,77 @@ const DateDetailSlide = ({ navigation }) => {
 
   // Format date for display
   const displayDate = categoryData.date || categoryData.dateForAPI || 'विवरण'
+  const totalFiltered = filteredVoters.length
 
   return (
     <div 
       className="relative w-full h-screen overflow-y-auto overflow-x-hidden scroll-smooth"
       style={{ backgroundColor: '#e5e8ff' }}
     >
-      {/* Header */}
-      <div className="sticky top-0 z-20 w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-md" style={{ backgroundColor: '#102463' }}>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleBack}
-            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-white text-sm sm:text-base font-medium">तारीख: {displayDate}</h1>
-        </div>
-        
-        <button className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors">
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-      </div>
+      <div className="sticky top-0 z-20">
+        {/* Header */}
+        <div className="px-2 sm:px-4 py-2 sm:py-3 shadow-md" style={{ backgroundColor: '#102463' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <button
+                onClick={handleBack}
+                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
 
-      {/* Tab Navigation */}
-      <div className="sticky top-[60px] sm:top-[64px] z-10 w-full bg-white border-b border-gray-200 shadow-sm">
-        <div className="flex overflow-x-auto">
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              console.log('Positive tab clicked')
-              setActiveTab('positive')
-            }}
-            className={`flex-shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all relative ${
-              activeTab === 'positive'
-                ? 'text-gray-900 bg-green-50'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            पॉजिटिव-{tabCounts.positive || 0}
-            {activeTab === 'positive' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600"></div>
-            )}
-          </button>
-          
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              console.log('Negative tab clicked')
-              setActiveTab('negative')
-            }}
-            className={`flex-shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all relative ${
-              activeTab === 'negative'
-                ? 'text-gray-900 bg-red-50'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            नेगेटिव-{tabCounts.negative || 0}
-            {activeTab === 'negative' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-600"></div>
-            )}
-          </button>
-          
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              console.log('Doubtful tab clicked')
-              setActiveTab('doubtful')
-            }}
-            className={`flex-shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all relative ${
-              activeTab === 'doubtful'
-                ? 'text-gray-900 bg-orange-50'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            डाउटफुल-{tabCounts.doubtful || 0}
-            {activeTab === 'doubtful' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-600"></div>
-            )}
-          </button>
-          
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              console.log('Nothing tab clicked')
-              setActiveTab('nothing')
-            }}
-            className={`flex-shrink-0 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all relative ${
-              activeTab === 'nothing'
-                ? 'text-gray-900 bg-blue-50'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-          >
-            कुछ नहीं-{tabCounts.nothing || 0}
-            {activeTab === 'nothing' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
-            )}
-          </button>
+              <h1 className="text-white text-base sm:text-lg font-semibold">तारीख: {displayDate}</h1>
+            </div>
+
+            <div className="search-box">
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                type="reset"
+                onClick={() => setSearchQuery('')}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Summary Bar with Tabs */}
+        <div className="px-2 sm:px-4 py-1.5 sm:py-3 flex-shrink-0" style={{ backgroundColor: '#e5e8ff' }}>
+          <div className="flex items-center justify-between gap-1.5 sm:gap-3 flex-wrap">
+            <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg inline-block">
+              <span className="text-xs sm:text-sm font-bold" style={{ color: '#102463' }}>
+                टोटल : {totalFiltered}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-1.5 sm:space-x-4 overflow-x-auto">
+              {['positive', 'negative', 'doubtful', 'nothing'].map((tab) => {
+                const config = {
+                  positive: { label: 'पॉजिटिव', color: 'bg-green-500' },
+                  negative: { label: 'नेगेटिव', color: 'bg-red-500' },
+                  doubtful: { label: 'डाउटफुल', color: 'bg-orange-500' },
+                  nothing: { label: 'कुछ नहीं', color: 'bg-blue-500' }
+                }[tab]
+
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                      activeTab === tab ? `${config.color} text-white` : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {config.label}-{tabCounts[tab] || 0}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -491,17 +466,6 @@ const DateDetailSlide = ({ navigation }) => {
             ) : null}
           </>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-6 py-2.5 sm:py-3 z-20 shadow-2xl" style={{ backgroundColor: '#102463' }}>
-        <div className="flex items-center justify-center">
-          <div className="flex items-center space-x-2" style={{ width: 'fit-content' }}>
-            <span className="text-sm sm:text-base md:text-lg font-bold text-white">
-              टोटल : <span className="text-blue-300">{filteredVoters.length}</span>
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   )

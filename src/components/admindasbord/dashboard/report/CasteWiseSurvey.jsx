@@ -3,7 +3,6 @@ import { displayCasteWiseSurveyDash } from '../../../../apidata'
 
 const CasteWiseSurvey = ({ navigation }) => {
   const { navigate } = navigation
-  const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [casteData, setCasteData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -40,13 +39,6 @@ const CasteWiseSurvey = ({ navigation }) => {
     navigate('/cadre-survey-report')
   }
 
-  const handleSearchToggle = () => {
-    setShowSearch(!showSearch)
-    if (showSearch) {
-      setSearchQuery('')
-    }
-  }
-
   // Filter data based on search query
   const filteredData = casteData.filter(item => {
     if (!searchQuery.trim()) return true
@@ -70,57 +62,52 @@ const CasteWiseSurvey = ({ navigation }) => {
       className="relative w-full h-screen overflow-y-auto overflow-x-hidden scroll-smooth"
       style={{ backgroundColor: '#e5e8ff' }}
     >
+      <div className="sticky top-0 z-20">
       {/* Header */}
-      <div className="sticky top-0 z-20 w-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-md" style={{ backgroundColor: '#102463' }}>
+        <div className="px-2 sm:px-4 py-2 sm:py-3 shadow-md" style={{ backgroundColor: '#102463' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3">
         <button
           onClick={handleBack}
-          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
         >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         
-        <h1 className="text-white text-base sm:text-lg md:text-xl font-bold text-center flex-1 px-2">कास्ट अनुसार सर्वे</h1>
-        
-        <button 
-          onClick={handleSearchToggle}
-          className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-white hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
+              <h1 className="text-white text-base sm:text-lg font-semibold">कास्ट अनुसार सर्वे</h1>
       </div>
 
-      {/* Search Input */}
-      {showSearch && (
-        <div className="sticky top-[60px] sm:top-[64px] z-10 w-full px-3 sm:px-4 md:px-6 py-2 bg-white border-b shadow-md">
-          <div className="flex items-center space-x-2">
+            <div className="search-box">
             <input
               type="text"
+                placeholder="Search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="कास्ट नाम से खोजें..."
-              className="flex-1 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-              autoFocus
             />
-            {searchQuery && (
               <button
+                type="reset"
                 onClick={() => setSearchQuery('')}
-                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
+              />
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Summary Bar */}
+        <div className="px-2 sm:px-4 py-2 sm:py-3" style={{ backgroundColor: '#e5e8ff' }}>
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
+            <div className="px-2 py-1 rounded-lg inline-block">
+              <span className="text-sm font-bold" style={{ color: '#102463' }}>
+                टोटल : {totalCount}
+              </span>
+            </div>
+          </div>
+          </div>
+        </div>
 
       {/* Main Content */}
-      <div className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4 pb-20 space-y-3 sm:space-y-4 mb-7">
+      <div className="w-full px-3 sm:px-4 md:px-6 py-3 sm:py-4 pb-20 space-y-3 sm:space-y-4 mb-7 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         {loading ? (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -173,20 +160,6 @@ const CasteWiseSurvey = ({ navigation }) => {
                   <div className="text-sm sm:text-base font-medium" style={{ color: '#8B4513' }}>
                     टोटल सर्वे : {item.totalSurvey || 0}
                   </div>
-                  <button 
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow" 
-                    style={{ backgroundColor: '#ADD8E6' }}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      // Handle call action - you can add phone number logic here
-                      console.log('Call action for:', item.casteName)
-                    }}
-                    title="Call"
-                  >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#00008B' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </button>
                 </div>
               </div>
 
@@ -220,11 +193,6 @@ const CasteWiseSurvey = ({ navigation }) => {
           </div>
           ))
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-6 py-2.5 sm:py-3 z-20 shadow-lg bg-black">
-        <div className="text-sm sm:text-base md:text-lg font-bold text-white text-center">टोटल : {totalCount}</div>
       </div>
     </div>
   )
