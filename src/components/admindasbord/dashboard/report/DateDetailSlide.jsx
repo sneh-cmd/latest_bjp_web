@@ -107,9 +107,8 @@ const DateDetailSlide = ({ navigation }) => {
     console.log(`Total Voters: ${voters.length}`)
     
     const filtered = voters.filter(voter => {
-      // Only show voters with exact status match
-      // If voterStatus is missing/empty, don't show in any tab (strict filtering)
-      if (!voter.voterStatus || voter.voterStatus === '' || voter.voterStatus === null || voter.voterStatus === undefined) {
+      // Only show voters with exact status match; skip missing/empty status
+      if (!voter.voterStatus || voter.voterStatus.toString().trim() === '') {
         console.log(`✗ Skipping voter with no status: ${voter.name}`)
         return false
       }

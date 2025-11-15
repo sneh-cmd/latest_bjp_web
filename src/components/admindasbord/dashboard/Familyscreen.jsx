@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ADMIN_AUTH_CONFIG } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
@@ -18,12 +18,20 @@ const Familyscreen = () => {
 
   const [uiState, setUiState] = useState(EMPTY_STATE)
 
+  const normalizedVoterId = useMemo(() => {
+    if (voterId === null || voterId === undefined) return null
+    const trimmed = String(voterId).trim()
+    if (!trimmed || !/^\d+$/.test(trimmed)) return null
+    const parsed = Number.parseInt(trimmed, 10)
+    return Number.isNaN(parsed) ? null : parsed
+  }, [voterId])
+
   useEffect(() => {
     const fetchFamilyMembers = async () => {
-      if (!voterId) {
+      if (!normalizedVoterId) {
         setUiState({
           loading: false,
-          error: 'Family data unavailable. Missing voter id.',
+          error: 'Family data unavailable. Missing numeric voter id.',
           families: []
         })
         return
@@ -36,7 +44,7 @@ const Familyscreen = () => {
         const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com'
 
         const soapBody = `<display_family_member xmlns="http://tempuri.org/">
-      <id>${voterId}</id>
+      <id>${normalizedVoterId}</id>
     </display_family_member>`
 
         const soapEnvelope = `<?xml version="1.0" encoding="utf-8"?>
@@ -66,12 +74,26 @@ const Familyscreen = () => {
           body: soapEnvelope
         })
 
-        if (!response.ok) {
-          throw new Error(`Failed to load family data. Status: ${response.status}`)
-        }
-
         const xmlText = await response.text()
         const parser = new DOMParser()
+
+        if (!response.ok) {
+          let faultDetails = ''
+          try {
+            const faultDoc = parser.parseFromString(xmlText, 'text/xml')
+            const faultNode = faultDoc.getElementsByTagName('faultstring')[0]
+            faultDetails = faultNode?.textContent?.trim() || ''
+          } catch (parseError) {
+            console.warn('Failed to parse SOAP fault response:', parseError)
+          }
+
+          const snippet = xmlText?.slice(0, 200)?.replace(/\s+/g, ' ') || ''
+          throw new Error(
+            `Failed to load family data. Status: ${response.status}${
+              faultDetails ? ` | Fault: ${faultDetails}` : snippet ? ` | Response: ${snippet}` : ''
+            }`
+          )
+        }
         const xmlDoc = parser.parseFromString(xmlText, 'text/xml')
         const resultNode = xmlDoc.getElementsByTagName('display_family_memberResult')[0]
 
@@ -109,7 +131,7 @@ const Familyscreen = () => {
     }
 
     fetchFamilyMembers()
-  }, [voterId])
+  }, [normalizedVoterId])
 
   const handleBack = () => {
     // Set flag in sessionStorage to show voter tab when returning

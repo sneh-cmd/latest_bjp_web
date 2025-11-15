@@ -262,6 +262,10 @@ export const apiService = {
         resultTag = 'dis_date_wise_survey_voterResult';
       } else if (soapAction === 'dis_user_wise_survey_voter') {
         resultTag = 'dis_user_wise_survey_voterResult';
+      } else if (soapAction === 'display_voter_survey_log') {
+        resultTag = 'display_voter_survey_logResult';
+      } else if (soapAction === 'sel_survey_detail') {
+        resultTag = 'sel_survey_detailResult';
       } else if (soapAction === 'dis_designation') {
         resultTag = 'dis_designationResult';
       } else if (soapAction === 'dis_redevelopment_building') {
@@ -868,6 +872,22 @@ export const apiService = {
             });
           }
           return parsedData.result || [];
+        }
+
+        // Special handling for voter survey log endpoint
+        if (soapAction === 'display_voter_survey_log') {
+          if (Array.isArray(parsedData.result)) {
+            return parsedData.result
+          }
+          return parsedData.result || []
+        }
+
+        // Special handling for survey detail endpoint
+        if (soapAction === 'sel_survey_detail') {
+          if (Array.isArray(parsedData.result)) {
+            return parsedData.result.length === 1 ? parsedData.result[0] : parsedData.result
+          }
+          return parsedData.result || null
         }
         
         // Special handling for education wise survey voter endpoint
@@ -2622,6 +2642,40 @@ export const displayUserWiseSurveyVoter = async function(adminId, surveyFrom = '
   );
 };
 
+// Display voter survey log using voter id (idcard_no)
+export const displayVoterSurveyLog = async function(voterId, panelApiUrl) {
+  const soapBody = `<display_voter_survey_log xmlns="http://tempuri.org/">
+    <voter_id>${voterId}</voter_id>
+  </display_voter_survey_log>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'display_voter_survey_log',
+    soapBody,
+    true
+  );
+};
+
+// Select survey detail by survey id
+export const selectSurveyDetail = async function(surveyId, panelApiUrl) {
+  const soapBody = `<sel_survey_detail xmlns="http://tempuri.org/">
+    <survey_id>${surveyId}</survey_id>
+  </sel_survey_detail>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'sel_survey_detail',
+    soapBody,
+    true
+  );
+};
+
 // Redevelopment building - fetch redevelopment building addresses
 export const displayRedevelopmentBuilding = async function(panelApiUrl) {
   const soapBody = `<dis_redevelopment_building xmlns="http://tempuri.org/" />`;
@@ -2716,4 +2770,5 @@ export const {
 
 // Default export
 export default apiService;
+
 

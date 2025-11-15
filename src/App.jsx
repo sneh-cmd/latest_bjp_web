@@ -31,6 +31,7 @@ import BoothPramukhSurvey from './components/admindasbord/dashboard/report/Booth
 import BoothPramukhDetailSlide from './components/admindasbord/dashboard/report/BoothPramukhDetailSlide'
 import PhonebookSurvey from './components/admindasbord/dashboard/report/PhonebookSurvey'
 import PhonebookDetailSlide from './components/admindasbord/dashboard/report/PhonebookDetailSlide'
+import VoterLogDetailSlide from './components/admindasbord/dashboard/report/VoterLogDetailSlide'
 import BoothWiseSurvey from './components/admindasbord/dashboard/report/BoothWiseSurvey'
 import DateWiseSurvey from './components/admindasbord/dashboard/report/DateWiseSurvey'
 import DateDetailSlide from './components/admindasbord/dashboard/report/DateDetailSlide'
@@ -375,6 +376,14 @@ function PhonebookDetailSlideWrapper() {
   )
 }
 
+function VoterLogDetailSlideWrapper() {
+  return (
+    <NavigationProvider>
+      <VoterLogDetailSlide />
+    </NavigationProvider>
+  )
+}
+
 function BoothWiseSurveyWrapper() {
   return (
     <NavigationProvider>
@@ -553,6 +562,7 @@ function App() {
           <Route path="/booth-pramukh-detail-slide" element={<BoothPramukhDetailSlideWrapper />} />
           <Route path="/phonebook-survey" element={<PhonebookSurveyWrapper />} />
           <Route path="/phonebook-detail-slide" element={<PhonebookDetailSlideWrapper />} />
+          <Route path="/voter-log" element={<VoterLogDetailSlideWrapper />} />
           <Route path="/booth-wise-survey" element={<BoothWiseSurveyWrapper />} />
           <Route path="/booth-survey-detail" element={<BoothSurveyDetailSlideWrapper />} />
           <Route path="/date-wise-survey" element={<DateWiseSurveyWrapper />} />

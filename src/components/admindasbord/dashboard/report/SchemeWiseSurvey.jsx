@@ -163,30 +163,22 @@ const SchemeWiseSurvey = ({ navigation }) => {
                 </div>
               </div>
 
-              {/* Survey Breakdown Boxes - Below the main card */}
-              <div className="grid grid-cols-4 gap-2 sm:gap-2.5 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
-                {/* पॉजिटिव */}
-                <div className="bg-green-50 rounded-md p-2 sm:p-2.5 text-center border border-green-100">
-                  <div className="text-xs sm:text-sm text-gray-700 mb-1 font-medium">पॉजिटिव</div>
-                  <div className="text-base sm:text-lg md:text-xl font-bold text-green-600">{item.positive || 0}</div>
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
+                <div className="bg-green-50 rounded-md sm:rounded-lg p-1.5 sm:p-3 text-center">
+                  <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">पॉजिटिव</div>
+                  <div className="text-sm sm:text-lg md:text-xl font-bold text-green-600">{item.positive || 0}</div>
                 </div>
-
-                {/* नेगेटिव */}
-                <div className="bg-red-50 rounded-md p-2 sm:p-2.5 text-center border border-red-100">
-                  <div className="text-xs sm:text-sm text-gray-700 mb-1 font-medium">नेगेटिव</div>
-                  <div className="text-base sm:text-lg md:text-xl font-bold text-red-600">{item.negative || 0}</div>
+                <div className="bg-red-50 rounded-md sm:rounded-lg p-1.5 sm:p-3 text-center">
+                  <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">नेगेटिव</div>
+                  <div className="text-sm sm:text-lg md:text-xl font-bold text-red-600">{item.negative || 0}</div>
                 </div>
-
-                {/* डाउटफुल */}
-                <div className="bg-orange-50 rounded-md p-2 sm:p-2.5 text-center border border-orange-100">
-                  <div className="text-xs sm:text-sm text-gray-700 mb-1 font-medium">डाउटफुल</div>
-                  <div className="text-base sm:text-lg md:text-xl font-bold text-orange-600">{item.doubtful || 0}</div>
+                <div className="bg-orange-50 rounded-md sm:rounded-lg p-1.5 sm:p-3 text-center">
+                  <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">डाउटफुल</div>
+                  <div className="text-sm sm:text-lg md:text-xl font-bold text-orange-600">{item.doubtful || 0}</div>
                 </div>
-
-                {/* कुछ नहीं */}
-                <div className="bg-blue-50 rounded-md p-2 sm:p-2.5 text-center border border-blue-100">
-                  <div className="text-xs sm:text-sm text-gray-700 mb-1 font-medium">कुछ नहीं</div>
-                  <div className="text-base sm:text-lg md:text-xl font-bold text-blue-600">{item.nothing || 0}</div>
+                <div className="bg-blue-50 rounded-md sm:rounded-lg p-1.5 sm:p-3 text-center">
+                  <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">कुछ नहीं</div>
+                  <div className="text-sm sm:text-lg md:text-xl font-bold text-blue-600">{item.nothing || 0}</div>
                 </div>
               </div>
             </div>

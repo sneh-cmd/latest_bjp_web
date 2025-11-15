@@ -111,9 +111,9 @@ const CasteDetailSlide = ({ navigation }) => {
     
     // Filter voters based on active tab
     const filtered = voters.filter(voter => {
-      if (!voter.voterStatus) {
-        // If no status, show only when on positive tab (default)
-        return activeTab === 'positive'
+      if (!voter.voterStatus || voter.voterStatus.toString().trim() === '') {
+        // Skip voters lacking a valid status
+        return false
       }
       
       // Compare voter_status (case-insensitive)

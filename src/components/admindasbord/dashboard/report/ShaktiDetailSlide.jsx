@@ -13,6 +13,7 @@ const ShaktiDetailSlide = ({ navigation }) => {
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [modalMessage, setModalMessage] = useState('मोबाइल नंबर नहीं मिला')
 
   const sanitizePhoneNumber = (phoneNumber) => (phoneNumber || '').toString().trim()
 
@@ -26,6 +27,7 @@ const ShaktiDetailSlide = ({ navigation }) => {
     if (hasValidPhoneNumber(phoneNumber)) {
       window.open(`tel:${sanitized}`, '_self')
     } else {
+      setModalMessage('मोबाइल नंबर नहीं मिला')
       setShowModal(true)
     }
   }
@@ -168,6 +170,54 @@ const ShaktiDetailSlide = ({ navigation }) => {
   }, [voters])
 
   const totalVoters = filteredVoters.length
+
+  const handleFamilyNavigation = (voter) => {
+    if (!voter) return
+
+    const getNumericId = (value) => {
+      if (value === null || value === undefined) return null
+      const trimmed = String(value).trim()
+      if (!trimmed || !/^\d+$/.test(trimmed)) return null
+      const parsed = Number.parseInt(trimmed, 10)
+      return Number.isNaN(parsed) ? null : parsed
+    }
+
+    const candidateKeys = ['id', 'voter_id', 'voterId', 'voterid', 'voterID', 'master_id', 'main_admin_id']
+    const numericVoterId = candidateKeys
+      .map((key) => getNumericId(voter[key]))
+      .filter((value) => value !== null)[0]
+
+    if (!numericVoterId) {
+      console.warn('Unable to open family screen. Numeric voter id missing for voter:', voter)
+      setModalMessage('परिवार की जानकारी उपलब्ध नहीं है')
+      setShowModal(true)
+      return
+    }
+
+    const voterName = `${voter.eng_f_name || ''} ${voter.f_eng_surname || ''}`.trim() || 'परिवार'
+    sessionStorage.setItem('shaktiDetailActiveTab', activeTab)
+    navigate('/family-screen', {
+      voterId: numericVoterId,
+      name: voterName
+    })
+  }
+
+  const handleLogNavigation = (voter) => {
+    if (!voter) return
+    sessionStorage.setItem('shaktiDetailActiveTab', activeTab)
+    navigate('/voter-log', {
+      voter,
+      categoryData
+    })
+  }
+
+  useEffect(() => {
+    const storedActiveTab = sessionStorage.getItem('shaktiDetailActiveTab')
+    if (storedActiveTab) {
+      setActiveTab(storedActiveTab)
+      sessionStorage.removeItem('shaktiDetailActiveTab')
+    }
+  }, [])
 
   const handleBack = () => {
     navigate('/shakti-kendra-survey')
@@ -403,11 +453,18 @@ const ShaktiDetailSlide = ({ navigation }) => {
                     {/* Check Button */}
                     <CheckButton
                       voter={voter}
-                      onShowModal={() => setShowModal(true)}
+                      onShowModal={() => {
+                        setModalMessage('मोबाइल नंबर नहीं मिला')
+                        setShowModal(true)
+                      }}
                     />
 
                     {/* Family Button */}
-                    <button className="flex flex-col items-center space-y-0.5 sm:space-y-1">
+                    <button
+                      className="flex flex-col items-center space-y-0.5 sm:space-y-1"
+                      type="button"
+                      onClick={() => handleFamilyNavigation(voter)}
+                    >
                       <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
                         <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99L14 10.5c-.47-.62-1.21-.99-2.01-.99H9.46c-.8 0-1.54.37-2.01.99L6 10.5c-.47-.62-1.21-.99-2.01-.99H2.46c-.8 0-1.54.37-2.01.99L0 10.5v7.5h2v6h2v-6h2v6h2v-6h2v6h2v-6h2z" />
@@ -417,7 +474,11 @@ const ShaktiDetailSlide = ({ navigation }) => {
                     </button>
 
                     {/* Log Button */}
-                    <button className="flex flex-col items-center space-y-0.5 sm:space-y-1">
+                    <button
+                      className="flex flex-col items-center space-y-0.5 sm:space-y-1"
+                      type="button"
+                      onClick={() => handleLogNavigation(voter)}
+                    >
                       <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-600 flex items-center justify-center transition-all hover:scale-105">
                         <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <circle cx="12" cy="12" r="10" fill="white" opacity="0.2" />
@@ -448,7 +509,7 @@ const ShaktiDetailSlide = ({ navigation }) => {
       </div>
       <ValidationModal
         isOpen={showModal}
-        message="मोबाइल नंबर नहीं मिला"
+        message={modalMessage}
         onClose={() => setShowModal(false)}
         okText="Ok"
       />

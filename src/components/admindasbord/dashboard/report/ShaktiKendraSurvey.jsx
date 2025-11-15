@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import * as XLSX from 'xlsx-js-style'
 import { displayTypeWiseUserListFromSurvey, noSurveyUserByType } from '../../../../apidata'
 import UnsurveyedLeadersModal from '../../modals/UnsurveyedLeadersModal.jsx'
 
@@ -125,36 +126,49 @@ const ShaktiKendraSurvey = ({ navigation }) => {
     setShowFileOptions(false)
   }
 
-  // Excel Export Functionality
   const createExcelFile = () => {
     try {
-      // Prepare data for Excel export (use filtered data if search is active, otherwise all data)
       const dataToExport = unsurveyedSearchQuery ? filteredUnsurveyedData : unsurveyedData
-      const exportData = dataToExport.map((item, index) => ({
+      const rows = (dataToExport.length ? dataToExport : unsurveyedData).map((item, index) => ({
         'Sr. No.': index + 1,
         'Name': item.name || '',
-        'Designation': item.designation || '',
         'Booth No.': item.booth_javabdari || '0',
-        'Phone': item.phone || item.mobile_no || '',
-        'Admin ID': item.admin_id || ''
+        'Phone': item.phone || item.mobile_no || ''
       }))
 
-      // Convert to CSV format
-      const headers = Object.keys(exportData[0] || {})
-      const csvContent = [
-        headers.join(','),
-        ...exportData.map(row => 
-          headers.map(header => {
-            const value = row[header] || ''
-            // Escape commas and quotes in values
-            return `"${String(value).replace(/"/g, '""')}"`
-          }).join(',')
-        )
-      ].join('\n')
+      const wb = XLSX.utils.book_new()
+      const ws = XLSX.utils.aoa_to_sheet([])
 
-      // Create blob
-      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
-      return blob
+      const title = 'सर्वे नहीं किए हुए शक्ति केन्द्र प्रमुख'
+      const headers = [['Sr. No.', 'Name', 'Booth No.', 'Phone']]
+
+      XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' })
+      ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: headers[0].length - 1 } }]
+      ws['A1'] = { ...ws['A1'], s: { font: { bold: true, sz: 14 }, alignment: { horizontal: 'center' } } }
+
+      XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A2' })
+
+      if (rows.length) {
+        XLSX.utils.sheet_add_json(ws, rows, {
+          origin: 'A3',
+          skipHeader: true,
+          header: headers[0]
+        })
+      }
+
+      ws['!cols'] = [
+        { wch: 8 },
+        { wch: 30 },
+        { wch: 18 },
+        { wch: 18 }
+      ]
+
+      XLSX.utils.book_append_sheet(wb, ws, 'Unsurveyed Shakti')
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+      return new Blob([wbout], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      })
     } catch (err) {
       console.error('Error creating Excel file:', err)
       return null
@@ -171,10 +185,8 @@ const ShaktiKendraSurvey = ({ navigation }) => {
       }
 
       const url = URL.createObjectURL(blob)
-      // Open in new tab/window
       window.open(url, '_blank')
-      
-      console.log('File opened successfully')
+      console.log('Excel file opened successfully')
     } catch (err) {
       console.error('Error opening file:', err)
       alert('Failed to open file. Please try again.')
@@ -192,8 +204,8 @@ const ShaktiKendraSurvey = ({ navigation }) => {
 
       // Check if Web Share API is available
       if (navigator.share && navigator.canShare) {
-        const file = new File([blob], `सर्वे_नहीं_किए_हुए_प्रमुख_${new Date().toISOString().split('T')[0]}.csv`, {
-          type: 'text/csv'
+        const file = new File([blob], `सर्वे_नहीं_किए_हुए_प्रमुख_${new Date().toISOString().split('T')[0]}.xlsx`, {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
 
         if (navigator.canShare({ files: [file] })) {
@@ -211,7 +223,7 @@ const ShaktiKendraSurvey = ({ navigation }) => {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.setAttribute('href', url)
-      link.setAttribute('download', `सर्वे_नहीं_किए_हुए_प्रमुख_${new Date().toISOString().split('T')[0]}.csv`)
+      link.setAttribute('download', `सर्वे_नहीं_किए_हुए_प्रमुख_${new Date().toISOString().split('T')[0]}.xlsx`)
       link.style.visibility = 'hidden'
       document.body.appendChild(link)
       link.click()

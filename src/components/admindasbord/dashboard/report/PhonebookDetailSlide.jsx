@@ -11,9 +11,9 @@ const PhonebookDetailSlide = ({ navigation }) => {
   const [voters, setVoters] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedVoterIndex, setSelectedVoterIndex] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [modalMessage, setModalMessage] = useState('मोबाइल नंबर नहीं मिला')
 
   const sanitizePhoneNumber = (phoneNumber) => (phoneNumber || '').toString().trim()
 
@@ -27,9 +27,50 @@ const PhonebookDetailSlide = ({ navigation }) => {
     if (hasValidPhoneNumber(phoneNumber)) {
       window.open(`tel:${sanitized}`, '_self')
     } else {
+      setModalMessage('मोबाइल नंबर नहीं मिला')
       setShowModal(true)
     }
   }
+
+  const getNumericId = (value) => {
+    if (value === null || value === undefined) return null
+    const trimmed = String(value).trim()
+    if (!trimmed || !/^\d+$/.test(trimmed)) return null
+    const parsed = Number.parseInt(trimmed, 10)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  const candidateKeys = ['id', 'voter_id', 'voterId', 'voterid', 'voterID', 'master_id', 'main_admin_id']
+
+  const handleFamilyNavigation = (voter) => {
+    if (!voter) return
+
+    const numericVoterId = candidateKeys
+      .map((key) => getNumericId(voter[key]))
+      .filter((value) => value !== null)[0]
+
+    if (!numericVoterId) {
+      console.warn('Unable to open family screen. Numeric voter id missing for voter:', voter)
+      setModalMessage('परिवार की जानकारी उपलब्ध नहीं है')
+      setShowModal(true)
+      return
+    }
+
+    const voterName = `${voter.eng_f_name || ''} ${voter.f_eng_surname || ''}`.trim() || 'परिवार'
+    sessionStorage.setItem('phonebookDetailActiveTab', activeTab)
+    navigate('/family-screen', {
+      voterId: numericVoterId,
+      name: voterName
+    })
+  }
+
+  useEffect(() => {
+    const storedActiveTab = sessionStorage.getItem('phonebookDetailActiveTab')
+    if (storedActiveTab) {
+      setActiveTab(storedActiveTab)
+      sessionStorage.removeItem('phonebookDetailActiveTab')
+    }
+  }, [])
 
   // Fetch voters from API
   const fetchVoters = useCallback(async () => {
@@ -61,13 +102,11 @@ const PhonebookDetailSlide = ({ navigation }) => {
       if (response && Array.isArray(response)) {
         console.log('Voters fetched:', response.length)
         setVoters(response)
-        setSelectedVoterIndex(0)
       } else if (response && typeof response === 'object') {
         const votersList = response.result || response.data || response.voters || []
         if (Array.isArray(votersList)) {
           console.log('Voters fetched from wrapped response:', votersList.length)
           setVoters(votersList)
-          setSelectedVoterIndex(0)
         } else {
           console.warn('Unexpected response format:', response)
           setVoters([])
@@ -152,44 +191,19 @@ const PhonebookDetailSlide = ({ navigation }) => {
     }
   }, [voters])
 
-  const currentVoter = useMemo(() => {
-    if (filteredVoters.length === 0) return null
-    const index = Math.min(selectedVoterIndex, filteredVoters.length - 1)
-    return filteredVoters[index]
-  }, [filteredVoters, selectedVoterIndex])
-
-  const currentVoterContact =
-    currentVoter?.contact_no || currentVoter?.mobile || currentVoter?.phone || ''
-  const currentVoterIndex = filteredVoters.length > 0 ? Math.min(selectedVoterIndex, filteredVoters.length - 1) : -1
   const totalVoters = filteredVoters.length
-  const hasValidCurrentContact = hasValidPhoneNumber(currentVoterContact)
-
-  const handleNextVoter = () => {
-    if (currentVoterIndex < totalVoters - 1) {
-      setSelectedVoterIndex(currentVoterIndex + 1)
-    }
-  }
-
-  const handlePrevVoter = () => {
-    if (currentVoterIndex > 0) {
-      setSelectedVoterIndex(currentVoterIndex - 1)
-    }
-  }
-
-  useEffect(() => {
-    setSelectedVoterIndex(0)
-  }, [activeTab, searchQuery])
-
-  useEffect(() => {
-    if (filteredVoters.length > 0 && selectedVoterIndex >= filteredVoters.length) {
-      setSelectedVoterIndex(0)
-    } else if (filteredVoters.length === 0) {
-      setSelectedVoterIndex(0)
-    }
-  }, [filteredVoters.length, selectedVoterIndex])
 
   const handleBack = () => {
     navigate('/phonebook-survey')
+  }
+
+  const handleLogNavigation = (voter) => {
+    if (!voter) return
+    sessionStorage.setItem('phonebookDetailActiveTab', activeTab)
+    navigate('/voter-log', {
+      voter,
+      categoryData
+    })
   }
 
   return (
@@ -302,53 +316,19 @@ const PhonebookDetailSlide = ({ navigation }) => {
               पुनः प्रयास करें
             </button>
           </div>
-        ) : currentVoter ? (
-          <>
-            {/* Navigation Controls */}
-            {totalVoters > 1 && (
-              <div className="flex items-center justify-between mb-3 px-2">
-                <button
-                  onClick={handlePrevVoter}
-                  disabled={currentVoterIndex === 0}
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                    currentVoterIndex === 0
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 shadow-md hover:shadow-lg hover:bg-gray-50'
-                  }`}
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                
-                <div className="text-xs sm:text-sm font-medium text-gray-700 px-3 sm:px-4">
-                  {currentVoterIndex + 1} / {totalVoters}
-                </div>
-                
-                <button
-                  onClick={handleNextVoter}
-                  disabled={currentVoterIndex === totalVoters - 1}
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                    currentVoterIndex === totalVoters - 1
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 shadow-md hover:shadow-lg hover:bg-gray-50'
-                  }`}
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            )}
+        ) : totalVoters > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
+            {filteredVoters.map((voter, index) => {
+              const voterContact = voter.contact_no || voter.mobile || voter.phone || ''
+              const hasValidContact = hasValidPhoneNumber(voterContact)
+              const cardKey = voter.id || voter.voter_id || voter.admin_id || `${voter.idcard_no || ''}-${index}`
 
-            {/* White Card Grid Container */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
-              {/* White Card */}
-              <div className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col relative">
+              return (
+                <div key={cardKey} className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col relative">
               
               {/* Name */}
               <div className="text-base font-extrabold tracking-wide mb-3">
-                {currentVoterIndex + 1}.&nbsp;&nbsp;{(currentVoter.eng_f_name || '') + ' ' + (currentVoter.f_eng_surname || '')}
+                {index + 1}.&nbsp;&nbsp;{(voter.eng_f_name || '') + ' ' + (voter.f_eng_surname || '')}
               </div>
 
               {/* Information Fields */}
@@ -356,19 +336,19 @@ const PhonebookDetailSlide = ({ navigation }) => {
                 {/* पिता/पति */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पिता/पति:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.eng_m_name || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.eng_m_name || '-'}</span>
                 </div>
 
                 {/* पता */}
                 <div className="flex flex-wrap gap-x-2 gap-y-1">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पता:</span>
                   <div className="flex-1 min-w-0 flex items-start gap-1 sm:gap-2">
-                    <span className="text-gray-900 break-words flex-1">{currentVoter.eng_localityid || '-'}</span>
-                    {currentVoter.lat_long && (
+                    <span className="text-gray-900 break-words flex-1">{voter.eng_localityid || '-'}</span>
+                    {voter.lat_long && (
                       <button 
                         className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                         onClick={() => {
-                          const [lat, lng] = currentVoter.lat_long.split(',')
+                          const [lat, lng] = voter.lat_long.split(',')
                           window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank')
                         }}
                       >
@@ -383,15 +363,15 @@ const PhonebookDetailSlide = ({ navigation }) => {
                 {/* क्रमांक */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">क्रमांक:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.slnoinpart || currentVoter.serialNo || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.slnoinpart || voter.serialNo || '-'}</span>
                 </div>
 
                 {/* मोबाइल */}
                 <div className="flex flex-wrap gap-x-2 gap-y-1">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मोबाइल:</span>
                   <div className="flex items-center min-w-0">
-                    <span className="text-gray-900 truncate">{currentVoterContact || '-'}</span>
-                    {currentVoter.contact_no && (
+                    <span className="text-gray-900 truncate">{voterContact || '-'}</span>
+                    {voterContact && (
                       <button className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0">
                         <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0ल-1.83 1.83 3.75 3.75 1.83-1.83z" />
@@ -404,31 +384,31 @@ const PhonebookDetailSlide = ({ navigation }) => {
                 {/* पहचान पत्र नं. */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पहचान पत्र नं.:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.idcard_no || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.idcard_no || '-'}</span>
                 </div>
 
                 {/* बूथ नं */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">बूथ नं:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.part_no || currentVoter.booth_no || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.part_no || voter.booth_no || '-'}</span>
                 </div>
 
                 {/* घर नं */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">घर नं:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.eng_house_no || currentVoter.houseNo || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.eng_house_no || voter.houseNo || '-'}</span>
                 </div>
 
                 {/* मतदान स्थान */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मतदान स्थान:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.eng_polling_location || currentVoter.pollingStation || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.eng_polling_location || voter.pollingStation || '-'}</span>
                 </div>
 
                 {/* दूसरा पता */}
                 <div className="flex flex-wrap gap-x-2">
                   <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">दूसरा पता:</span>
-                  <span className="text-gray-900 break-words flex-1 min-w-0">{currentVoter.add_add || currentVoter.secondAddress || '-'}</span>
+                  <span className="text-gray-900 break-words flex-1 min-w-0">{voter.add_add || voter.secondAddress || '-'}</span>
                 </div>
               </div>
 
@@ -436,10 +416,10 @@ const PhonebookDetailSlide = ({ navigation }) => {
               <div className="mt-3 sm:mt-4 flex justify-center space-x-1 sm:space-x-2 flex-wrap gap-1 sm:gap-0 pt-2 sm:pt-3 border-t border-gray-100">
                 {/* Call Button */}
                 <button
-                  onClick={() => handleCallAction(currentVoterContact)}
-                  className={`flex flex-col items-center space-y-0.5 sm:space-y-1 ${!hasValidCurrentContact ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() => handleCallAction(voterContact)}
+                  className={`flex flex-col items-center space-y-0.5 sm:space-y-1 ${!hasValidContact ? 'opacity-50 cursor-not-allowed' : ''}`}
                   type="button"
-                  disabled={!hasValidCurrentContact}
+                  disabled={!hasValidContact}
                 >
                   <div
                     className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all hover:scale-105"
@@ -456,12 +436,19 @@ const PhonebookDetailSlide = ({ navigation }) => {
 
                 {/* Check Button */}
                 <CheckButton
-                  voter={currentVoter}
-                  onShowModal={() => setShowModal(true)}
+                  voter={voter}
+                  onShowModal={() => {
+                    setModalMessage('मोबाइल नंबर नहीं मिला')
+                    setShowModal(true)
+                  }}
                 />
 
                 {/* Family Button */}
-                <button className="flex flex-col items-center space-y-0.5 sm:space-y-1">
+                <button
+                  className="flex flex-col items-center space-y-0.5 sm:space-y-1"
+                  type="button"
+                  onClick={() => handleFamilyNavigation(voter)}
+                >
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99L14 10.5c-.47-.62-1.21-.99-2.01-.99H9.46c-.8 0-1.54.37-2.01.99L6 10.5c-.47-.62-1.21-.99-2.01-.99H2.46c-.8 0-1.54.37-2.01.99L0 10.5v7.5h2v6h2v-6h2v6h2v-6h2v6h2v-6h2z" />
@@ -470,7 +457,11 @@ const PhonebookDetailSlide = ({ navigation }) => {
                   <span className="text-[10px] sm:text-xs text-gray-600">Family</span>
                 </button>
                 {/* Log Button */}
-                <button className="flex flex-col items-center space-y-0.5 sm:space-y-1">
+                <button
+                  className="flex flex-col items-center space-y-0.5 sm:space-y-1"
+                  type="button"
+                  onClick={() => handleLogNavigation(voter)}
+                >
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-600 flex items-center justify-center transition-all hover:scale-105">
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                       <circle cx="12" cy="12" r="10" fill="white" opacity="0.2" />
@@ -480,9 +471,10 @@ const PhonebookDetailSlide = ({ navigation }) => {
                   <span className="text-[10px] sm:text-xs text-gray-600">Log</span>
                 </button>
               </div>
-              </div>
             </div>
-          </>
+          )
+        })}
+          </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
             <p className="text-xs sm:text-sm">कोई डेटा उपलब्ध नहीं है</p>
@@ -502,7 +494,7 @@ const PhonebookDetailSlide = ({ navigation }) => {
       {/* Validation Modal */}
       <ValidationModal
         isOpen={showModal}
-        message="मोबाइल नंबर नहीं मिला"
+        message={modalMessage}
         onClose={() => setShowModal(false)}
         okText="Ok"
       />
