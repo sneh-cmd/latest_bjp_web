@@ -4,6 +4,7 @@ import localStorageManager from '../../../utils/localStorage'
 import DataSearchLoader from '../utils/DataSearchLoader'
 import ValidationModal from '../modals/ValidationModal'
 import CheckButton from '../common/CheckButton.jsx'
+import PageHeader from '../common/PageHeader.jsx'
 
 const AGE_SEARCH_CACHE_KEY = 'age-search-cache'
 
@@ -14,6 +15,7 @@ const AgeSlide = ({ navigation, onClose }) => {
   const [ageTo, setAgeTo] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [voters, setVoters] = useState([])
+  const [allVoters, setAllVoters] = useState([])
   const [showResults, setShowResults] = useState(false)
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -35,10 +37,13 @@ const AgeSlide = ({ navigation, onClose }) => {
         const cached = JSON.parse(cachedRaw)
         if (cached.ageFrom !== undefined) setAgeFrom(`${cached.ageFrom}`)
         if (cached.ageTo !== undefined) setAgeTo(`${cached.ageTo}`)
-        if (Array.isArray(cached.voters)) setVoters(cached.voters)
-        if (typeof cached.searchQuery === 'string') setSearchQuery(cached.searchQuery)
-        setError(cached.error || null)
-        setShowResults(Boolean(cached.showResults))
+      if (Array.isArray(cached.voters)) {
+        setVoters(cached.voters)
+        setAllVoters(cached.voters)
+      }
+      if (typeof cached.searchQuery === 'string') setSearchQuery(cached.searchQuery)
+      setError(cached.error || null)
+      setShowResults(Boolean(cached.showResults))
       }
     } catch (err) {
       console.error('Failed to restore age search cache:', err)
@@ -52,7 +57,7 @@ const AgeSlide = ({ navigation, onClose }) => {
       const cachePayload = {
         ageFrom,
         ageTo,
-        voters,
+        voters: allVoters, // Cache the unfiltered list
         searchQuery,
         error,
         showResults
@@ -61,7 +66,7 @@ const AgeSlide = ({ navigation, onClose }) => {
     } catch (err) {
       console.error('Failed to persist age search cache:', err)
     }
-  }, [ageFrom, ageTo, voters, searchQuery, showResults, error])
+  }, [ageFrom, ageTo, allVoters, searchQuery, showResults, error])
 
   const handleBack = () => {
     sessionStorage.removeItem(AGE_SEARCH_CACHE_KEY)
@@ -132,15 +137,42 @@ const AgeSlide = ({ navigation, onClose }) => {
         : []
       
       setVoters(transformedVoters)
+      setAllVoters(transformedVoters)
     } catch (err) {
       console.error('Error fetching voters:', err)
       setError(err.message || 'Failed to fetch voters')
       setVoters([])
+      setAllVoters([])
     } finally {
       setIsLoading(false)
       setShowResults(true)
     }
   }
+
+  // Filter voters based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setVoters(allVoters)
+      return
+    }
+
+    const filtered = allVoters.filter((voter) => {
+      const query = searchQuery.toLowerCase()
+      return (
+        voter.name.toLowerCase().includes(query) ||
+        voter.voterId.toLowerCase().includes(query) ||
+        voter.mobile.includes(query) ||
+        voter.serialNo.toString().includes(query) ||
+        voter.boothNo?.toString().includes(query) ||
+        voter.fatherHusband.toLowerCase().includes(query) ||
+        voter.address.toLowerCase().includes(query) ||
+        voter.houseNo?.toString().includes(query) ||
+        voter.pollingStation.toLowerCase().includes(query)
+      )
+    })
+
+    setVoters(filtered)
+  }, [searchQuery, allVoters])
 
   const handleCall = (phoneNumber) => {
     const sanitized = (phoneNumber || '').toString().trim()
@@ -168,7 +200,7 @@ const AgeSlide = ({ navigation, onClose }) => {
     console.log('Edit mobile')
   }
 
-  const totalVoters = voters.length
+  const totalVoters = allVoters.length
 
   return (
     <div className="fixed inset-0 z-50">
@@ -194,37 +226,14 @@ const AgeSlide = ({ navigation, onClose }) => {
         <DataSearchLoader isVisible={isLoading} />
 
         {/* Header */}
-        <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <button
-                onClick={handleBack}
-                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-
-              <h1 className="text-white text-base sm:text-lg font-semibold uppercase">
-                उम्र के अनुसार
-              </h1>
-            </div>
-
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button
-                type="reset"
-                onClick={() => setSearchQuery('')}
-              />
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="उम्र के अनुसार"
+          onBack={handleBack}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSearchClear={() => setSearchQuery('')}
+          titleClassName="uppercase"
+        />
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto" style={{backgroundColor: '#e5e8ff'}}>

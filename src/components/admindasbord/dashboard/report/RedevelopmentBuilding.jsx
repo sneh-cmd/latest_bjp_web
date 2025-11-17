@@ -179,32 +179,32 @@ const RedevelopmentBuilding = ({ navigation }) => {
               filteredBuildings.map((building, index) => (
                 <div
                   key={building.id || index}
-                  className="bg-white rounded-xl p-4 sm:p-5 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow relative"
+                  className="bg-white rounded-xl p-3 sm:p-5 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow relative"
                 >
-                  <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="flex items-start gap-2 sm:gap-4">
                     {/* Number Badge */}
-                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full font-bold text-white text-sm sm:text-base" style={{ backgroundColor: '#102463' }}>
+                    <div className="flex-shrink-0 w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center rounded-full font-bold text-white text-xs sm:text-base" style={{ backgroundColor: '#102463' }}>
                       {index + 1}
                     </div>
                     
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       {/* Address */}
-                      <p className="text-gray-900 text-sm sm:text-base font-medium mb-2 sm:mb-3 break-words">
+                      <p className="text-gray-900 text-xs sm:text-base font-medium mb-1.5 sm:mb-3 break-words leading-tight">
                         {building.address}
                       </p>
                       
                       {/* Total Voters */}
-                      <div className="mb-2">
-                        <span className="text-gray-700 text-xs sm:text-sm font-semibold">
+                      <div className="mb-1.5 sm:mb-2">
+                        <span className="text-gray-700 text-[10px] sm:text-sm font-semibold">
                           टोटल मतदाता : {building.totalVoter || 0}
                         </span>
                       </div>
                       
                       {/* Note */}
                       {building.note && (
-                        <div className="mt-2 pt-2 border-t border-gray-200">
-                          <span className="text-gray-600 text-xs sm:text-sm">
+                        <div className="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t border-gray-200">
+                          <span className="text-gray-600 text-[10px] sm:text-sm">
                             नोट : {building.note}
                           </span>
                         </div>

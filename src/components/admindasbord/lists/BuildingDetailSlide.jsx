@@ -7,6 +7,7 @@ import DeleteConfirmationModal from '../modals/DeleteConfirmationModal.jsx'
 import LastLoginModal from '../modals/LastLoginModal.jsx'
 import CheckButton from '../common/CheckButton.jsx'
 import ValidationModal from '../modals/ValidationModal.jsx'
+import PageHeader from '../common/PageHeader.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 
 const normalizeMobileNumber = (value) => {
@@ -1019,33 +1020,13 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
         {/* Main Container */}
         <div className="relative z-10 h-full flex flex-col">
           {/* Header */}
-          <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
-            {/* First Row: Arrow + Title (left) | Search icon (right) */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <button onClick={handleBack} className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                
-                <h1 className="text-white text-base sm:text-lg font-semibold">बिल्डिंग - {current.name || buildingData?.name || buildingId || '—'}</h1>
-              </div>
-              
-              <div className="search-box">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button
-                  type="reset"
-                  onClick={() => setSearchQuery('')}
-                />
-              </div>
-            </div>
-          </div>
+          <PageHeader
+            title={`बिल्डिंग - ${current.name || buildingData?.name || buildingId || '—'}`}
+            onBack={handleBack}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onSearchClear={() => setSearchQuery('')}
+          />
 
           {/* Navigation Tabs and Search Bar Section */}
           <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>

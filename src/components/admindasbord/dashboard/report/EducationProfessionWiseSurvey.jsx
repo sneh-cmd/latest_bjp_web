@@ -137,29 +137,24 @@ const EducationProfessionWiseSurvey = ({ navigation }) => {
           >
             <div className="p-3 sm:p-4">
               {/* Mobile Card Layout - Similar to Image */}
-              <div className="flex items-center justify-between">
-                {/* Left Side: Avatar and Category Info */}
-                <div className="flex items-center gap-3 flex-1">
-                  {/* Avatar Circle with Number */}
-                  <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-sm text-white font-bold text-lg sm:text-xl" style={{ backgroundColor: '#D2B48C' }}>
-                    {index + 1}
-                  </div>
-                  
-                  {/* Category Name and Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-base sm:text-lg font-bold text-gray-900 mb-1 truncate">
-                      {item.category || 'N/A'}
-                    </div>
-                    <div className="text-sm sm:text-base text-gray-600">
-                      टोटल मतदाता : {item.totalVoters || 0}
-                    </div>
-                  </div>
+              <div className="flex items-start gap-2 sm:gap-3">
+                {/* Avatar Circle with Number */}
+                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-sm text-white font-semibold text-sm sm:text-base" style={{ backgroundColor: '#D2B48C' }}>
+                  {index + 1}
                 </div>
-
-                {/* Right Side: Total Survey with Call Icon */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className="text-sm sm:text-base font-medium" style={{ color: '#8B4513' }}>
-                    टोटल सर्वे : {item.totalSurvey || 0}
+                
+                {/* Category Name and Details */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm sm:text-base font-bold text-gray-900 mb-0.5 sm:mb-1 break-words">
+                    {item.category || 'N/A'}
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-xs sm:text-sm text-gray-600">
+                      टोटल मतदाता: {item.totalVoters || 0}
+                    </div>
+                    <div className="text-xs sm:text-sm font-medium whitespace-nowrap" style={{ color: '#8B4513' }}>
+                      टोटल सर्वे: {item.totalSurvey || 0}
+                    </div>
                   </div>
                 </div>
               </div>

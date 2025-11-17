@@ -4,6 +4,7 @@ import localStorageManager from '../../../utils/localStorage'
 import DataSearchLoader from '../utils/DataSearchLoader'
 import CheckButton from '../common/CheckButton.jsx'
 import ValidationModal from '../modals/ValidationModal.jsx'
+import PageHeader from '../common/PageHeader.jsx'
 
 const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: pollingStationProp }) => {
   const { navigate, state = {}, params = {} } = navigation
@@ -154,39 +155,13 @@ const PollingStationVoterSlide = ({ navigation, onClose, pollingStation: polling
         <DataSearchLoader isVisible={isLoading} />
 
         {/* Header */}
-        <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-              <button
-                onClick={handleBack}
-                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-
-              <h1
-                className="text-white text-sm sm:text-lg font-semibold truncate max-w-[65vw] sm:max-w-full uppercase"
-              >
-                {pollingStation || ''}
-              </h1>
-            </div>
-
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button
-                type="reset"
-                onClick={() => setSearchQuery('')}
-              />
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title={pollingStation || ''}
+          onBack={handleBack}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSearchClear={() => setSearchQuery('')}
+        />
 
         {/* Summary Bar */}
         <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
