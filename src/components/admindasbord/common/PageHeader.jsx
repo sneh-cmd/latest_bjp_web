@@ -7,8 +7,12 @@ const PageHeader = ({
   onSearchChange,
   onSearchClear,
   titleClassName = '',
-  showSearch = true
+  showSearch = true,
+  uppercase = true
 }) => {
+  const baseTitleClasses = 'text-white text-sm sm:text-lg font-semibold truncate max-w-[65vw] sm:max-w-full'
+  const titleClasses = `${baseTitleClasses} ${uppercase ? 'uppercase' : ''} ${titleClassName}`.trim()
+
   return (
     <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
       <div className="flex items-center justify-between gap-2">
@@ -22,9 +26,7 @@ const PageHeader = ({
             </svg>
           </button>
 
-          <h1
-            className={`text-white text-sm sm:text-lg font-semibold truncate max-w-[65vw] sm:max-w-full uppercase ${titleClassName}`}
-          >
+          <h1 className={titleClasses}>
             {title || ''}
           </h1>
         </div>

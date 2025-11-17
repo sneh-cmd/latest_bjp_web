@@ -1,7 +1,32 @@
 import React, { useState, useEffect } from 'react'
 import logoImage from '../../../assets/image/BJP-Logo.png'
+import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import MasterSearchModal from '../modals/MasterSearchModal.jsx'
+
+const getPanelVoterValue = (panel) => {
+  if (!panel) return 0
+  const keys = [
+    'voters',
+    'total_voter',
+    'totalVoter',
+    'total_voters',
+    'totalVoters',
+    'voter',
+    'total'
+  ]
+
+  for (const key of keys) {
+    const value = panel[key]
+    if (value === undefined || value === null || value === '') continue
+    const numericValue = Number(value)
+    if (!Number.isNaN(numericValue) && numericValue > 0) {
+      return numericValue
+    }
+  }
+
+  return 0
+}
 
 const AdminDashboard = ({ navigation }) => {
   const { navigate, state } = navigation
@@ -23,6 +48,7 @@ const AdminDashboard = ({ navigation }) => {
   }
 
   const userData = getUserData()
+  const [panelVoterCount, setPanelVoterCount] = useState(() => getPanelVoterValue(userData?.panel))
 
   useEffect(() => {
     // Check if user is logged in via localStorage
@@ -38,6 +64,58 @@ const AdminDashboard = ({ navigation }) => {
     }, 100)
     return () => clearTimeout(timer)
   }, [navigate])
+
+  useEffect(() => {
+    if (panelVoterCount > 0) return
+
+    const corporationId =
+      userData?.corporation?.id ||
+      userData?.corporation_id ||
+      userData?.panel?.corporation_id
+
+    const panelId = userData?.panel?.id || userData?.panel?.panel_no
+
+    if (!corporationId || !panelId) return
+
+    let isMounted = true
+
+    const fetchPanelDetails = async () => {
+      try {
+        const panels = await apiService.displayCorporationWisePanel(corporationId)
+        if (!Array.isArray(panels)) return
+
+        const currentPanel = panels.find(
+          (panel) => (panel.id ?? panel.panel_no) === panelId
+        )
+
+        if (!currentPanel) return
+
+        const voters = getPanelVoterValue(currentPanel)
+        if (voters > 0 && isMounted) {
+          setPanelVoterCount(voters)
+          try {
+            localStorageManager.updateSession({
+              panel: {
+                ...userData?.panel,
+                ...currentPanel,
+                voters
+              }
+            })
+          } catch (error) {
+            console.warn('Failed to update panel data in session:', error)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to refresh panel voters:', error)
+      }
+    }
+
+    fetchPanelDetails()
+
+    return () => {
+      isMounted = false
+    }
+  }, [panelVoterCount, userData])
 
 
   const handleBack = () => {
@@ -337,7 +415,7 @@ const AdminDashboard = ({ navigation }) => {
               {userData?.panel?.name || 'Panel 14'}
             </h3>
             <p className="text-lg sm:text-2xl font-bold" style={{ color: '#102463' }}>
-              टोटल मतदाता : {userData?.panel?.voters?.toLocaleString() || '41,773'}
+              टोटल मतदाता : {panelVoterCount > 0 ? panelVoterCount.toLocaleString('en-IN') : '0'}
             </p>
               </div>
               </div>
@@ -635,7 +713,11 @@ const AdminDashboard = ({ navigation }) => {
       <div className="relative z-10 px-2 sm:px-4 pb-2 sm:pb-4">
         <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
           {/* कार्यकर्ता की फोनबुक Card */}
-          <div className="group relative bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] w-auto min-w-[120px] sm:min-w-[140px] max-w-[140px] sm:max-w-[160px] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => navigate('/karyakarta-phonebook')}
+            className="group relative bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] w-auto min-w-[120px] sm:min-w-[140px] max-w-[140px] sm:max-w-[160px] overflow-hidden"
+          >
             {/* Background Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             
@@ -657,7 +739,7 @@ const AdminDashboard = ({ navigation }) => {
             
             {/* Hover Indicator */}
             <div className="absolute bottom-2 right-2 w-2 h-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundColor: '#102463' }}></div>
-          </div>
+          </button>
 
           {/* कार्यकर्ता के सरनेम ग्रुप Card */}
           <div className="group relative bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:border-red-300 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col items-center justify-center min-h-[120px] w-auto min-w-[140px] max-w-[160px] overflow-hidden">

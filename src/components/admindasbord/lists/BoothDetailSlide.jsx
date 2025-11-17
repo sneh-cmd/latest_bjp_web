@@ -804,7 +804,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onSearchClear={() => setSearchQuery('')}
-          />
+                />
 
           {/* Navigation Tabs and Search Bar Section - Hide if coming from shakti-kendra-detail */}
           {!isFromShaktiKendra && (

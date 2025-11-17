@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import * as XLSX from 'xlsx-js-style'
 import { displayTypeWiseUserListFromSurvey, noSurveyUserByType } from '../../../../apidata'
 import UnsurveyedLeadersModal from '../../modals/UnsurveyedLeadersModal.jsx'
+import PageHeader from '../../common/PageHeader.jsx'
 
 const ShaktiKendraSurvey = ({ navigation }) => {
   const { navigate } = navigation
@@ -241,36 +242,13 @@ const ShaktiKendraSurvey = ({ navigation }) => {
       className="relative w-full h-screen overflow-y-auto overflow-x-hidden scroll-smooth"
       style={{ backgroundColor: '#e5e8ff' }}
     >
-      {/* Header */}
-      <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <button
-              onClick={handleBack}
-              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            <h1 className="text-white text-base sm:text-lg font-semibold">शक्ति केन्द्र प्रमुख - सर्वे</h1>
-          </div>
-
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+      <PageHeader
+        title="शक्ति केन्द्र प्रमुख - सर्वे"
+        onBack={handleBack}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchClear={() => setSearchQuery('')}
             />
-            <button
-              type="reset"
-              onClick={() => setSearchQuery('')}
-            />
-          </div>
-        </div>
-      </div>
 
       {/* Summary Bar */}
       <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0" style={{ backgroundColor: '#e5e8ff' }}>

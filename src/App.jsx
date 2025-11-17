@@ -48,6 +48,8 @@ import EducationProfessionDetailSlide from './components/admindasbord/dashboard/
 import RedevelopmentBuilding from './components/admindasbord/dashboard/report/RedevelopmentBuilding'
 import DeathSurvey from './components/admindasbord/dashboard/report/DeathSurvey'
 import TransferredSurvey from './components/admindasbord/dashboard/report/TransferredSurvey'
+import KaryakartaPhonebook from './components/admindasbord/third_list/KaryakartaPhonebook'
+import KaryakartaPhonebookMembers from './components/admindasbord/third_list/PhonebookMemberList'
 import BoothSurveyDetailSlide from './components/admindasbord/dashboard/report/BoothDetailSlide'
 import Familyscreen from './components/admindasbord/dashboard/Familyscreen'
 import AddressDetailSlide from './components/admindasbord/dashboard/AddressDetailSlide'
@@ -168,6 +170,14 @@ function BoothPramukhWrapper() {
   return (
     <NavigationProvider>
       <BoothPramukh />
+    </NavigationProvider>
+  )
+}
+
+function KaryakartaPhonebookMembersWrapper() {
+  return (
+    <NavigationProvider>
+      <KaryakartaPhonebookMembers />
     </NavigationProvider>
   )
 }
@@ -472,6 +482,14 @@ function TransferredSurveyWrapper() {
   )
 }
 
+function KaryakartaPhonebookWrapper() {
+  return (
+    <NavigationProvider>
+      <KaryakartaPhonebook />
+    </NavigationProvider>
+  )
+}
+
 function CasteDetailSlideWrapper() {
   return (
     <NavigationProvider>
@@ -580,6 +598,8 @@ function App() {
           <Route path="/redevelopment-building" element={<RedevelopmentBuildingWrapper />} />
           <Route path="/death-survey" element={<DeathSurveyWrapper />} />
           <Route path="/transferred-survey" element={<TransferredSurveyWrapper />} />
+          <Route path="/karyakarta-phonebook" element={<KaryakartaPhonebookWrapper />} />
+          <Route path="/karyakarta-phonebook-members" element={<KaryakartaPhonebookMembersWrapper />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

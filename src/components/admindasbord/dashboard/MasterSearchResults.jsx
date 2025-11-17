@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import MasterSearchModal from '../modals/MasterSearchModal'
-import CheckButton from '../common/CheckButton.jsx'
 import ValidationModal from '../modals/ValidationModal.jsx'
 import PageHeader from '../common/PageHeader.jsx'
+import VoterCard from '../common/VoterCard.jsx'
 
 const MasterSearchResults = () => {
   const navigate = useNavigate()
@@ -11,19 +11,24 @@ const MasterSearchResults = () => {
   const locationState = location.state || {}
 
   const results = Array.isArray(locationState.results) ? locationState.results : []
-  const total = typeof locationState.total === 'number' ? locationState.total : results.length
-  const success = typeof locationState.success === 'boolean' ? locationState.success : results.length > 0
+  const [displayResults, setDisplayResults] = useState(results)
+  const total = typeof locationState.total === 'number' ? locationState.total : displayResults.length
+  const success = typeof locationState.success === 'boolean' ? locationState.success : displayResults.length > 0
   const error = locationState.error || null
 
   const [resultSearchQuery, setResultSearchQuery] = useState('')
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [showModal, setShowModal] = useState(false)
 
+  useEffect(() => {
+    setDisplayResults(results)
+  }, [results])
+
   const filteredResults = useMemo(() => {
-    if (!resultSearchQuery.trim()) return results
+    if (!resultSearchQuery.trim()) return displayResults
 
     const query = resultSearchQuery.trim().toLowerCase()
-    return results.filter((result) => [
+    return displayResults.filter((result) => [
       result.name,
       result.fatherHusbandName,
       result.address,
@@ -36,7 +41,7 @@ const MasterSearchResults = () => {
     ]
       .filter(Boolean)
       .some((value) => value.toString().toLowerCase().includes(query)))
-  }, [resultSearchQuery, results])
+  }, [resultSearchQuery, displayResults])
 
   const handleCall = (phoneNumber) => {
     const sanitized = (phoneNumber || '').toString().trim()
@@ -79,8 +84,31 @@ const MasterSearchResults = () => {
     setIsSearchModalOpen(true)
   }
 
-  const hasResults = results.length > 0
+  const hasResults = displayResults.length > 0
   const hasFilteredResults = filteredResults.length > 0
+
+  const handleMobileEdit = (voter, newMobileNumber) => {
+    if (!voter || !newMobileNumber) return
+    
+    setDisplayResults((prev) =>
+      prev.map((v) => {
+        // Match voter by id, idCardNumber, or name + fatherHusbandName combination
+        const isMatch = 
+          (v.id && voter.id && v.id === voter.id) ||
+          (v.idCardNumber && voter.idCardNumber && v.idCardNumber === voter.idCardNumber) ||
+          (v.name === voter.name && v.fatherHusbandName === voter.fatherHusbandName)
+        
+        return isMatch
+          ? {
+              ...v,
+              mobileNumber: newMobileNumber,
+              mobile: newMobileNumber,
+              contact_no: newMobileNumber
+            }
+          : v
+      })
+    )
+  }
 
   return (
     <div className="fixed inset-0 z-[9999]">
@@ -145,105 +173,38 @@ const MasterSearchResults = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {filteredResults.map((voter, idx) => (
-                <div key={`${voter.id}-${idx}`} className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col">
-                  <div className="text-base font-extrabold tracking-wide mb-3">{idx + 1}.&nbsp;&nbsp;{voter.name || '-'}</div>
-
-                  <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm flex-1">
-                    <div className="flex flex-wrap gap-x-2">
-                      <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पिता/पति:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.fatherHusbandName || '-'}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-x-2 gap-y-1">
-                      <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पता:</span>
-                      <div className="flex-1 min-w-0 flex items-start gap-1 sm:gap-2">
-                        <span className="text-gray-900 break-words flex-1">{voter.address || '-'}</span>
-                        <button className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-x-2">
-                      <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">क्रमांक:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.serialNumber || '-'}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-x-2 gap-y-1">
-                      <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मोबाइल:</span>
-                      <div className="flex items-center min-w-0">
-                        <span className="text-gray-900 truncate">{voter.mobileNumber || '-'}</span>
-                        <button className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0">
-                          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-x-2">
-                      <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पहचान पत्र नं.:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.idCardNumber || '-'}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-x-2">
-                      <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">बूथ नं:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.boothNumber || '-'}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-x-2">
-                      <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">घर नं:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.houseNumber || '-'}</span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-x-2">
-                      <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मतदान स्थान:</span>
-                      <span className="text-gray-900 break-words flex-1 min-w-0">{voter.pollingStation || '-'}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 sm:mt-4 flex justify-center space-x-1 sm:space-x-2 flex-wrap gap-1 sm:gap-0 pt-2 sm:pt-3 border-t border-gray-100">
-                    <button
-                      onClick={() => handleCall(voter.mobileNumber)}
-                      className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                      type="button"
-                    >
-                      <div
-                        className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all hover:scale-105"
-                        style={{ backgroundColor: '#103a94' }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0d2f7a')}
-                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#103a94')}
-                      >
-                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                      </div>
-                      <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
-                    </button>
-
-                    <CheckButton
-                      voter={voter}
-                      onShowModal={() => setShowModal(true)}
-                    />
-
-                    <button
-                      onClick={() => handleFamily(voter)}
-                      className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                      type="button"
-                    >
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99L14 10.5c-.47-.62-1.21-.99-2.01-.99H9.46c-.8 0-1.54.37-2.01.99L6 10.5c-.47-.62-1.21-.99-2.01-.99H2.46c-.8 0-1.54.37-2.01.99L0 10.5v7.5h2v6h2v-6h2v6h2v-6h2v6h2v-6h2z" />
-                        </svg>
-                      </div>
-                      <span className="text-[10px] sm:text-xs text-gray-600">Family</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {filteredResults.map((voter, idx) => {
+                // Map voter data to VoterCard expected format
+                const voterForCard = {
+                  ...voter,
+                  name: voter.name,
+                  fatherHusband: voter.fatherHusbandName,
+                  address: voter.address,
+                  mobile: voter.mobileNumber,
+                  contact_no: voter.mobileNumber,
+                  serialNumber: voter.serialNumber,
+                  idCardNo: voter.idCardNumber,
+                  idcard_no: voter.idCardNumber,
+                  boothNo: voter.boothNumber,
+                  houseNo: voter.houseNumber,
+                  pollingStation: voter.pollingStation
+                }
+                
+                return (
+                  <VoterCard
+                    key={`${voter.id}-${idx}`}
+                    voter={voterForCard}
+                    index={idx}
+                    onCall={handleCall}
+                    onFamily={handleFamily}
+                    onCheckModal={() => setShowModal(true)}
+                    showEditButton
+                    onEditMobile={handleMobileEdit}
+                    showLocationButton={true}
+                    showOtherAddress={false}
+                  />
+                )
+              })}
             </div>
           )}
         </div>

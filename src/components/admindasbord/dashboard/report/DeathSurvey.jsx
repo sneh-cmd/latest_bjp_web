@@ -3,6 +3,7 @@ import { displayDeathSurvey } from '../../../../apidata'
 import localStorageManager from '../../../../utils/localStorage'
 import VoterCard from '../../common/VoterCard.jsx'
 import ValidationModal from '../../modals/ValidationModal.jsx'
+import PageHeader from '../../common/PageHeader.jsx'
 
 const DeathSurvey = ({ navigation }) => {
   const { navigate } = navigation
@@ -176,35 +177,13 @@ const DeathSurvey = ({ navigation }) => {
       style={{ backgroundColor: '#e5e8ff' }}
     >
       <div className="sticky top-0 z-20">
-        {/* Header */}
-        <div className="px-2 sm:px-4 py-2 sm:py-3 shadow-md" style={{ backgroundColor: '#102463' }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <button
-                onClick={handleBack}
-                className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <h1 className="text-white text-base sm:text-lg font-semibold">मृत्यु</h1>
-            </div>
-
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button
-                type="reset"
-                onClick={handleClearSearch}
-              />
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="मृत्यु"
+          onBack={handleBack}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSearchClear={handleClearSearch}
+        />
 
         {/* Summary Bar + Booth Filter */}
         <div className="px-2 sm:px-4 py-2 sm:py-3" style={{ backgroundColor: '#e5e8ff' }}>

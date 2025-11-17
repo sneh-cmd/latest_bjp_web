@@ -1026,7 +1026,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onSearchClear={() => setSearchQuery('')}
-          />
+                />
 
           {/* Navigation Tabs and Search Bar Section */}
           <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>

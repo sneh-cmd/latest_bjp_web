@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ADMIN_AUTH_CONFIG } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
+import PageHeader from '../common/PageHeader.jsx'
 
 const EMPTY_STATE = {
   loading: true,
@@ -227,21 +228,7 @@ const Familyscreen = () => {
     <div className="relative w-screen h-screen overflow-hidden bg-white">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50"></div>
       <div className="relative z-10 h-full flex flex-col">
-        <div className="px-2 sm:px-4 py-3 flex-shrink-0 shadow-md" style={{ backgroundColor: '#102463' }}>
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <button
-              onClick={handleBack}
-              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="flex flex-col">
-              <h1 className="text-white text-base sm:text-lg font-semibold">परिवार के अनुसार</h1>
-            </div>
-          </div>
-        </div>
+        <PageHeader title="परिवार के अनुसार" onBack={handleBack} showSearch={false} />
 
         <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0 shadow-sm" style={{ backgroundColor: '#e5e8ff' }}>
           <div className="flex items-center justify-between gap-2 sm:gap-3">

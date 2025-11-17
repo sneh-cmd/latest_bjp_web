@@ -140,7 +140,19 @@ export const apiService = {
         console.log('Request endpoint:', endpoint);
         console.log('Request SOAPAction:', soapAction);
         console.log('Request body:', soapEnvelope);
-        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+        
+        // Try to extract error message from SOAP fault if present
+        let errorMessage = `HTTP error! status: ${response.status} - ${response.statusText}`
+        if (errorText) {
+          const faultMatch = errorText.match(/<faultstring>(.*?)<\/faultstring>/s);
+          if (faultMatch) {
+            errorMessage = `Server error: ${faultMatch[1].trim()}`
+          } else if (errorText.length < 500) {
+            errorMessage = `Server error: ${errorText}`
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
       
       const responseText = await response.text();
@@ -274,6 +286,10 @@ export const apiService = {
         resultTag = 'dis_death_voterResult';
       } else if (soapAction === 'dis_shifted_out_voter') {
         resultTag = 'dis_shifted_out_voterResult';
+      } else if (soapAction === 'display_all_phonebook_match_admin') {
+        resultTag = 'display_all_phonebook_match_adminResult';
+      } else if (soapAction === 'display_phonebook_member') {
+        resultTag = 'display_phonebook_memberResult';
       }
       
       const jsonMatch = xmlText.match(new RegExp(`<${resultTag}>(.*?)<\/${resultTag}>`, 's'));
@@ -366,6 +382,16 @@ export const apiService = {
         
         // Special handling for shifted out voter endpoint
         if (soapAction === 'dis_shifted_out_voter') {
+          return parsedData.result;
+        }
+        
+        // Special handling for phonebook match admin endpoint
+        if (soapAction === 'display_all_phonebook_match_admin') {
+          return parsedData.result;
+        }
+        
+        // Special handling for phonebook member endpoint
+        if (soapAction === 'display_phonebook_member') {
           return parsedData.result;
         }
         
@@ -1607,7 +1633,9 @@ export const apiService = {
             // For display endpoints, Success="0" usually means no data found, which is valid
             if (soapAction === 'display_booth_pramukh_cadre' || 
                 soapAction === 'display_booth_pramukh_by_sakti_pramukh' ||
-                soapAction === 'display_voter_survey_log') {
+                soapAction === 'display_voter_survey_log' ||
+                soapAction === 'display_all_phonebook_match_admin' ||
+                soapAction === 'display_phonebook_member') {
               return [];
             }
           }
@@ -2496,6 +2524,46 @@ export const displayRationCardWiseSurveyVoter = async function(id, panelApiUrl) 
     'dis_ration_card_wise_survey_voter',
     soapBody,
     true // use admin auth header
+  );
+};
+
+// Phonebook match admin list - new function
+export const displayAllPhonebookMatchAdmin = async function(panelApiUrl) {
+  const soapBody = `<display_all_phonebook_match_admin xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'display_all_phonebook_match_admin',
+    soapBody,
+    true
+  );
+};
+
+// Phonebook member list for admin
+export const displayPhonebookMember = async function(adminId, panelApiUrl) {
+  // Ensure adminId is a valid number
+  const numericAdminId = Number(adminId)
+  if (isNaN(numericAdminId) || numericAdminId <= 0) {
+    throw new Error(`Invalid admin_id: ${adminId}. Must be a positive number.`)
+  }
+
+  const soapBody = `<display_phonebook_member xmlns="http://tempuri.org/">
+    <user_id>${numericAdminId}</user_id>
+  </display_phonebook_member>`;
+
+  console.log('displayPhonebookMember SOAP body:', soapBody)
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'display_phonebook_member',
+    soapBody,
+    true
   );
 };
 

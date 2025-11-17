@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { displayUserWiseSurveyVoter, displayVoterSurveyLog, selectSurveyDetail } from '../../../../apidata'
 import localStorageManager from '../../../../utils/localStorage'
 import SurveyDetailModal from '../../modals/SurveyDetailModal.jsx'
+import PageHeader from '../../common/PageHeader.jsx'
 
 const buildDisplayInfo = (data) => {
   if (!data) return null
@@ -274,17 +275,7 @@ const VoterLogDetailSlide = ({ navigation }) => {
     <div className="relative w-full h-screen overflow-hidden bg-[#e4e6ff]">
       <div className="absolute inset-0 bg-[#e4e6ff]" />
       <div className="relative z-10 h-full flex flex-col">
-        <div className="px-4 py-3 flex items-center space-x-3 shadow-md bg-[#102463]">
-          <button
-            onClick={handleBack}
-            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
-          >
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-white text-lg font-semibold">Log</h1>
-        </div>
+        <PageHeader title="Log" onBack={handleBack} showSearch={false} uppercase={false} />
 
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           <div className="bg-white rounded-2xl shadow-sm p-4">

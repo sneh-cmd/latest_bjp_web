@@ -8,8 +8,10 @@ const VoterCard = ({
   onFamily,
   onLog,
   onCheckModal,
+  onEditMobile,
   showLocationButton = false,
-  showEditButton = false
+  showEditButton = false,
+  showOtherAddress = true
 }) => {
   // Extract voter contact with fallbacks
   const voterContact = voter.mobile || voter.contact_no || voter.phone || ''
@@ -56,6 +58,18 @@ const VoterCard = ({
     }
   }
 
+  const handleMobileEdit = () => {
+    if (!onEditMobile) return
+    
+    const currentMobile = voterContact || ''
+    const newMobile = prompt('Enter mobile number:', currentMobile !== '-' ? currentMobile : '')
+    
+    if (newMobile !== null && newMobile !== undefined) {
+      // Call the callback with the voter and new mobile number
+      onEditMobile(voter, newMobile.trim())
+    }
+  }
+
   return (
     <div key={cardKey} className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col relative">
       {/* Name */}
@@ -76,10 +90,12 @@ const VoterCard = ({
           <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पता:</span>
           <div className="flex-1 min-w-0 flex items-start gap-1 sm:gap-2">
             <span className="text-gray-900 break-words flex-1">{address}</span>
-            {showLocationButton && (voter.latLong || voter.lat_long) && (
-              <button 
+            {showLocationButton && (
+              <button
                 className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                 onClick={handleLocationClick}
+                type="button"
+                disabled={!(voter.latLong || voter.lat_long)}
               >
                 <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
@@ -100,8 +116,12 @@ const VoterCard = ({
           <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मोबाइल:</span>
           <div className="flex items-center min-w-0">
             <span className="text-gray-900 truncate">{voterContact || '-'}</span>
-            {showEditButton && voterContact && voterContact !== '-' && (
-              <button className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0">
+            {showEditButton && (
+              <button
+                className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0"
+                onClick={handleMobileEdit}
+                type="button"
+              >
                 <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                 </svg>
@@ -135,10 +155,12 @@ const VoterCard = ({
         </div>
 
         {/* दूसरा पता */}
-        <div className="flex flex-wrap gap-x-2">
-          <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">दूसरा पता:</span>
-          <span className="text-gray-900 break-words flex-1 min-w-0">{otherAddress}</span>
-        </div>
+        {showOtherAddress && (
+          <div className="flex flex-wrap gap-x-2">
+            <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">दूसरा पता:</span>
+            <span className="text-gray-900 break-words flex-1 min-w-0">{otherAddress}</span>
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}
