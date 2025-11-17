@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { displayBoothWiseSurveyVoter } from '../../../../apidata'
+import CheckButton from '../../common/CheckButton.jsx'
+import ValidationModal from '../../modals/ValidationModal.jsx'
 
 const BoothDetailSlide = ({ navigation }) => {
   const { navigate, state } = navigation
@@ -10,6 +12,15 @@ const BoothDetailSlide = ({ navigation }) => {
   const [error, setError] = useState(null)
   const [selectedVoter, setSelectedVoter] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [modalMessage, setModalMessage] = useState('मोबाइल नंबर नहीं मिला')
+
+  const sanitizePhoneNumber = (phoneNumber) => (phoneNumber || '').toString().trim()
+
+  const hasValidPhoneNumber = (phoneNumber) => {
+    const sanitized = sanitizePhoneNumber(phoneNumber)
+    return sanitized && sanitized !== '-' && sanitized !== 'N/A' && sanitized.length >= 10
+  }
 
   // Fetch voters based on category id and active tab
   const fetchVoters = useCallback(async () => {
@@ -96,6 +107,14 @@ const BoothDetailSlide = ({ navigation }) => {
   }, [categoryData])
 
   useEffect(() => {
+    const storedActiveTab = sessionStorage.getItem('boothDetailActiveTab')
+    if (storedActiveTab) {
+      setActiveTab(storedActiveTab)
+      sessionStorage.removeItem('boothDetailActiveTab')
+    }
+  }, [])
+
+  useEffect(() => {
     fetchVoters()
   }, [fetchVoters])
 
@@ -179,29 +198,52 @@ const BoothDetailSlide = ({ navigation }) => {
     navigate('/booth-wise-survey')
   }
 
-  const handleCall = (voter = currentVoter) => {
-    const voterData = voter || currentVoter
-    if (voterData?.mobile && voterData.mobile !== 'N/A' && voterData.mobile !== '-') {
-      window.location.href = `tel:${voterData.mobile}`
+  const handleCallAction = (phoneNumber) => {
+    const sanitized = sanitizePhoneNumber(phoneNumber)
+    if (hasValidPhoneNumber(phoneNumber)) {
+      window.open(`tel:${sanitized}`, '_self')
+    } else {
+      setModalMessage('मोबाइल नंबर नहीं मिला')
+      setShowModal(true)
     }
   }
 
-  const handleCheck = (voter = currentVoter) => {
-    const voterData = voter || currentVoter
-    console.log('Check action for:', voterData)
-    // Add your check logic here
+  const handleFamilyNavigation = (voter) => {
+    if (!voter) return
+
+    const getNumericId = (value) => {
+      if (value === null || value === undefined) return null
+      const trimmed = String(value).trim()
+      if (!trimmed || !/^\d+$/.test(trimmed)) return null
+      const parsed = Number.parseInt(trimmed, 10)
+      return Number.isNaN(parsed) ? null : parsed
+    }
+
+    const candidateKeys = ['id', 'voter_id', 'voterId', 'voterid', 'voterID', 'master_id', 'main_admin_id']
+    const numericVoterId = candidateKeys
+      .map((key) => getNumericId(voter[key]))
+      .filter((value) => value !== null)[0]
+
+    if (!numericVoterId) {
+      console.warn('Unable to open family screen. Numeric voter id missing for voter:', voter)
+      setModalMessage('परिवार की जानकारी उपलब्ध नहीं है')
+      setShowModal(true)
+      return
+    }
+
+    const voterName = voter.name || 'परिवार'
+    sessionStorage.setItem('boothDetailActiveTab', activeTab)
+    navigate('/family-screen', {
+      voterId: numericVoterId,
+      name: voterName
+    })
   }
 
-  const handleFamily = (voter = currentVoter) => {
-    const voterData = voter || currentVoter
-    console.log('Family action for:', voterData)
-    // Add your family logic here
-  }
-
-  const handleLog = (voter = currentVoter) => {
-    const voterData = voter || currentVoter
-    console.log('Log action for:', voterData)
-    // Add your log logic here
+  const handleLogNavigation = (voter) => {
+    sessionStorage.setItem('boothDetailActiveTab', activeTab)
+    navigate('/voter-log', {
+      voter
+    })
   }
 
   return (
@@ -397,14 +439,17 @@ const BoothDetailSlide = ({ navigation }) => {
                       </div>
 
                       <div className="mt-3 sm:mt-4 flex justify-center space-x-1 sm:space-x-2 flex-wrap gap-1 sm:gap-0 pt-2 sm:pt-3 border-t border-gray-100">
+                        {/* Call Button */}
                         <button
-                          onClick={() => handleCall(voter)}
+                          onClick={() => handleCallAction(voterContact)}
                           className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                           type="button"
                         >
                           <div
                             className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all hover:scale-105"
                             style={{ backgroundColor: '#103a94' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0d2f7a')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#103a94')}
                           >
                             <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -413,23 +458,20 @@ const BoothDetailSlide = ({ navigation }) => {
                           <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
                         </button>
 
-                        <button
-                          onClick={() => handleCheck(voter)}
-                          className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                          type="button"
-                        >
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                          <span className="text-[10px] sm:text-xs text-gray-600">Check</span>
-                        </button>
+                        {/* Check Button */}
+                        <CheckButton
+                          voter={voter}
+                          onShowModal={() => {
+                            setModalMessage('मोबाइल नंबर नहीं मिला')
+                            setShowModal(true)
+                          }}
+                        />
 
+                        {/* Family Button */}
                         <button
-                          onClick={() => handleFamily(voter)}
                           className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                           type="button"
+                          onClick={() => handleFamilyNavigation(voter)}
                         >
                           <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
                             <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -439,10 +481,11 @@ const BoothDetailSlide = ({ navigation }) => {
                           <span className="text-[10px] sm:text-xs text-gray-600">Family</span>
                         </button>
 
+                        {/* Log Button */}
                         <button
-                          onClick={() => handleLog(voter)}
                           className="flex flex-col items-center space-y-0.5 sm:space-y-1"
                           type="button"
+                          onClick={() => handleLogNavigation(voter)}
                         >
                           <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-600 flex items-center justify-center transition-all hover:scale-105">
                             <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -465,6 +508,14 @@ const BoothDetailSlide = ({ navigation }) => {
           </>
         )}
       </div>
+
+      {/* Validation Modal */}
+      <ValidationModal
+        isOpen={showModal}
+        message={modalMessage}
+        onClose={() => setShowModal(false)}
+        okText="Ok"
+      />
     </div>
   )
 }

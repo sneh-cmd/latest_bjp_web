@@ -1606,7 +1606,8 @@ export const apiService = {
           if (parsedData.Success === "0") {
             // For display endpoints, Success="0" usually means no data found, which is valid
             if (soapAction === 'display_booth_pramukh_cadre' || 
-                soapAction === 'display_booth_pramukh_by_sakti_pramukh') {
+                soapAction === 'display_booth_pramukh_by_sakti_pramukh' ||
+                soapAction === 'display_voter_survey_log') {
               return [];
             }
           }

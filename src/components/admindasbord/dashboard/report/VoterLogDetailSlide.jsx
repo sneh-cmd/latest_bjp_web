@@ -16,7 +16,7 @@ const buildDisplayInfo = (data) => {
     name: fullName || '-',
     address: data.eng_localityid || data.visit_location || data.address || '-',
     mobile: data.contact_no || data.mobile || '-',
-    voterId: data.idcard_no || data.voterId || data.voter_id || '-'
+    voterId: data.idcard_no || data.idCardNo || data.voterId || data.voter_id || '-'
   }
 }
 
@@ -116,7 +116,7 @@ const VoterLogDetailSlide = ({ navigation }) => {
           return
         }
 
-        const candidateKeys = ['id', 'voter_id', 'voterId', 'idcard_no', 'main_admin_id']
+        const candidateKeys = ['id', 'voter_id', 'voterId', 'idcard_no', 'idCardNo', 'main_admin_id']
         const targetValues = (selectedVoter
           ? candidateKeys
               .map((key) => selectedVoter[key])
@@ -160,6 +160,7 @@ const VoterLogDetailSlide = ({ navigation }) => {
   const voterIdForLogs =
     voterInfo?.voterId ||
     selectedVoter?.idcard_no ||
+    selectedVoter?.idCardNo ||
     selectedVoter?.voterId ||
     selectedVoter?.voter_id ||
     null
@@ -168,24 +169,51 @@ const VoterLogDetailSlide = ({ navigation }) => {
     let ignore = false
 
     const fetchSurveyLogs = async () => {
-      if (!voterIdForLogs) return
+      // Validate voter ID - must be non-empty string or number
+      const validVoterId = voterIdForLogs && 
+        (String(voterIdForLogs).trim() !== '' && 
+         String(voterIdForLogs).trim() !== '-' && 
+         String(voterIdForLogs).trim() !== 'N/A')
+      
+      if (!validVoterId) {
+        console.warn('Invalid voter ID for logs:', voterIdForLogs)
+        if (!ignore) {
+          setSurveyLogs([])
+          setLogsError('वोटर आईडी उपलब्ध नहीं है')
+          setLogsLoading(false)
+        }
+        return
+      }
 
       try {
         setLogsLoading(true)
         setLogsError(null)
 
         const panelApiUrl = localStorageManager.getApiUrl()
-        const response = await displayVoterSurveyLog(voterIdForLogs, panelApiUrl)
+        // Ensure voter ID is a string and trimmed
+        const cleanVoterId = String(voterIdForLogs).trim()
+        console.log('Fetching survey logs for voter ID:', cleanVoterId)
+        
+        const response = await displayVoterSurveyLog(cleanVoterId, panelApiUrl)
         const logsList = extractPayloadArray(response)
 
         if (!ignore) {
           setSurveyLogs(Array.isArray(logsList) ? logsList : [])
+          if (!Array.isArray(logsList) || logsList.length === 0) {
+            setLogsError('कोई सर्वे लॉग नहीं मिला')
+          }
         }
       } catch (error) {
         console.error('Failed to fetch voter survey logs:', error)
         if (!ignore) {
           setSurveyLogs([])
-          setLogsError('सर्वे लॉग लोड नहीं हो पाए')
+          // Check if error message contains specific information
+          const errorMessage = error.message || 'सर्वे लॉग लोड नहीं हो पाए'
+          if (errorMessage.includes('Success') && errorMessage.includes('0')) {
+            setLogsError('इस वोटर के लिए कोई सर्वे लॉग उपलब्ध नहीं है')
+          } else {
+            setLogsError(errorMessage)
+          }
         }
       } finally {
         if (!ignore) {
