@@ -50,8 +50,8 @@ const SurnameVoterSlide = ({
   const [allVoters, setAllVoters] = useState([])
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [showBoothModal, setShowBoothModal] = useState(false)
-  const [selectedBooth, setSelectedBooth] = useState(null)
+  const [showBoothDropdown, setShowBoothDropdown] = useState(false)
+  const [selectedBooth, setSelectedBooth] = useState('all')
   const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
@@ -123,7 +123,7 @@ const SurnameVoterSlide = ({
     let filtered = allVoters
 
     // Filter by booth if selected
-    if (selectedBooth) {
+    if (selectedBooth && selectedBooth !== 'all') {
       filtered = filtered.filter(voter => voter.boothNo === selectedBooth)
     }
 
@@ -179,21 +179,14 @@ const SurnameVoterSlide = ({
     console.log('Edit mobile')
   }
 
-  const handleToggleBoothModal = () => {
-    setShowBoothModal(!showBoothModal)
-  }
-
-  const handleSelectBooth = (boothNo) => {
+  const handleBoothChange = (boothNo) => {
     setSelectedBooth(boothNo)
-    setShowBoothModal(false)
-  }
-
-  const handleCloseBoothModal = () => {
-    setShowBoothModal(false)
+    setShowBoothDropdown(false)
   }
 
   // Get unique booth numbers from all voters
   const uniqueBooths = [...new Set(allVoters.map(v => v.boothNo))].sort()
+  const boothOptions = ['all', ...uniqueBooths.filter(Boolean)]
 
   // Total voters
   const totalVoters = voters.length
@@ -246,31 +239,33 @@ const SurnameVoterSlide = ({
                 टोटल : {totalVoters}
               </span>
             </div>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={handleToggleBoothModal}
-                className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 text-sm font-semibold text-[#102463] hover:bg-[#dfe5ff] transition-colors"
+            <div className="relative sm:w-auto">
+              <button
+                onClick={() => setShowBoothDropdown(!showBoothDropdown)}
+                className="w-full sm:w-32 flex items-center justify-between px-3 py-2 bg-white border border-gray-300 rounded-lg text-left"
               >
-                <span>बूथ नं.</span>
-                <span>{selectedBooth || ''}</span>
-                <svg 
-                  className="w-4 h-4 text-[#102463]" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
+                <span className="text-sm font-medium text-gray-700">
+                  {selectedBooth === 'all' ? 'बूथ' : `बूथ: ${selectedBooth}`}
+                </span>
+                <svg className={`w-4 h-4 text-gray-500 transition-transform ${showBoothDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              {selectedBooth && (
-                <button
-                  onClick={() => setSelectedBooth(null)}
-                  className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#102463] hover:underline"
-                  type="button"
-                >
-                  Reset
-                </button>
+              {showBoothDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
+                  {boothOptions.map((booth) => (
+                    <button
+                      key={booth}
+                      onClick={() => handleBoothChange(booth)}
+                      className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
+                        selectedBooth === booth ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                      }`}
+                    >
+                      {booth === 'all' ? 'All' : booth}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -408,55 +403,6 @@ const SurnameVoterSlide = ({
       </div>
     </div>
 
-      {/* Booth Selection Modal - Bottom Sheet */}
-      {showBoothModal && (
-        <div className="fixed inset-0 z-60 flex items-end">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black opacity-30"
-            onClick={handleCloseBoothModal}
-          ></div>
-          
-          {/* Modal Content */}
-          <div className="relative w-full bg-white rounded-t-xl shadow-lg max-h-[70vh] md:max-h-[60vh] flex flex-col">
-            {/* Modal Header */}
-            <div className="px-3 py-3 md:px-4 md:py-4 flex items-center justify-between border-b border-gray-200">
-              <button
-                onClick={handleCloseBoothModal}
-                className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              
-              <h2 className="text-base md:text-lg font-bold text-gray-900">बूथ चुनें</h2>
-              
-              <div className="w-8"></div> {/* Spacer for centering */}
-            </div>
-            
-            {/* Modal Content */}
-            <div className="overflow-y-auto flex-1">
-              <div className="divide-y divide-gray-200">
-                {uniqueBooths.map((booth) => (
-                  <button
-                    key={booth}
-                    onClick={() => handleSelectBooth(booth)}
-                    className={`w-full text-left px-3 py-3 md:px-4 md:py-4 text-sm md:text-lg font-medium transition-colors ${
-                      selectedBooth === booth 
-                        ? 'bg-blue-50 text-blue-600' 
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {booth}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
       {/* Validation Modal */}
       <ValidationModal
         isOpen={showModal}

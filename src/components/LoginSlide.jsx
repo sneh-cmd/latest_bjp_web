@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import logoImage from '../assets/image/BJP-Logo.png'
+import logoImage from '../assets/image/ic_app_logo.png'
 import backgroundGif from '../assets/GIF/1-slider (13).gif'
 import pmModiImage from '../assets/image/pm-modi.png'
 import apiService from '../apidata.jsx'
 import localStorageManager from '../utils/localStorage.js'
+import ValidationModal from './admindasbord/modals/ValidationModal.jsx'
 
 const LoginSlide = ({ navigation }) => {
   const { navigate, params } = navigation
@@ -14,6 +15,7 @@ const LoginSlide = ({ navigation }) => {
   const [adminData, setAdminData] = useState(null)
   const [loginError, setLoginError] = useState(null)
   const [panelData, setPanelData] = useState(null)
+  const [showValidationModal, setShowValidationModal] = useState(false)
 
   // Get corporation name from ID
   const getCorporationName = (id) => {
@@ -141,7 +143,9 @@ const LoginSlide = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Login failed:', error)
-      setLoginError(error.message || 'Login failed. Please try again.')
+      // Show validation modal with formatted error message
+      setShowValidationModal(true)
+      setLoginError(null) // Clear inline error when showing modal
     } finally {
       setIsLoading(false)
     }
@@ -219,15 +223,15 @@ const LoginSlide = ({ navigation }) => {
             <div className="relative z-10 h-full flex flex-col justify-between p-4 sm:p-6">
               {/* Top - BJP Logo */}
               <div className="flex items-center animate-fade-in-left">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg border border-white/30">
+                {/* <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg border border-white/30">
                   <img 
                     src={logoImage} 
                     alt="BJP Logo" 
                     className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
                   />
-                </div>
+                </div> */}
                 <div className="ml-2 sm:ml-3">
-                  <h1 className="text-white text-sm sm:text-lg font-bold drop-shadow-lg">भारतीय जनता पार्टी</h1>
+                  <h1 className="text-white text-sm sm:text-lg font-bold drop-shadow-lg">BJP WINGS</h1>
                   <p className="text-white/80 text-xs drop-shadow-md">Bharatiya Janata Party</p>
                 </div>
               </div>
@@ -235,11 +239,8 @@ const LoginSlide = ({ navigation }) => {
               {/* Center - Main Text */}
               <div className="text-center animate-fade-in-up">
                 <h2 className="text-white text-xl sm:text-3xl font-bold mb-2 drop-shadow-lg">
-                  संसद चुनाव 2024
+                  महाराष्ट्र महानगरपालिका चुनाव
                 </h2>
-                <p className="text-white/90 text-sm sm:text-base drop-shadow-md">
-                  Digital India Initiative
-                </p>
                 {/* Animated underline */}
                 <div className="w-16 sm:w-20 h-1 bg-gradient-to-r from-orange-400 to-white mx-auto mt-2 sm:mt-3 rounded-full animate-pulse"></div>
               </div>
@@ -389,6 +390,28 @@ const LoginSlide = ({ navigation }) => {
         </div>
       </div>
 
+      {/* Validation Modal for Login Error */}
+      <ValidationModal
+        isOpen={showValidationModal}
+        message={
+          <div className="space-y-2">
+            <p className="text-gray-800">
+              आपने अपना मोबाइल नंबर गलत दर्ज किया है।
+            </p>
+            <p className="text-gray-800">
+              अथवा
+            </p>
+            <p className="text-gray-800">
+              आपका मोबाइल इस एप्लिकेशन का उपयोग करने के लिए मान्य नहीं है
+            </p>
+            <p className="text-red-600 font-semibold">
+              इसलिए कृपया कार्यालय में संपर्क करें।
+            </p>
+          </div>
+        }
+        onClose={() => setShowValidationModal(false)}
+        okText="Ok"
+      />
     </div>
   )
 }

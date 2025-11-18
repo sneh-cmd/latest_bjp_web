@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import logoImage from '../../../assets/image/BJP-Logo.png'
+import logoImage from '../../../assets/image/ic_app_logo.png'
 import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import MasterSearchModal from '../modals/MasterSearchModal.jsx'
+import LogoutConfirmationModal from '../modals/LogoutConfirmationModal.jsx'
 
 const getPanelVoterValue = (panel) => {
   if (!panel) return 0
@@ -33,6 +34,7 @@ const AdminDashboard = ({ navigation }) => {
   const [isVisible, setIsVisible] = useState(false)
   const [hoveredCard, setHoveredCard] = useState(null)
   const [showMasterSearchModal, setShowMasterSearchModal] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   // Get user data from localStorage or navigation state
   const getUserData = () => {
@@ -125,6 +127,10 @@ const AdminDashboard = ({ navigation }) => {
     }, 300)
   }
 
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true)
+  }
+
   const handleLogout = () => {
     // Clear session from localStorage
     localStorageManager.clearSession()
@@ -132,9 +138,14 @@ const AdminDashboard = ({ navigation }) => {
     console.log('User logged out from admin dashboard')
     
     setIsVisible(false)
+    setShowLogoutModal(false)
     setTimeout(() => {
       navigate('/corporation')
     }, 300)
+  }
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false)
   }
 
   const handleMasterSearch = () => {
@@ -242,14 +253,14 @@ const AdminDashboard = ({ navigation }) => {
       shadowColor: 'shadow-rose-200'
     },
     {
-      id: 'karyakarta',
-      name: 'कार्यकर्ता',
-      icon: 'karyakarta',
-      gradient: 'from-amber-500 to-yellow-500',
-      bgColor: 'bg-gradient-to-br from-amber-50 to-yellow-50',
-      iconColor: 'text-amber-600',
-      hoverColor: 'hover:from-amber-600 hover:to-yellow-600',
-      shadowColor: 'shadow-amber-200'
+      id: 'building-pramukh',
+      name: 'बिल्डिंग प्रमुख',
+      icon: 'building-pramukh',
+      gradient: 'from-teal-500 to-cyan-500',
+      bgColor: 'bg-gradient-to-br from-teal-50 to-cyan-50',
+      iconColor: 'text-teal-600',
+      hoverColor: 'hover:from-teal-600 hover:to-cyan-600',
+      shadowColor: 'shadow-teal-200'
     },
     {
       id: 'booth-pramukh',
@@ -262,6 +273,16 @@ const AdminDashboard = ({ navigation }) => {
       shadowColor: 'shadow-blue-200'
     },
     {
+      id: 'karyakarta',
+      name: 'कार्यकर्ता',
+      icon: 'karyakarta',
+      gradient: 'from-amber-500 to-yellow-500',
+      bgColor: 'bg-gradient-to-br from-amber-50 to-yellow-50',
+      iconColor: 'text-amber-600',
+      hoverColor: 'hover:from-amber-600 hover:to-yellow-600',
+      shadowColor: 'shadow-amber-200'
+    },
+    {
       id: 'call-center',
       name: 'कॉल सर्वे यूज़र',
       icon: 'call-center',
@@ -270,17 +291,8 @@ const AdminDashboard = ({ navigation }) => {
       iconColor: 'text-slate-600',
       hoverColor: 'hover:from-slate-600 hover:to-gray-600',
       shadowColor: 'shadow-slate-200'
-    },
-    {
-      id: 'building-pramukh',
-      name: 'बिल्डिंग प्रमुख',
-      icon: 'building-pramukh',
-      gradient: 'from-teal-500 to-cyan-500',
-      bgColor: 'bg-gradient-to-br from-teal-50 to-cyan-50',
-      iconColor: 'text-teal-600',
-      hoverColor: 'hover:from-teal-600 hover:to-cyan-600',
-      shadowColor: 'shadow-teal-200'
     }
+   
   ]
 
   const renderIcon = (iconType, colorClass) => {
@@ -370,11 +382,11 @@ const AdminDashboard = ({ navigation }) => {
       <div className="relative z-20 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between shadow-lg" style={{ backgroundColor: '#102463' }}>
         {/* Left: BJP Logo */}
         <div className="flex items-center">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-yellow-400 mr-2 sm:mr-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center mr-2 sm:mr-3">
             <img 
               src={logoImage} 
               alt="BJP Logo" 
-              className="w-4 h-4 sm:w-6 sm:h-6 object-contain"
+              className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
             />
           </div>
         </div>
@@ -389,18 +401,18 @@ const AdminDashboard = ({ navigation }) => {
         {/* Right: Action Buttons */}
         <div className="flex items-center space-x-1 sm:space-x-2">
           <button 
-            onClick={handleLogout}
+            onClick={handleLogoutClick}
             className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-white/20 rounded-lg transition-colors duration-200"
           >
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           </button>
-          <button className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-white/20 rounded-lg transition-colors duration-200">
+          {/* <button className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-white/20 rounded-lg transition-colors duration-200">
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -438,9 +450,6 @@ const AdminDashboard = ({ navigation }) => {
           </div>
           <div className="flex items-center space-x-1 sm:space-x-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full opacity-60" style={{ backgroundColor: '#102463' }}></div>
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
           </div>
         </div>
       </div>
@@ -501,9 +510,6 @@ const AdminDashboard = ({ navigation }) => {
           </div>
           <div className="flex items-center space-x-1 sm:space-x-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full opacity-60"></div>
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
           </div>
         </div>
       </div>
@@ -702,9 +708,6 @@ const AdminDashboard = ({ navigation }) => {
           </div>
           <div className="flex items-center space-x-1 sm:space-x-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-60"></div>
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
           </div>
         </div>
       </div>
@@ -742,7 +745,10 @@ const AdminDashboard = ({ navigation }) => {
           </button>
 
           {/* कार्यकर्ता के सरनेम ग्रुप Card */}
-          <div className="group relative bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:border-red-300 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col items-center justify-center min-h-[120px] w-auto min-w-[140px] max-w-[160px] overflow-hidden">
+          <div 
+            onClick={() => navigate('/surname-group-phonebook')}
+            className="group relative bg-white rounded-2xl p-4 shadow-lg border border-gray-200 hover:border-red-300 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col items-center justify-center min-h-[120px] w-auto min-w-[140px] max-w-[160px] overflow-hidden cursor-pointer"
+          >
             {/* Background Overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-red-50 to-pink-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             
@@ -787,9 +793,6 @@ const AdminDashboard = ({ navigation }) => {
           </div>
           <div className="flex items-center space-x-1 sm:space-x-2">
             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-purple-400 to-indigo-400 rounded-full opacity-60"></div>
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
           </div>
         </div>
       </div>
@@ -914,6 +917,12 @@ const AdminDashboard = ({ navigation }) => {
         isOpen={showMasterSearchModal}
         onClose={handleCloseMasterSearchModal}
         onSearch={handleMasterSearchSubmit}
+      />
+
+      <LogoutConfirmationModal
+        isOpen={showLogoutModal}
+        onConfirm={handleLogout}
+        onCancel={handleCancelLogout}
       />
       
     </div>

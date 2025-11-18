@@ -1402,7 +1402,7 @@ const BuildingDetailSlide = ({ navigation, buildingData, buildingId }) => {
                           return (
                             <div 
                               key={`regular-${index}`}
-                              className="bg-white rounded-md p-3 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+                              className="bg-white rounded-md p-3 hover:bg-gray-50 transition-colors shadow-sm"
                               onClick={() => setSelectedAddress(address)}
                             >
                               <div className="flex items-start">

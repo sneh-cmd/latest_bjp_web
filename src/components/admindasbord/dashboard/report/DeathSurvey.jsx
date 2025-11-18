@@ -274,12 +274,12 @@ const DeathSurvey = ({ navigation }) => {
                     key={voter.id || voter.voter_id || voter.admin_id || `${voter.idCardNo || ''}-${index}`}
                     voter={voter}
                     index={index}
-                    onCall={handleCallAction}
+                    // onCall={handleCallAction}
                     onFamily={handleFamilyNavigation}
-                    onCheckModal={() => {
+                   /*  onCheckModal={() => {
                       setModalMessage('मोबाइल नंबर नहीं मिला')
                       setShowModal(true)
-                    }}
+                    }} */
                     showLocationButton={false}
                     showEditButton={false}
                   />

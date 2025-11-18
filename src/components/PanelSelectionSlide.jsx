@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import logoImage from '../assets/image/BJP-Logo.png'
+import logoImage from '../assets/image/ic_app_logo.png'
 import backgroundImage from '../assets/image/logo-2.jpg'
 import apiService from '../apidata.jsx'
 
@@ -86,11 +86,11 @@ const PanelSelectionSlide = ({ navigation }) => {
 
 
   return (
-    <div className={`relative w-screen h-screen overflow-hidden transition-all duration-500 ${
+    <div className={`relative w-screen h-screen overflow-hidden transition-all duration-500 flex flex-col ${
       isVisible ? 'opacity-100' : 'opacity-0'
     }`}>
       {/* Header Section with Background Image */}
-      <div className="relative h-[35%] sm:h-[40%] md:h-[35%] lg:h-[30%] w-full">
+      <div className="relative h-[35%] sm:h-[40%] md:h-[35%] lg:h-[30%] w-full flex-shrink-0">
         {/* Background Image */}
         <div className="absolute top-0 left-0 w-full h-full">
           <img 
@@ -103,60 +103,68 @@ const PanelSelectionSlide = ({ navigation }) => {
 
         {/* Header Content */}
         <div className="relative z-20 h-full flex flex-col">
-          {/* Top Bar with Back Button */}
-          <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3">
-            <button 
-              onClick={handleBack}
-              className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-300"
-            >
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="w-7 sm:w-8"></div> {/* Spacer */}
-          </div>
-
-          {/* BJP Logo */}
-          <div className="flex-1 flex items-center justify-center sm:items-start sm:justify-start sm:ml-[5%] mt-[3%]">
-            <img 
-              src={logoImage} 
-              alt="BJP Logo" 
-              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain drop-shadow-2xl"
-              style={{
-                filter: 'drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 20px rgba(255, 153, 51, 0.8)) drop-shadow(0 0 15px rgba(37, 125, 35, 0.4))'
-              }}
-            />
-          </div>
-
-          {/* Corporation Name */}
-          <div className="px-3 sm:px-4 pb-2 text-center sm:text-left">
-            <h2 className="text-white text-base sm:text-lg font-semibold mb-1" style={{
-              textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-              letterSpacing: '0.5px'
-            }}>
-              {getCorporationName()}
-            </h2>
-            <p className="text-white/80 text-xs sm:text-sm" style={{
-              textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
-            }}>
-              Select Panel to Continue
-            </p>
-          </div>
-
-          {/* Search Bar - Responsive */}
-          <div className="absolute top-24 sm:top-28 md:top-32 left-1/2 transform -translate-x-1/2 px-3 sm:px-4 pb-2 flex justify-center">
-            <div className="relative w-64 sm:w-80 md:w-96 lg:w-112">
-              <input
-                type="text"
-                placeholder="Search Panel Name"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-8 sm:pr-10 bg-white rounded-xl border-0 focus:outline-none text-gray-800 placeholder-gray-500 shadow-lg text-sm sm:text-base"
-              />
-              <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          {/* Back Button, Corporation Name, and Logo Row */}
+          <div className="flex items-center justify-between px-2 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-2 md:py-3">
+            {/* Back Button and Corporation Name Section */}
+            <div className="absolute left-2 sm:left-4 top-2 sm:top-4 flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0 max-w-[60%] sm:max-w-none">
+              <button 
+                onClick={handleBack}
+                className="flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-300 flex-shrink-0"
+              >
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
+              </button>
+              <div className="flex items-center flex-shrink-0 min-w-0">
+                <h2 className="text-white text-[10px] sm:text-xs md:text-sm lg:text-base font-semibold truncate" style={{
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                  letterSpacing: '0.3px'
+                }}>
+                  {getCorporationName()}
+                </h2>
+              </div>
+            </div>
+
+            {/* Logo Section */}
+            <div className="flex items-center justify-center flex-1">
+              <img 
+                src={logoImage} 
+                alt="BJP Logo" 
+                className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain drop-shadow-2xl"
+                style={{
+                  filter: 'drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 20px rgba(255, 153, 51, 0.8)) drop-shadow(0 0 15px rgba(37, 125, 35, 0.4))'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Search Bar Section */}
+          <div className="flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-4 xl:px-4">
+            <div className="flex justify-center w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-lg xl:max-w-xl">
+              <div className="relative w-full">
+                <input
+                  type="text"
+                  placeholder="Search Panel Name"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-2.5 sm:pl-4 lg:pl-3 xl:pl-3 pr-8 sm:pr-12 lg:pr-10 xl:pr-10 py-1.5 sm:py-3 lg:py-2 xl:py-2 bg-white rounded-lg sm:rounded-xl lg:rounded-lg xl:rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-500 shadow-lg text-xs sm:text-base lg:text-sm xl:text-sm"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-4 lg:pr-3 xl:pr-3 pointer-events-none">
+                  <svg 
+                    className="w-4 h-4 sm:w-6 sm:h-6 lg:w-5 lg:h-5 xl:w-5 xl:h-5 text-gray-400" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth="2.5"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -164,11 +172,11 @@ const PanelSelectionSlide = ({ navigation }) => {
       </div>
 
       {/* Body Section with Panel Cards */}
-      <div className="relative h-[65%] bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 overflow-y-auto" style={{
-        scrollbarWidth: 'thin',
-        scrollbarColor: '#d1d5db #f3f4f6'
-      }}>
-        <div className="min-h-full px-4 py-6">
+      <div className="relative flex-1 bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 overflow-hidden">
+        <div className="h-full px-4 pt-6 overflow-y-auto" style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#d1d5db #f3f4f6'
+        }}>
           <div className="max-w-4xl mx-auto">
             {/* Loading State */}
             {loading && (

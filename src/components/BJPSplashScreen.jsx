@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import logoImage from '../assets/image/BJP-Logo.png'
+import logoImage from '../assets/image/ic_app_logo.png'
 import backgroundImage from '../assets/image/logo-2.jpg'
 import gifImage from '../assets/GIF/gif.gif'
 

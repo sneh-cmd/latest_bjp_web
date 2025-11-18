@@ -50,6 +50,11 @@ import DeathSurvey from './components/admindasbord/dashboard/report/DeathSurvey'
 import TransferredSurvey from './components/admindasbord/dashboard/report/TransferredSurvey'
 import KaryakartaPhonebook from './components/admindasbord/third_list/KaryakartaPhonebook'
 import KaryakartaPhonebookMembers from './components/admindasbord/third_list/PhonebookMemberList'
+import MatchRemaining from './components/admindasbord/third_list/MatchRemaining'
+import BoothWisePhonebook from './components/admindasbord/third_list/BoothWisePhonebook'
+import BoothWisePhonebookMember from './components/admindasbord/third_list/BoothWisePhonebookMember'
+import SurnameGroupPhonebook from './components/admindasbord/third_list/SurnameGroupPhonebook'
+import SurnameGroupMemberList from './components/admindasbord/third_list/SurnameGroupMemberList'
 import BoothSurveyDetailSlide from './components/admindasbord/dashboard/report/BoothDetailSlide'
 import Familyscreen from './components/admindasbord/dashboard/Familyscreen'
 import AddressDetailSlide from './components/admindasbord/dashboard/AddressDetailSlide'
@@ -490,6 +495,46 @@ function KaryakartaPhonebookWrapper() {
   )
 }
 
+function MatchRemainingWrapper() {
+  return (
+    <NavigationProvider>
+      <MatchRemaining />
+    </NavigationProvider>
+  )
+}
+
+function BoothWisePhonebookWrapper() {
+  return (
+    <NavigationProvider>
+      <BoothWisePhonebook />
+    </NavigationProvider>
+  )
+}
+
+function BoothWisePhonebookMemberWrapper() {
+  return (
+    <NavigationProvider>
+      <BoothWisePhonebookMember />
+    </NavigationProvider>
+  )
+}
+
+function SurnameGroupPhonebookWrapper() {
+  return (
+    <NavigationProvider>
+      <SurnameGroupPhonebook />
+    </NavigationProvider>
+  )
+}
+
+function SurnameGroupMemberListWrapper() {
+  return (
+    <NavigationProvider>
+      <SurnameGroupMemberList />
+    </NavigationProvider>
+  )
+}
+
 function CasteDetailSlideWrapper() {
   return (
     <NavigationProvider>
@@ -600,6 +645,11 @@ function App() {
           <Route path="/transferred-survey" element={<TransferredSurveyWrapper />} />
           <Route path="/karyakarta-phonebook" element={<KaryakartaPhonebookWrapper />} />
           <Route path="/karyakarta-phonebook-members" element={<KaryakartaPhonebookMembersWrapper />} />
+          <Route path="/match-remaining" element={<MatchRemainingWrapper />} />
+          <Route path="/booth-wise-phonebook" element={<BoothWisePhonebookWrapper />} />
+          <Route path="/booth-wise-phonebook-member" element={<BoothWisePhonebookMemberWrapper />} />
+          <Route path="/surname-group-phonebook" element={<SurnameGroupPhonebookWrapper />} />
+          <Route path="/surname-group-member-list" element={<SurnameGroupMemberListWrapper />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

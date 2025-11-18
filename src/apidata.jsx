@@ -290,6 +290,16 @@ export const apiService = {
         resultTag = 'display_all_phonebook_match_adminResult';
       } else if (soapAction === 'display_phonebook_member') {
         resultTag = 'display_phonebook_memberResult';
+      } else if (soapAction === 'display_no_phonebook_match_user') {
+        resultTag = 'display_no_phonebook_match_userResult';
+      } else if (soapAction === 'display_booth_wise_phonebook') {
+        resultTag = 'display_booth_wise_phonebookResult';
+      } else if (soapAction === 'display_booth_wise_phonebook_member') {
+        resultTag = 'display_booth_wise_phonebook_memberResult';
+      } else if (soapAction === 'display_surname_match_admin') {
+        resultTag = 'display_surname_match_adminResult';
+      } else if (soapAction === 'display_surname_group_sp') {
+        resultTag = 'display_surname_group_spResult';
       }
       
       const jsonMatch = xmlText.match(new RegExp(`<${resultTag}>(.*?)<\/${resultTag}>`, 's'));
@@ -392,6 +402,31 @@ export const apiService = {
         
         // Special handling for phonebook member endpoint
         if (soapAction === 'display_phonebook_member') {
+          return parsedData.result;
+        }
+        
+        // Special handling for no phonebook match user endpoint
+        if (soapAction === 'display_no_phonebook_match_user') {
+          return parsedData.result;
+        }
+        
+        // Special handling for booth wise phonebook endpoint
+        if (soapAction === 'display_booth_wise_phonebook') {
+          return parsedData.result;
+        }
+        
+        // Special handling for booth wise phonebook member endpoint
+        if (soapAction === 'display_booth_wise_phonebook_member') {
+          return parsedData.result;
+        }
+        
+        // Special handling for surname match admin endpoint
+        if (soapAction === 'display_surname_match_admin') {
+          return parsedData.result;
+        }
+        
+        // Special handling for surname group sp endpoint
+        if (soapAction === 'display_surname_group_sp') {
           return parsedData.result;
         }
         
@@ -1635,7 +1670,12 @@ export const apiService = {
                 soapAction === 'display_booth_pramukh_by_sakti_pramukh' ||
                 soapAction === 'display_voter_survey_log' ||
                 soapAction === 'display_all_phonebook_match_admin' ||
-                soapAction === 'display_phonebook_member') {
+                soapAction === 'display_phonebook_member' ||
+                soapAction === 'display_no_phonebook_match_user' ||
+                soapAction === 'display_booth_wise_phonebook' ||
+                soapAction === 'display_booth_wise_phonebook_member' ||
+                soapAction === 'display_surname_match_admin' ||
+                soapAction === 'display_surname_group_sp') {
               return [];
             }
           }
@@ -2542,6 +2582,38 @@ export const displayAllPhonebookMatchAdmin = async function(panelApiUrl) {
   );
 };
 
+// Surname match admin list - surname group phonebook
+export const display_surname_match_admin = async function(panelApiUrl) {
+  const soapBody = `<display_surname_match_admin xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'display_surname_match_admin',
+    soapBody,
+    true
+  );
+};
+
+// Display surname group members for a specific admin/user
+export const display_surname_group_sp = async function(userId, panelApiUrl) {
+  const soapBody = `<display_surname_group_sp xmlns="http://tempuri.org/">
+    <user_id>${userId}</user_id>
+  </display_surname_group_sp>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'display_surname_group_sp',
+    soapBody,
+    true
+  );
+};
+
 // Phonebook member list for admin
 export const displayPhonebookMember = async function(adminId, panelApiUrl) {
   // Ensure adminId is a valid number
@@ -2562,6 +2634,53 @@ export const displayPhonebookMember = async function(adminId, panelApiUrl) {
     adminEndpoint,
     'POST',
     'display_phonebook_member',
+    soapBody,
+    true
+  );
+};
+
+// Display no phonebook match user - users not matched in phonebook
+export const display_no_phonebook_match_user = async function(panelApiUrl) {
+  const soapBody = `<display_no_phonebook_match_user xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'display_no_phonebook_match_user',
+    soapBody,
+    true
+  );
+};
+
+// Display booth wise phonebook - booth wise known voters list
+export const display_booth_wise_phonebook = async function(panelApiUrl) {
+  const soapBody = `<display_booth_wise_phonebook xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'display_booth_wise_phonebook',
+    soapBody,
+    true
+  );
+};
+
+// Display booth wise phonebook member - detailed voter list for a specific booth
+export const display_booth_wise_phonebook_member = async function(boothNo, panelApiUrl) {
+  const soapBody = `<display_booth_wise_phonebook_member xmlns="http://tempuri.org/">
+    <booth_no>${boothNo}</booth_no>
+  </display_booth_wise_phonebook_member>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'display_booth_wise_phonebook_member',
     soapBody,
     true
   );

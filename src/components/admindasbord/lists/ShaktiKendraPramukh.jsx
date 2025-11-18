@@ -427,12 +427,33 @@ const ShaktiKendraPramukh = ({ navigation }) => {
         >
           <div className="flex items-center space-x-2 sm:space-x-4">
             <div className="flex-shrink-0">
-              {renderProfileImage(pramukh, 'w-10 h-10 sm:w-16 sm:h-16')}
+              {renderProfileImage(pramukh, 'w-10 h-10 sm:w-14 sm:h-14')}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className="flex items-center justify-between">
                 <h3 className="text-gray-900 font-semibold text-xs sm:text-lg truncate">
-                  {pramukh.name}
+                  {pramukh.name} &nbsp;
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (pramukh.status === 'active' && pramukh.lastLogin) {
+                    setSelectedUserForLastLogin({
+                      name: pramukh.name,
+                      lastLogin: pramukh.lastLogin
+                    })
+                    setShowLastLoginModal(true)
+                  } else {
+                    toggleStatus(pramukh.id)
+                  }
+                }}
+                className={`px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-colors ${
+                  pramukh.status === 'active'
+                    ? 'bg-green-500 text-white hover:bg-green-600 cursor-pointer'
+                    : 'bg-red-500 text-white hover:bg-red-600'
+                }`}
+              >
+                {pramukh.status === 'active' ? 'Active' : 'Inactive'}
+              </button>
                 </h3>
                 <div className="flex items-center space-x-1 sm:space-x-2">
                   <button
@@ -466,27 +487,7 @@ const ShaktiKendraPramukh = ({ navigation }) => {
               <p className="text-blue-600 text-[10px] sm:text-sm mb-1 sm:mb-3 truncate">
                 {pramukh.phoneNumber}
               </p>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (pramukh.status === 'active' && pramukh.lastLogin) {
-                    setSelectedUserForLastLogin({
-                      name: pramukh.name,
-                      lastLogin: pramukh.lastLogin
-                    })
-                    setShowLastLoginModal(true)
-                  } else {
-                    toggleStatus(pramukh.id)
-                  }
-                }}
-                className={`px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium transition-colors ${
-                  pramukh.status === 'active'
-                    ? 'bg-green-500 text-white hover:bg-green-600 cursor-pointer'
-                    : 'bg-red-500 text-white hover:bg-red-600'
-                }`}
-              >
-                {pramukh.status === 'active' ? 'Active' : 'Inactive'}
-              </button>
+              
             </div>
           </div>
           

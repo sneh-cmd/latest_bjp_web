@@ -314,16 +314,17 @@ const DateDetailSlide = ({ navigation }) => {
           </div>
         ) : error ? (
           <div className="text-center py-8 text-red-500">
-            <p className="text-base sm:text-lg">{error}</p>
+             {/* <p className="text-base sm:text-lg">{error}</p> */}
             <div className="mt-2 text-xs text-gray-600">
-              <p>Date Data: {JSON.stringify(categoryData, null, 2)}</p>
+            {/* <p>Date Data: {JSON.stringify(categoryData, null, 2)}</p> */}
+              <p>कोई डेटा उपलब्ध नहीं है</p>
             </div>
-            <button
+           {/*  <button
               onClick={fetchVoters}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               पुनः प्रयास करें
-            </button>
+            </button> */}
           </div>
         ) : filteredVoters.length === 0 ? (
           <div className="text-center py-8 text-gray-500">

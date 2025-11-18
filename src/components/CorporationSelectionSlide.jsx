@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import logoImage from '../assets/image/BJP-Logo.png'
+import logoImage from '../assets/image/ic_app_logo.png'
 import backgroundImage from '../assets/image/logo-2.jpg'
 import apiService from '../apidata.jsx'
 
@@ -115,23 +115,23 @@ const CorporationSelectionSlide = ({ navigation }) => {
                 }}
               />
             </div>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0"></div> {/* Spacer to balance */}
+            {/* <div className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0"></div> Spacer to balance */}
           </div>
 
           {/* Search Bar Section */}
-          <div className="flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-4 xl:px-8">
-            <div className="flex justify-center w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-lg xl:max-w-2xl">
+          <div className="flex items-center justify-center px-3 sm:px-4 md:px-6 lg:px-4 xl:px-4">
+            <div className="flex justify-center w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-lg xl:max-w-xl">
               <div className="relative w-full">
                 <input
                   type="text"
                   placeholder="Search Corporation Name"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-2.5 sm:pl-4 lg:pl-3 xl:pl-4 pr-8 sm:pr-12 lg:pr-10 xl:pr-12 py-1.5 sm:py-3 lg:py-2 xl:py-3 bg-white rounded-lg sm:rounded-xl lg:rounded-lg xl:rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-500 shadow-lg text-xs sm:text-base lg:text-sm xl:text-base"
+                  className="w-full pl-2.5 sm:pl-4 lg:pl-3 xl:pl-3 pr-8 sm:pr-12 lg:pr-10 xl:pr-10 py-1.5 sm:py-3 lg:py-2 xl:py-2 bg-white rounded-lg sm:rounded-xl lg:rounded-lg xl:rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 placeholder-gray-500 shadow-lg text-xs sm:text-base lg:text-sm xl:text-sm"
                 />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-4 lg:pr-3 xl:pr-4 pointer-events-none">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-4 lg:pr-3 xl:pr-3 pointer-events-none">
                   <svg 
-                    className="w-4 h-4 sm:w-6 sm:h-6 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-gray-400" 
+                    className="w-4 h-4 sm:w-6 sm:h-6 lg:w-5 lg:h-5 xl:w-5 xl:h-5 text-gray-400" 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24" 

@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import PageHeader from '../common/PageHeader.jsx'
-import { displayAllPhonebookMatchAdmin } from '../../../apidata.jsx'
+import { display_surname_match_admin } from '../../../apidata.jsx'
 import ContactActionModal from '../modals/ContactActionModal.jsx'
-import * as XLSX from 'xlsx-js-style'
+import localStorageManager from '../../../utils/localStorage.js'
 
 const TYPE_META = {
   A: { label: 'ऐडमिन', badge: 'bg-blue-100 text-blue-700' },
@@ -17,7 +17,7 @@ const normalizeResponse = (payload) => {
   return []
 }
 
-const KaryakartaPhonebook = ({ navigation }) => {
+const SurnameGroupPhonebook = ({ navigation }) => {
   const { navigate } = navigation
   const [phonebookData, setPhonebookData] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -32,19 +32,21 @@ const KaryakartaPhonebook = ({ navigation }) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await displayAllPhonebookMatchAdmin()
+      const panelApiUrl = localStorageManager.getApiUrl()
+      const response = await display_surname_match_admin(panelApiUrl)
       const records = normalizeResponse(response).map((item, index) => ({
         id: item.admin_id || index,
         adminId: item.admin_id,
         name: item.name || 'N/A',
         mobile: item.mobile_no || '-',
         photo: item.photo_path || '',
-        type: item.type || 'V',
-        totalMembers: Number(item.total_phonebook_member) || 0
+        type: item.type || item.sub_type || 'V',
+        designation: item.designation || '',
+        totalMembers: Number(item.total_surname_member) || 0
       }))
       setPhonebookData(records)
     } catch (err) {
-      console.error('Error fetching phonebook data:', err)
+      console.error('Error fetching surname group phonebook data:', err)
       setError(err.message || 'डेटा लोड करने में त्रुटि')
       setPhonebookData([])
     } finally {
@@ -83,18 +85,6 @@ const KaryakartaPhonebook = ({ navigation }) => {
     navigate(-1)
   }
 
-  const handleOpenMemberList = (admin) => {
-    if (!admin) return
-    const adminId = admin.adminId || admin.admin_id || admin.id
-    if (!adminId) {
-      setError('Admin ID उपलब्ध नहीं है')
-      return
-    }
-    navigate('/karyakarta-phonebook-members', {
-      admin: { ...admin, adminId }
-    })
-  }
-
   const handleOpenActions = (contact, event) => {
     event.stopPropagation()
     if (!contact?.mobile || contact.mobile === '-') return
@@ -119,81 +109,6 @@ const KaryakartaPhonebook = ({ navigation }) => {
   const handleCloseActionModal = () => {
     setShowActionModal(false)
     setActionContact(null)
-  }
-
-  const handleExport = () => {
-    try {
-      // Use filteredData which already includes search and type filters
-      if (filteredData.length === 0) {
-        alert('No data to export')
-        return
-      }
-
-      // Transform data to Excel format with headers
-      const excelData = filteredData.map((item, index) => ({
-        'Sr. No.': index + 1,
-        'Name': item.name || '',
-        'Mobile': item.mobile || '-',
-        'Designation': TYPE_META[item.type]?.label || item.type || '',
-        'Match Voter': item.totalMembers || 0
-      }))
-
-      // Create a new workbook
-      const wb = XLSX.utils.book_new()
-      
-      // Create worksheet with title and headers
-      const ws = XLSX.utils.aoa_to_sheet([])
-      const title = 'कार्यकर्ता की फोनबुक'
-      XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' })
-      ws['!merges'] = ws['!merges'] || []
-      ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } })
-      ws['A1'].s = {
-        font: { bold: true, sz: 16 },
-        alignment: { horizontal: 'center', vertical: 'center' }
-      }
-
-      const headers = [['Sr. No.', 'Name', 'Mobile', 'Designation', 'Match Voter']]
-      XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A2' })
-      headers[0].forEach((_, colIndex) => {
-        const cellRef = XLSX.utils.encode_cell({ r: 1, c: colIndex })
-        if (ws[cellRef]) {
-          ws[cellRef].s = {
-            font: { bold: true, color: { rgb: 'FFFFFF' } },
-            fill: { fgColor: { rgb: '4472C4' } },
-            alignment: { horizontal: 'center', vertical: 'center' },
-            border: {
-              top: { style: 'thin', color: { rgb: '000000' } },
-              bottom: { style: 'thin', color: { rgb: '000000' } },
-              left: { style: 'thin', color: { rgb: '000000' } },
-              right: { style: 'thin', color: { rgb: '000000' } }
-            }
-          }
-        }
-      })
-      XLSX.utils.sheet_add_json(ws, excelData, { origin: 'A3', skipHeader: true })
-       
-      // Set column widths for better readability
-      const colWidths = [
-        { wch: 8 },   // Sr. No.
-        { wch: 25 },  // Name
-        { wch: 15 },  // Mobile
-        { wch: 15 },  // Designation
-        { wch: 12 }   // Match Voter
-      ]
-      ws['!cols'] = colWidths
-      
-      // Add the worksheet to the workbook
-      XLSX.utils.book_append_sheet(wb, ws, 'Karyakarta Phonebook')
-      
-      // Generate Excel file and download
-      const fileName = `Karyakarta_Phonebook_${new Date().toISOString().split('T')[0]}.xlsx`
-      XLSX.writeFile(wb, fileName)
-      
-      console.log('Export successful:', fileName)
-    } catch (error) {
-      console.error('Error exporting data:', error)
-      alert('Failed to export data. Please try again.')
-    }
   }
 
   const renderProfileImage = (item, size = 'w-12 h-12') => {
@@ -230,7 +145,15 @@ const KaryakartaPhonebook = ({ navigation }) => {
     return (
       <div
         key={`${item.id}-${index}`}
-        onClick={() => handleOpenMemberList(item)}
+        onClick={() => {
+          const adminId = item.adminId || item.admin_id || item.id
+          if (adminId) {
+            navigate('/surname-group-member-list', {
+              adminId: adminId,
+              admin: item
+            })
+          }
+        }}
         className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-gray-200 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
       >
         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
@@ -243,7 +166,7 @@ const KaryakartaPhonebook = ({ navigation }) => {
             </div>
             <div className="text-[10px] sm:text-xs text-gray-500 flex items-center gap-2 sm:gap-4 mt-2">
               <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] ${meta.badge}`}>
-                {meta.label}
+                {item.designation || meta.label}
               </span>
               <span className="text-[11px] sm:text-xs text-gray-500">
                 सदस्य :{item.totalMembers}
@@ -272,7 +195,7 @@ const KaryakartaPhonebook = ({ navigation }) => {
   return (
     <div className="flex flex-col w-full h-screen overflow-hidden" style={{ backgroundColor: '#e5e8ff' }}>
       <PageHeader
-        title="कार्यकर्ता की फोनबुक"
+        title="कार्यकर्ता के सरनेम ग्रुप"
         onBack={handleBack}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -387,39 +310,7 @@ const KaryakartaPhonebook = ({ navigation }) => {
             </div>
           </div>
         </div>
-        
-        <div className="flex flex-row items-center gap-1.5 sm:gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/match-remaining')}
-            className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-gray-100 text-gray-700 text-[10px] sm:text-xs font-semibold shadow-sm hover:bg-gray-200 transition-colors"
-          >
-            मेच बाकी
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/booth-wise-phonebook')}
-            className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-gray-100 text-gray-700 text-[10px] sm:text-xs font-semibold shadow-sm hover:bg-gray-200 transition-colors"
-          >
-            बूथ अनुसार
-          </button>
-          {/* Export Button */}
-          <button 
-            type="button"
-            onClick={handleExport}
-            className="w-auto px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center justify-center space-x-1 sm:space-x-2 transition-all shadow-sm hover:shadow-md"
-            style={{backgroundColor: 'rgba(220, 38, 38, 0.87)'}}
-            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(185, 28, 28, 0.85)'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(220, 38, 38, 0.87)'}
-          >
-            <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1.8 18H6.2v-1.4h9.6V20zm0-2.8H6.2v-1.4h9.6v1.4zm0-2.8H6.2v-1.4h9.6v1.4zM13 9V3.5L18.5 9H13z"/>
-              <path d="M9 12h6v1.5H9V12zm0 2.5h6V16H9v-1.5zm0 2.5h6V18.5H9V17z"/>
-            </svg>
-            <span className="text-white text-[10px] sm:text-sm font-medium">Export</span>
-          </button>
         </div>
-      </div>
 
       <ContactActionModal
         isOpen={showActionModal}
@@ -430,6 +321,5 @@ const KaryakartaPhonebook = ({ navigation }) => {
   )
 }
 
-export default KaryakartaPhonebook
-
+export default SurnameGroupPhonebook
 
