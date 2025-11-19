@@ -5,6 +5,7 @@ import pmModiImage from '../assets/image/pm-modi.png'
 import apiService from '../apidata.jsx'
 import localStorageManager from '../utils/localStorage.js'
 import ValidationModal from './admindasbord/modals/ValidationModal.jsx'
+import OTPModal from './admindasbord/modals/OTPModal.jsx'
 
 const LoginSlide = ({ navigation }) => {
   const { navigate, params } = navigation
@@ -16,6 +17,8 @@ const LoginSlide = ({ navigation }) => {
   const [loginError, setLoginError] = useState(null)
   const [panelData, setPanelData] = useState(null)
   const [showValidationModal, setShowValidationModal] = useState(false)
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [sentOtp, setSentOtp] = useState(null) // Store OTP from response
 
   // Get corporation name from ID
   const getCorporationName = (id) => {
@@ -106,61 +109,178 @@ const LoginSlide = ({ navigation }) => {
       return
     }
 
-    console.log('Starting login process...')
+    console.log('Sending OTP to phone number...')
     setIsLoading(true)
     setLoginError(null)
     
     try {
       // Get the panel API URL for admin login
-      // Note: apiUrl should be base URL only (e.g., http://tmc1.mhbjplok.com)
-      // The /webservice.asmx will be appended in adminLogin function
       const panelApiUrl = panelData?.apiUrl || `http://tmc${panelId}.mhbjplok.com`
       console.log('Using panel API URL:', panelApiUrl)
       
-      // Call the admin login API
-      const adminResponse = await apiService.adminLogin(phoneNumber, panelApiUrl, "1", "")
-      console.log('Admin login response:', adminResponse)
+      // Send OTP by calling adminLogin with isLogin="1" and deviceId=""
+      const otpResponse = await apiService.adminLogin(phoneNumber, panelApiUrl, "1", "")
+      console.log('OTP sent response:', otpResponse)
       
-      if (adminResponse && adminResponse.length > 0) {
-        // Store the first admin data (you can modify this logic based on your needs)
-        const admin = adminResponse[0]
-        
-        // Save session data to localStorage
-        const sessionData = {
-          corporation: selectedCorporation,
-          panel: selectedPanel,
-          phoneNumber: phoneNumber,
-          admin: admin,
-          allAdmins: adminResponse
-        }
-        
-        try {
-          localStorageManager.saveSession(sessionData)
-          console.log('Session saved to localStorage for user:', admin.name)
-        } catch (error) {
-          console.error('Failed to save session:', error)
-          // Continue with login even if session saving fails
-        }
-        
-        // Clear navigation state from sessionStorage after successful login
-        localStorageManager.clearNavigationState()
-        
-        // Navigate directly to admin dashboard (skip success screen)
-        console.log('Login successful, navigating directly to admin dashboard')
-        navigate('/admin', {
-          state: sessionData
-        })
+      // Extract and store OTP from response
+      if (otpResponse && otpResponse.length > 0 && otpResponse[0].otp) {
+        const receivedOtp = otpResponse[0].otp.toString().trim()
+        setSentOtp(receivedOtp)
+        console.log('OTP stored for verification:', receivedOtp)
       } else {
-        throw new Error('No admin found for this phone number')
+        throw new Error('Failed to receive OTP from server')
       }
+      
+      // Show OTP modal
+      setShowOTPModal(true)
     } catch (error) {
-      console.error('Login failed:', error)
+      console.error('Failed to send OTP:', error)
       // Show validation modal with formatted error message
       setShowValidationModal(true)
       setLoginError(null) // Clear inline error when showing modal
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleOtpVerify = async (otp) => {
+    console.log('OTP verification started', { phoneNumber, otp, sentOtp })
+    
+    if (otp.length !== 6) {
+      alert('कृपया 6 अंकों का OTP दर्ज करें')
+      return
+    }
+
+    // Verify OTP matches the one sent from server
+    if (!sentOtp) {
+      console.error('No OTP stored for verification')
+      // Show alert, keep modal open
+      alert('OTP verification failed. Please try again.')
+      return
+    }
+
+    const enteredOtp = otp.toString().trim()
+    const storedOtp = sentOtp.toString().trim()
+
+    console.log('Comparing OTPs:', { enteredOtp, storedOtp, match: enteredOtp === storedOtp })
+
+    if (enteredOtp !== storedOtp) {
+      console.error('OTP mismatch - Invalid OTP entered')
+      // Show alert for invalid OTP, keep modal open
+      alert('गलत OTP दर्ज किया गया है। कृपया सही OTP दर्ज करें।')
+      return
+    }
+
+    if (isLoading) {
+      console.log('Verification already in progress, ignoring duplicate request')
+      return
+    }
+
+    console.log('OTP verified successfully, proceeding with login...')
+    setIsLoading(true)
+    setLoginError(null)
+    
+    try {
+      // Get the panel API URL for admin login
+      const panelApiUrl = panelData?.apiUrl || `http://tmc${panelId}.mhbjplok.com`
+      console.log('Using panel API URL:', panelApiUrl)
+      
+      // Verify OTP by calling adminLogin with isLogin="0" (verification mode) and deviceId=OTP
+      const adminResponse = await apiService.adminLogin(phoneNumber, panelApiUrl, "0", otp)
+      console.log('OTP Verification API called with isLogin="0" (verify only) and deviceId (OTP) =', otp)
+      console.log('Admin login response (OTP verification):', adminResponse)
+      
+      if (adminResponse && adminResponse.length > 0) {
+        // Store the first admin data
+        const admin = adminResponse[0]
+        
+        // Save session data to localStorage (including OTP)
+        const sessionData = {
+          corporation: selectedCorporation,
+          panel: selectedPanel,
+          phoneNumber: phoneNumber,
+          admin: admin,
+          allAdmins: adminResponse,
+          otp: otp // Store verified OTP in session
+        }
+        
+        try {
+          localStorageManager.saveSession(sessionData)
+          console.log('Session saved to localStorage for user:', admin.name, 'with OTP:', otp)
+        } catch (error) {
+          console.error('Failed to save session:', error)
+        }
+        
+        // Clear navigation state from sessionStorage after successful login
+        localStorageManager.clearNavigationState()
+        
+        // Clear stored OTP
+        setSentOtp(null)
+        
+        // Close OTP modal
+        setShowOTPModal(false)
+        
+        // Navigate directly to admin dashboard
+        console.log('Login successful, navigating directly to admin dashboard')
+        navigate('/admin', {
+          state: sessionData
+        })
+      } else {
+        // Invalid OTP from API - show alert, keep modal open
+        alert('गलत OTP दर्ज किया गया है। कृपया सही OTP दर्ज करें।')
+        setIsLoading(false)
+        return
+      }
+    } catch (error) {
+      console.error('Login failed:', error)
+      // For OTP verification errors, show alert and keep modal open
+      // Only show ValidationModal for phone number errors (not OTP errors)
+      if (error.message && error.message.includes('OTP')) {
+        alert('गलत OTP दर्ज किया गया है। कृपया सही OTP दर्ज करें।')
+      } else {
+        // For other errors (like network errors), show validation modal
+        setShowValidationModal(true)
+        setLoginError(null)
+        setShowOTPModal(false)
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResendOTP = async () => {
+    console.log('Resending OTP to phone number:', phoneNumber)
+    setIsLoading(true)
+    setLoginError(null)
+    
+    try {
+      const panelApiUrl = panelData?.apiUrl || `http://tmc${panelId}.mhbjplok.com`
+      console.log('Resending OTP using panel API URL:', panelApiUrl)
+      
+      // Resend OTP by calling adminLogin with isLogin="1" and deviceId=""
+      const otpResponse = await apiService.adminLogin(phoneNumber, panelApiUrl, "1", "")
+      console.log('OTP resent response:', otpResponse)
+      
+      // Extract and store new OTP from response
+      if (otpResponse && otpResponse.length > 0 && otpResponse[0].otp) {
+        const receivedOtp = otpResponse[0].otp.toString().trim()
+        setSentOtp(receivedOtp)
+        console.log('New OTP stored for verification:', receivedOtp)
+      } else {
+        throw new Error('Failed to receive OTP from server')
+      }
+    } catch (error) {
+      console.error('Failed to resend OTP:', error)
+      setShowValidationModal(true)
+      setLoginError(null)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleEditPhone = () => {
+    setShowOTPModal(false)
+    // Focus will return to phone input automatically
   }
 
   const handleBack = () => {
@@ -423,6 +543,17 @@ const LoginSlide = ({ navigation }) => {
         }
         onClose={() => setShowValidationModal(false)}
         okText="Ok"
+      />
+
+      {/* OTP Modal */}
+      <OTPModal
+        isOpen={showOTPModal}
+        phoneNumber={phoneNumber}
+        onClose={() => setShowOTPModal(false)}
+        onVerify={handleOtpVerify}
+        onEditPhone={handleEditPhone}
+        onResendOTP={handleResendOTP}
+        isVerifying={isLoading}
       />
     </div>
   )
