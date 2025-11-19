@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import logoImage from '../assets/image/ic_app_logo.png'
 import backgroundImage from '../assets/image/logo-2.jpg'
 import apiService from '../apidata.jsx'
+import localStorageManager from '../utils/localStorage.js'
 
 const CorporationSelectionSlide = ({ navigation }) => {
   const { navigate } = navigation
@@ -59,6 +60,44 @@ const CorporationSelectionSlide = ({ navigation }) => {
   )
 
   const handleCorporationClick = (corporation) => {
+    // Check if user is already logged in (coming from admin dashboard)
+    const isLoggedIn = localStorageManager.isLoggedIn()
+    
+    if (isLoggedIn) {
+      // User is logged in - update session with new corporation
+      const currentSession = localStorageManager.getSession()
+      if (currentSession) {
+        // Update session with new corporation data
+        localStorageManager.updateSession({
+          corporation: {
+            id: corporation.id,
+            name: corporation.name,
+            englishName: corporation.englishName
+          }
+        })
+      }
+      
+      // Clear navigation state to prevent redirect to login
+      localStorageManager.clearNavigationState()
+      
+      // Navigate to panel selection
+      setTimeout(() => {
+        setSelectedCorporation(corporation.id)
+        setTimeout(() => {
+          navigate(`/panel/${corporation.id}`)
+        }, 300)
+      }, 500)
+      return
+    }
+    
+    // Fresh flow - user not logged in
+    // Save navigation state to sessionStorage
+    localStorageManager.saveNavigationState(`/panel/${corporation.id}`, {
+      screen: 'panel',
+      corporationId: corporation.id,
+      corporationName: corporation.name
+    })
+    
     // Add delay before selection and navigation
     setTimeout(() => {
       setSelectedCorporation(corporation.id)

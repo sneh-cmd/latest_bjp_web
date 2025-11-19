@@ -65,12 +65,21 @@ const LoginSlide = ({ navigation }) => {
     const existingSession = localStorageManager.getSession()
     if (existingSession) {
       console.log('Existing session found, redirecting to admin dashboard:', existingSession)
+      // Clear navigation state if logged in
+      localStorageManager.clearNavigationState()
       // Navigate directly to admin dashboard if already logged in
       navigate('/admin', {
         state: existingSession
       })
       return
     }
+    
+    // Save navigation state to sessionStorage (user reached login screen)
+    localStorageManager.saveNavigationState(`/login/${corporationId}/${panelId}`, {
+      screen: 'login',
+      corporationId: corporationId,
+      panelId: panelId
+    })
     
     // Fetch panel data
     fetchPanelData()
@@ -132,6 +141,9 @@ const LoginSlide = ({ navigation }) => {
           console.error('Failed to save session:', error)
           // Continue with login even if session saving fails
         }
+        
+        // Clear navigation state from sessionStorage after successful login
+        localStorageManager.clearNavigationState()
         
         // Navigate directly to admin dashboard (skip success screen)
         console.log('Login successful, navigating directly to admin dashboard')
@@ -223,16 +235,16 @@ const LoginSlide = ({ navigation }) => {
             <div className="relative z-10 h-full flex flex-col justify-between p-4 sm:p-6">
               {/* Top - BJP Logo */}
               <div className="flex items-center animate-fade-in-left">
-                {/* <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg border border-white/30">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
                   <img 
                     src={logoImage} 
                     alt="BJP Logo" 
-                    className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
+                    className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
                   />
-                </div> */}
+                </div> 
                 <div className="ml-2 sm:ml-3">
-                  <h1 className="text-white text-sm sm:text-lg font-bold drop-shadow-lg">BJP WINGS</h1>
-                  <p className="text-white/80 text-xs drop-shadow-md">Bharatiya Janata Party</p>
+                  <h1 className="text-orange-500 text-sm sm:text-lg font-bold drop-shadow-lg">BJP WINGS</h1>
+                  <p className="text-orange-500 text-xs drop-shadow-md">THE ELECTION STRATEGIC PLANNING</p>
                 </div>
               </div>
               

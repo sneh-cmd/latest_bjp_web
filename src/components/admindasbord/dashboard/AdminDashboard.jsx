@@ -4,6 +4,7 @@ import apiService from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import MasterSearchModal from '../modals/MasterSearchModal.jsx'
 import LogoutConfirmationModal from '../modals/LogoutConfirmationModal.jsx'
+import ProfileModal from '../modals/ProfileModal.jsx'
 
 const getPanelVoterValue = (panel) => {
   if (!panel) return 0
@@ -35,6 +36,8 @@ const AdminDashboard = ({ navigation }) => {
   const [hoveredCard, setHoveredCard] = useState(null)
   const [showMasterSearchModal, setShowMasterSearchModal] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
 
   // Get user data from localStorage or navigation state
   const getUserData = () => {
@@ -60,11 +63,23 @@ const AdminDashboard = ({ navigation }) => {
       return
     }
     
+    // Set sidebar open by default on desktop
+    const checkDesktop = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true)
+      }
+    }
+    checkDesktop()
+    window.addEventListener('resize', checkDesktop)
+    
     // Animate in when component mounts
     const timer = setTimeout(() => {
       setIsVisible(true)
     }, 100)
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', checkDesktop)
+    }
   }, [navigate])
 
   useEffect(() => {
@@ -146,6 +161,52 @@ const AdminDashboard = ({ navigation }) => {
 
   const handleCancelLogout = () => {
     setShowLogoutModal(false)
+  }
+
+  const handleSidebarToggle = () => {
+    // Only toggle on mobile (desktop sidebar is always open)
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(!isSidebarOpen)
+    }
+  }
+
+  const handleSidebarClose = () => {
+    // Only close on mobile (desktop sidebar stays open)
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false)
+    }
+  }
+
+  const handleProfileClick = () => {
+    handleSidebarClose()
+    setShowProfileModal(true)
+  }
+
+  const handleAllUsersClick = () => {
+    handleSidebarClose()
+    
+  }
+
+  const handleChangeCorporation = () => {
+    handleSidebarClose()
+    // Clear navigation state to prevent redirect to login screen
+    localStorageManager.clearNavigationState()
+    // Don't clear session - user is still logged in, just changing corporation
+    // Navigate to corporation selection
+    navigate('/corporation')
+  }
+
+  const handleChangePanel = () => {
+    handleSidebarClose()
+    // Clear navigation state to prevent redirect to login screen
+    localStorageManager.clearNavigationState()
+    // Navigate to panel selection for current corporation
+    const corporationId = userData?.corporation?.id
+    if (corporationId) {
+      navigate(`/panel/${corporationId}`)
+    } else {
+      navigate('/corporation')
+    }
   }
 
   const handleMasterSearch = () => {
@@ -372,16 +433,16 @@ const AdminDashboard = ({ navigation }) => {
   }
 
   return (
-    <div className={`relative w-full h-screen overflow-y-auto scroll-smooth transition-all duration-700 ${
+    <div className={`relative w-full h-screen overflow-y-auto scroll-smooth transition-all duration-700 lg:pl-[280px] ${
       isVisible ? 'opacity-100' : 'opacity-0'
     }`} style={{ backgroundColor: '#e5e8ff' }}>
       {/* Background */}
       <div className="fixed inset-0 -z-10" style={{ backgroundColor: '#e5e8ff' }}></div>
       
       {/* Responsive Header */}
-      <div className="relative z-20 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between shadow-lg" style={{ backgroundColor: '#102463' }}>
-        {/* Left: BJP Logo */}
-        <div className="flex items-center">
+      <div className="relative z-20 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between shadow-lg lg:ml-0" style={{ backgroundColor: '#102463' }}>
+        {/* Left: BJP Logo (mobile only, desktop logo is in sidebar) */}
+        <div className="flex items-center lg:hidden">
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center mr-2 sm:mr-3">
             <img 
               src={logoImage} 
@@ -408,11 +469,14 @@ const AdminDashboard = ({ navigation }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           </button>
-          {/* <button className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-white/20 rounded-lg transition-colors duration-200">
+          <button 
+            onClick={handleSidebarToggle}
+            className="lg:hidden w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-white hover:bg-white/20 rounded-lg transition-colors duration-200"
+          >
             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-          </button> */}
+          </button>
         </div>
       </div>
 
@@ -924,6 +988,128 @@ const AdminDashboard = ({ navigation }) => {
         onConfirm={handleLogout}
         onCancel={handleCancelLogout}
       />
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
+
+      {/* Sidebar Overlay - Only on mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
+          onClick={handleSidebarClose}
+        ></div>
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed top-0 h-full z-50 transition-transform duration-300 ease-in-out ${
+        // Desktop: always visible on left, Mobile: toggleable on right
+        'lg:left-0 lg:translate-x-0 lg:right-auto right-0'
+      } ${
+        // Mobile behavior
+        isSidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
+      }`} style={{ width: '280px', maxWidth: '85vw' }}>
+        {/* Dark Blue Sidebar Background - Only for Logo */}
+        <div className="absolute top-0 left-0 w-full h-20 bg-[#102463]"></div>
+        
+        {/* Sidebar Content */}
+        <div className="flex flex-col h-full bg-gray-100 relative">
+          {/* BJP Logo at Top - On Dark Blue Background */}
+          <div className="relative p-1 flex items-center justify-center border-b border-gray-300 bg-[#102463]">
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-green-500 rounded-full flex items-center justify-center shadow-lg">
+              <img 
+                src={logoImage} 
+                alt="BJP Logo" 
+                className="w-10 h-10 object-contain"
+              />
+            </div>
+          </div>
+
+          {/* User Profile Section */}
+          <div className="p-6 bg-gray-100">
+            {/* Profile Picture Placeholder */}
+            <div className="w-20 h-20 bg-yellow-200 rounded-full mx-auto mb-4 flex items-center justify-center shadow-md">
+              {userData?.admin?.photoPath ? (
+                <img 
+                  src={userData.admin.photoPath} 
+                  alt={userData.admin.name || 'User'} 
+                  className="w-20 h-20 rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl font-bold text-yellow-700">
+                  {(userData?.admin?.name || 'User').charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+            
+            {/* User Name */}
+            <h3 className="text-center text-lg font-semibold mb-1" style={{ color: '#102463' }}>
+              {userData?.admin?.name || 'User Name'}
+            </h3>
+            
+            {/* User Role */}
+            <p className="text-center text-sm text-green-600 font-medium">
+              एडमिन
+            </p>
+          </div>
+
+          {/* Menu Items */}
+          <div className="flex-1 overflow-y-auto py-2 bg-white">
+            {/* Profile */}
+            <button
+              onClick={handleProfileClick}
+              className="w-full px-6 py-4 flex items-center space-x-3 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+            >
+              <div className="w-6 h-6 flex items-center justify-center text-gray-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <span className="text-base font-medium">प्रोफ़ाइल</span>
+            </button>
+
+            {/* All Users */}
+            <button
+              onClick={handleAllUsersClick}
+              className="w-full px-6 py-4 flex items-center space-x-3 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+            >
+              <div className="w-6 h-6 flex items-center justify-center text-gray-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <span className="text-base font-medium">सभी यूजर</span>
+            </button>
+
+            {/* Change Corporation */}
+            <button
+              onClick={handleChangeCorporation}
+              className="w-full px-6 py-4 flex items-center space-x-3 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+            >
+              <div className="w-6 h-6 flex items-center justify-center text-gray-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+              </div>
+              <span className="text-base font-medium">कॉर्पोरेशन बदलें</span>
+            </button>
+
+            {/* Change Panel */}
+            <button
+              onClick={handleChangePanel}
+              className="w-full px-6 py-4 flex items-center space-x-3 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+            >
+              <div className="w-6 h-6 flex items-center justify-center text-gray-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+              </div>
+              <span className="text-base font-medium">पैनल बदलें</span>
+            </button>
+          </div>
+        </div>
+      </div>
       
     </div>
   )

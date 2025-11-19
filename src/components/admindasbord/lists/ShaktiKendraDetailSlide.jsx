@@ -944,7 +944,8 @@ const ShaktiKendraDetailSlide = ({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md sm:max-w-lg">
           {filteredVoterData.map((voter) => {
             // Find corresponding booth data from boothData array
             const boothInfo = boothData.find(booth => 
@@ -975,6 +976,7 @@ const ShaktiKendraDetailSlide = ({
               </div>
             )
           })}
+          </div>
         </div>
       )}
     </div>

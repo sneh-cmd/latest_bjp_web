@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 import logoImage from '../assets/image/ic_app_logo.png'
 import backgroundImage from '../assets/image/logo-2.jpg'
 import gifImage from '../assets/GIF/gif.gif'
+import localStorageManager from '../utils/localStorage.js'
 
 const BJPSplashScreen = ({ navigation }) => {
   const { navigate } = navigation
@@ -18,6 +19,29 @@ const BJPSplashScreen = ({ navigation }) => {
   const gifRef = useRef(null)
 
   useEffect(() => {
+    // Check if user is already logged in - if yes, redirect to admin directly
+    const existingSession = localStorageManager.getSession()
+    if (existingSession) {
+      console.log('Existing session found on splash screen, redirecting to admin dashboard')
+      // Clear navigation state if logged in
+      localStorageManager.clearNavigationState()
+      navigate('/admin', {
+        state: existingSession
+      })
+      return
+    }
+
+    // Check if there's a saved navigation state (user was in the middle of flow)
+    const navigationState = localStorageManager.getNavigationState()
+    if (navigationState && navigationState.path) {
+      console.log('Navigation state found, restoring to:', navigationState.path)
+      // Restore to the saved navigation path (should be login screen)
+      navigate(navigationState.path, {
+        state: navigationState.data
+      })
+      return
+    }
+
     // Initial setup - hide elements that will be shown later (only if they exist)
     const elementsToHide = [contentRef.current, buttonRef.current, gifRef.current].filter(Boolean)
     if (elementsToHide.length > 0) {
@@ -90,7 +114,7 @@ const BJPSplashScreen = ({ navigation }) => {
     return () => {
       tl.kill()
     }
-  }, [])
+  }, [navigate])
 
   // Separate effect for content animation after loading is complete
   useEffect(() => {
@@ -140,6 +164,9 @@ const BJPSplashScreen = ({ navigation }) => {
   }, [isLoaded])
 
   const handleContinue = () => {
+    // Save navigation state to sessionStorage
+    localStorageManager.saveNavigationState('/corporation', { screen: 'corporation' })
+    
     // Enhanced button click animation (only if button exists)
     if (buttonRef.current) {
       const tl = gsap.timeline()

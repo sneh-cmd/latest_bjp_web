@@ -205,11 +205,11 @@ const AddressVoterSlide = ({ navigation }) => {
                       <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पता:</span>
                       <div className="flex-1 min-w-0 flex items-start gap-1 sm:gap-2">
                         <span className="text-gray-900 break-words flex-1">{voter.address || '-'}</span>
-                        <button className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                       {/*  <button className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                           <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                           </svg>
-                        </button>
+                        </button> */}
                       </div>
                     </div>
 

@@ -4,7 +4,7 @@ import localStorageManager from '../../../utils/localStorage'
 import PageHeader from '../common/PageHeader.jsx'
 
 const SurnameSlide = ({ navigation, onClose }) => {
-  const { navigate } = navigation
+  const { navigate, state = {} } = navigation
   const [isVisible, setIsVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [surnames, setSurnames] = useState([])
@@ -46,6 +46,24 @@ const SurnameSlide = ({ navigation, onClose }) => {
         
         setSurnames(transformedSurnames)
         setAllSurnames(transformedSurnames)
+        
+        // Restore previously selected surnames from navigation state
+        if (state?.selectedSurnames && Array.isArray(state.selectedSurnames) && state.selectedSurnames.length > 0) {
+          // Match the selected surnames by name and set their IDs
+          const selectedIds = transformedSurnames
+            .filter(surname => 
+              state.selectedSurnames.some(selected => 
+                selected.name && surname.name && 
+                selected.name.toLowerCase().trim() === surname.name.toLowerCase().trim()
+              )
+            )
+            .map(surname => surname.id)
+          
+          if (selectedIds.length > 0) {
+            setSelectedSurnames(selectedIds)
+            console.log('Restored selected surnames:', selectedIds)
+          }
+        }
       } catch (err) {
         console.error('Error fetching surnames:', err)
         setError(err.message || 'Failed to fetch surnames')
@@ -57,7 +75,7 @@ const SurnameSlide = ({ navigation, onClose }) => {
     }
     
     fetchSurnames()
-  }, [])
+  }, [state?.selectedSurnames])
 
   const handleBack = () => {
     setIsVisible(false)

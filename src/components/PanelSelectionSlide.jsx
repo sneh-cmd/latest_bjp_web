@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import logoImage from '../assets/image/ic_app_logo.png'
 import backgroundImage from '../assets/image/logo-2.jpg'
 import apiService from '../apidata.jsx'
+import localStorageManager from '../utils/localStorage.js'
 
 const PanelSelectionSlide = ({ navigation }) => {
   const { navigate, params } = navigation
@@ -67,12 +68,58 @@ const PanelSelectionSlide = ({ navigation }) => {
   )
 
   const handlePanelClick = (panel) => {
+    const panelId = panel.id ?? panel.panel_no
+    
+    // Check if user is already logged in (coming from admin dashboard)
+    const isLoggedIn = localStorageManager.isLoggedIn()
+    
+    if (isLoggedIn) {
+      // User is logged in - update session with new panel and go directly to admin dashboard
+      const currentSession = localStorageManager.getSession()
+      if (currentSession) {
+        // Update session with new panel data
+        const updatedPanel = {
+          ...currentSession.panel,
+          id: panelId,
+          panel_no: panelId,
+          name: panel.name || panel.panel_name,
+          ...panel
+        }
+        
+        localStorageManager.updateSession({ panel: updatedPanel })
+        
+        // Get updated session for navigation
+        const updatedSession = localStorageManager.getSession()
+        
+        // Clear navigation state
+        localStorageManager.clearNavigationState()
+        
+        // Navigate directly to admin dashboard
+        setTimeout(() => {
+          setSelectedPanel(panelId)
+          setTimeout(() => {
+            navigate('/admin', { state: updatedSession })
+          }, 300)
+        }, 500)
+        return
+      }
+    }
+    
+    // Fresh flow - user not logged in
+    // Save navigation state to sessionStorage
+    localStorageManager.saveNavigationState(`/login/${corporationId}/${panelId}`, {
+      screen: 'login',
+      corporationId: corporationId,
+      panelId: panelId,
+      panelName: panel.name || panel.panel_name
+    })
+    
     // Add delay before selection and navigation
     setTimeout(() => {
-      setSelectedPanel(panel.id ?? panel.panel_no)
+      setSelectedPanel(panelId)
       // Add another small delay before navigation
       setTimeout(() => {
-        navigate(`/login/${corporationId}/${panel.id ?? panel.panel_no}`)
+        navigate(`/login/${corporationId}/${panelId}`)
       }, 300)
     }, 500)
   }
