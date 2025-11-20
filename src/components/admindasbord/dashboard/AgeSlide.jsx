@@ -3,8 +3,8 @@ import apiService from '../../../apidata'
 import localStorageManager from '../../../utils/localStorage'
 import DataSearchLoader from '../utils/DataSearchLoader'
 import ValidationModal from '../modals/ValidationModal'
-import CheckButton from '../common/CheckButton.jsx'
 import PageHeader from '../common/PageHeader.jsx'
+import VoterCard from '../common/VoterCard.jsx'
 
 const AGE_SEARCH_CACHE_KEY = 'age-search-cache'
 
@@ -120,19 +120,66 @@ const AgeSlide = ({ navigation, onClose }) => {
       
       console.log('API response:', response)
       
-      // Transform the response to match our structure
+      // Transform the response to match VoterCard structure
       const transformedVoters = Array.isArray(response) 
         ? response.map((item) => ({
             id: item.id,
-            serialNo: item.slnoinpart || item.serial_no,
+            voter_id: item.voter_id,
+            admin_id: item.admin_id,
+            // Name fields
             name: `${item.eng_f_name || ''} ${item.f_eng_surname || ''}`.trim(),
-            fatherHusband: item.eng_m_name || '-',
-            address: item.eng_localityid || '-',
-            mobile: item.contact_no || '-',
-            voterId: item.idcard_no || '-',
+            eng_f_name: item.eng_f_name,
+            f_eng_surname: item.f_eng_surname,
+            firstName: item.eng_f_name,
+            // Father/Husband fields
+            fatherHusband: item.eng_m_name,
+            eng_m_name: item.eng_m_name,
+            father_name: item.eng_m_name,
+            m_name: item.m_name,
+            // Address fields
+            address: item.eng_localityid,
+            eng_localityid: item.eng_localityid,
+            full_address: item.eng_localityid,
+            locality: item.locality,
+            // Mobile fields
+            mobile: item.contact_no,
+            contact_no: item.contact_no,
+            phone: item.phone,
+            // Serial number fields
+            serialNumber: item.slnoinpart || item.serial_no,
+            serialNo: item.slnoinpart || item.serial_no, // Alias for search compatibility
+            slnoinpart: item.slnoinpart,
+            serial_no: item.serial_no,
+            kramank: item.kramank,
+            // ID card fields
+            idCardNo: item.idcard_no,
+            idcard_no: item.idcard_no,
+            id_card_no: item.id_card_no,
+            epic_no: item.epic_no,
+            epic: item.epic,
+            voterId: item.idcard_no,
+            // Booth fields
             boothNo: item.booth_no || item.part_no,
-            houseNo: item.eng_house_no || '-',
-            pollingStation: item.eng_polling_location || '-'
+            partNo: item.part_no,
+            part_no: item.part_no,
+            booth_no: item.booth_no,
+            booth_number: item.booth_number,
+            // House number fields
+            houseNo: item.eng_house_no,
+            eng_house_no: item.eng_house_no,
+            house_no: item.house_no,
+            house_number: item.house_number,
+            // Polling station fields
+            pollingStation: item.eng_polling_location,
+            eng_polling_location: item.eng_polling_location,
+            polling_station: item.polling_station,
+            polling_location: item.polling_location,
+            // Other address fields
+            otherAddress: item.other_address || item.dusra_pata || item.add_add,
+            other_address: item.other_address,
+            dusra_pata: item.dusra_pata,
+            add_add: item.add_add,
+            secondAddress: item.secondAddress
           }))
         : []
       
@@ -158,16 +205,26 @@ const AgeSlide = ({ navigation, onClose }) => {
 
     const filtered = allVoters.filter((voter) => {
       const query = searchQuery.toLowerCase()
+      const name = (voter.name || '').toLowerCase()
+      const voterId = (voter.voterId || voter.idCardNo || '').toLowerCase()
+      const mobile = (voter.mobile || voter.contact_no || '').toString()
+      const serialNo = (voter.serialNo || voter.serialNumber || '').toString()
+      const boothNo = (voter.boothNo || '').toString()
+      const fatherHusband = (voter.fatherHusband || voter.eng_m_name || '').toLowerCase()
+      const address = (voter.address || voter.eng_localityid || '').toLowerCase()
+      const houseNo = (voter.houseNo || voter.eng_house_no || '').toString()
+      const pollingStation = (voter.pollingStation || voter.eng_polling_location || '').toLowerCase()
+      
       return (
-        voter.name.toLowerCase().includes(query) ||
-        voter.voterId.toLowerCase().includes(query) ||
-        voter.mobile.includes(query) ||
-        voter.serialNo.toString().includes(query) ||
-        voter.boothNo?.toString().includes(query) ||
-        voter.fatherHusband.toLowerCase().includes(query) ||
-        voter.address.toLowerCase().includes(query) ||
-        voter.houseNo?.toString().includes(query) ||
-        voter.pollingStation.toLowerCase().includes(query)
+        name.includes(query) ||
+        voterId.includes(query) ||
+        mobile.includes(query) ||
+        serialNo.includes(query) ||
+        boothNo.includes(query) ||
+        fatherHusband.includes(query) ||
+        address.includes(query) ||
+        houseNo.includes(query) ||
+        pollingStation.includes(query)
       )
     })
 
@@ -191,13 +248,86 @@ const AgeSlide = ({ navigation, onClose }) => {
     if (!voter || !voter.id) return
     navigate('/family-screen', {
       voterId: voter.id,
-      name: voter.name,
+      name: voter.name || voter.eng_f_name,
       buildingNumber: voter.buildingNumber
     })
   }
 
-  const handleEdit = () => {
-    console.log('Edit mobile')
+  const handleMobileEdit = (voter, newMobileNumber) => {
+    if (!voter || !newMobileNumber) return
+    
+    // Update the voter's mobile number in the state
+    setVoters((prev) =>
+      prev.map((v) => {
+        // Match voter by id, voter_id, or admin_id
+        const isMatch = 
+          (v.id && voter.id && v.id === voter.id) ||
+          (v.voter_id && voter.voter_id && v.voter_id === voter.voter_id) ||
+          (v.admin_id && voter.admin_id && v.admin_id === voter.admin_id)
+        
+        if (isMatch) {
+          return {
+            ...v,
+            mobile: newMobileNumber,
+            contact_no: newMobileNumber,
+            phone: newMobileNumber
+          }
+        }
+        return v
+      })
+    )
+    
+    // Also update allVoters to keep search functionality working
+    setAllVoters((prev) =>
+      prev.map((v) => {
+        const isMatch = 
+          (v.id && voter.id && v.id === voter.id) ||
+          (v.voter_id && voter.voter_id && v.voter_id === voter.voter_id) ||
+          (v.admin_id && voter.admin_id && v.admin_id === voter.admin_id)
+        
+        if (isMatch) {
+          return {
+            ...v,
+            mobile: newMobileNumber,
+            contact_no: newMobileNumber,
+            phone: newMobileNumber
+          }
+        }
+        return v
+      })
+    )
+    
+    // Update cache if it exists
+    try {
+      const cachedRaw = sessionStorage.getItem(AGE_SEARCH_CACHE_KEY)
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw)
+        if (Array.isArray(cached.voters)) {
+          const updatedCachedVoters = cached.voters.map((v) => {
+            const isMatch = 
+              (v.id && voter.id && v.id === voter.id) ||
+              (v.voter_id && voter.voter_id && v.voter_id === voter.voter_id) ||
+              (v.admin_id && voter.admin_id && v.admin_id === voter.admin_id)
+            
+            if (isMatch) {
+              return {
+                ...v,
+                mobile: newMobileNumber,
+                contact_no: newMobileNumber,
+                phone: newMobileNumber
+              }
+            }
+            return v
+          })
+          sessionStorage.setItem(AGE_SEARCH_CACHE_KEY, JSON.stringify({
+            ...cached,
+            voters: updatedCachedVoters
+          }))
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update cache:', err)
+    }
   }
 
   const totalVoters = allVoters.length
@@ -319,108 +449,18 @@ const AgeSlide = ({ navigation, onClose }) => {
               // Voter List
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {voters.map((voter, idx) => (
-                  <div key={voter.id} className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col">
-                    <div className="text-base font-extrabold tracking-wide mb-3">
-                      {idx + 1}.&nbsp;&nbsp;{voter.name || '-'}
-                    </div>
-
-                    <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm flex-1">
-                      <div className="flex flex-wrap gap-x-2">
-                        <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पिता/पति:</span>
-                        <span className="text-gray-900 break-words flex-1 min-w-0">{voter.fatherHusband || '-'}</span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-x-2 gap-y-1">
-                        <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पता:</span>
-                        <div className="flex-1 min-w-0 flex items-start gap-1 sm:gap-2">
-                          <span className="text-gray-900 break-words flex-1">{voter.address || '-'}</span>
-                          {/* <button className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                            </svg>
-                          </button> */}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-x-2">
-                        <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">क्रमांक:</span>
-                        <span className="text-gray-900 break-words flex-1 min-w-0">{voter.serialNo || '-'}</span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-x-2 gap-y-1">
-                        <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मोबाइल:</span>
-                        <div className="flex items-center min-w-0">
-                          <span className="text-gray-900 truncate">{voter.mobile || '-'}</span>
-                          <button
-                            onClick={handleEdit}
-                            className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0"
-                          >
-                            <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-x-2">
-                        <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">पहचान पत्र नं.:</span>
-                        <span className="text-gray-900 break-words flex-1 min-w-0">{voter.voterId || '-'}</span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-x-2">
-                        <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">बूथ नं:</span>
-                        <span className="text-gray-900 break-words flex-1 min-w-0">{voter.boothNo || '-'}</span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-x-2">
-                        <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">घर नं:</span>
-                        <span className="text-gray-900 break-words flex-1 min-w-0">{voter.houseNo || '-'}</span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-x-2">
-                        <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मतदान स्थान:</span>
-                        <span className="text-gray-900 break-words flex-1 min-w-0">{voter.pollingStation || '-'}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 sm:mt-4 flex justify-center space-x-1 sm:space-x-2 flex-wrap gap-1 sm:gap-0 pt-2 sm:pt-3 border-t border-gray-100">
-                      <button
-                        onClick={() => handleCall(voter.mobile)}
-                        className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                        type="button"
-                      >
-                        <div
-                          className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all hover:scale-105"
-                          style={{ backgroundColor: '#103a94' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0d2f7a')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#103a94')}
-                        >
-                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                          </svg>
-                        </div>
-                        <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
-                      </button>
-
-                      <CheckButton
-                        voter={voter}
-                        onShowModal={() => setShowMobileModal(true)}
-                      />
-
-                      <button
-                        onClick={() => handleFamily(voter)}
-                        className="flex flex-col items-center space-y-0.5 sm:space-y-1"
-                        type="button"
-                      >
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01.99L14 10.5c-.47-.62-1.21-.99-2.01-.99H9.46c-.8 0-1.54.37-2.01.99L4 10.5c-.47-.62-1.21-.99-2.01-.99H2.46c-.8 0-1.54.37-2.01.99L0 10.5v7.5h2v6h2v-6h2v6h2v-6h2v6h2v-6h2z" />
-                          </svg>
-                        </div>
-                        <span className="text-[10px] sm:text-xs text-gray-600">Family</span>
-                      </button>
-                    </div>
-                  </div>
+                  <VoterCard
+                    key={voter.id || voter.voter_id || voter.admin_id || `${voter.idCardNo || ''}-${idx}`}
+                    voter={voter}
+                    index={idx}
+                    onCall={handleCall}
+                    onFamily={handleFamily}
+                    onCheckModal={() => setShowMobileModal(true)}
+                    onEditMobile={handleMobileEdit}
+                    showLocationButton={false}
+                    showEditButton={true}
+                    showOtherAddress={true}
+                  />
                 ))}
               </div>
             )}

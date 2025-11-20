@@ -6,7 +6,7 @@ import PanelSelectionSlide from './components/PanelSelectionSlide'
 import LoginSlide from './components/LoginSlide'
 import AdminDashboard from './components/admindasbord/dashboard/AdminDashboard'
 import AdminList from './components/admindasbord/lists/AdminList'
-import AllUsersList from './components/admindasbord/lists/AllUsersList'
+import AllUsers from './components/admindasbord/lists/AllUsers'
 import SubAdmin from './components/admindasbord/lists/SubAdmin'
 import ShaktiKendraPramukh from './components/admindasbord/lists/ShaktiKendraPramukh'
 import Karyakarta from './components/admindasbord/lists/Karyakarta'
@@ -52,6 +52,8 @@ import TransferredSurvey from './components/admindasbord/dashboard/report/Transf
 import KaryakartaPhonebook from './components/admindasbord/third_list/KaryakartaPhonebook'
 import KaryakartaPhonebookMembers from './components/admindasbord/third_list/PhonebookMemberList'
 import MatchRemaining from './components/admindasbord/third_list/MatchRemaining'
+import VolunteerSlipPrachar from './components/admindasbord/forth_list/volunteer/VolunteerSlipPrachar'
+import VolunteerSlipVoters from './components/admindasbord/forth_list/volunteer/VolunteerSlipVoters'
 import BoothWisePhonebook from './components/admindasbord/third_list/BoothWisePhonebook'
 import BoothWisePhonebookMember from './components/admindasbord/third_list/BoothWisePhonebookMember'
 import SurnameGroupPhonebook from './components/admindasbord/third_list/SurnameGroupPhonebook'
@@ -148,10 +150,10 @@ function AdminListWrapper() {
   )
 }
 
-function AllUsersListWrapper() {
+function AllUsersWrapper() {
   return (
     <NavigationProvider>
-      <AllUsersList />
+      <AllUsers />
     </NavigationProvider>
   )
 }
@@ -504,6 +506,22 @@ function KaryakartaPhonebookWrapper() {
   )
 }
 
+function VolunteerSlipPracharWrapper() {
+  return (
+    <NavigationProvider>
+      <VolunteerSlipPrachar />
+    </NavigationProvider>
+  )
+}
+
+function VolunteerSlipVotersWrapper() {
+  return (
+    <NavigationProvider>
+      <VolunteerSlipVoters />
+    </NavigationProvider>
+  )
+}
+
 function MatchRemainingWrapper() {
   return (
     <NavigationProvider>
@@ -603,7 +621,7 @@ function App() {
           <Route path="/login/:corporationId/:panelId" element={<LoginWrapper />} />
           <Route path="/admin" element={<AdminDashboardWrapper />} />
           <Route path="/admin-list" element={<AdminListWrapper />} />
-          <Route path="/all-users" element={<AllUsersListWrapper />} />
+          <Route path="/all-users" element={<AllUsersWrapper />} />
           <Route path="/sub-admin" element={<SubAdminWrapper />} />
           <Route path="/shakti-kendra-pramukh" element={<ShaktiKendraPramukhWrapper />} />
           <Route path="/karyakarta" element={<KaryakartaWrapper />} />
@@ -655,6 +673,8 @@ function App() {
           <Route path="/transferred-survey" element={<TransferredSurveyWrapper />} />
           <Route path="/karyakarta-phonebook" element={<KaryakartaPhonebookWrapper />} />
           <Route path="/karyakarta-phonebook-members" element={<KaryakartaPhonebookMembersWrapper />} />
+          <Route path="/volunteer-slip-prachar" element={<VolunteerSlipPracharWrapper />} />
+          <Route path="/volunteer-slip-voters" element={<VolunteerSlipVotersWrapper />} />
           <Route path="/match-remaining" element={<MatchRemainingWrapper />} />
           <Route path="/booth-wise-phonebook" element={<BoothWisePhonebookWrapper />} />
           <Route path="/booth-wise-phonebook-member" element={<BoothWisePhonebookMemberWrapper />} />

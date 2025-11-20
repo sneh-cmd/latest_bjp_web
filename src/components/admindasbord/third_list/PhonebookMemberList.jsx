@@ -104,12 +104,12 @@ const calculateStats = (members = []) => {
       .toString()
       .trim()
 
-    if (normalizedAvailability === 1 || normalizedAvailability === '1' || normalizedAvailability === 'yes') {
+    if (normalizedAvailability === 1 || normalizedAvailability === '1' || normalizedAvailability === 'yes' || normalizedAvailability === true) {
       visits += 1
       return
     }
 
-    if (normalizedAvailability === 0 || normalizedAvailability === '0') {
+    if (normalizedAvailability === 0 || normalizedAvailability === '0' || normalizedAvailability === false) {
       if (notAvailableStatus !== '') {
         unavailable += 1
       } else {
@@ -118,7 +118,7 @@ const calculateStats = (members = []) => {
       return
     }
 
-    if (!availabilityValue) {
+    if (!availabilityValue || availabilityValue === false) {
       if (notAvailableStatus !== '') {
         unavailable += 1
       } else {
@@ -194,7 +194,7 @@ const KaryakartaPhonebookMembers = ({ navigation }) => {
 
   const stats = useMemo(() => calculateStats(members), [members])
 
-  // Helper function to check if member is visited (voter_available === 1)
+  // Helper function to check if member is visited (voter_available === 1, '1', 'yes', or true)
   const isMemberVisited = (member) => {
     const availabilityValue = pickValue(member, [
       'voter_available',
@@ -203,11 +203,11 @@ const KaryakartaPhonebookMembers = ({ navigation }) => {
       'meeting_status',
       'available_status'
     ])
-    return availabilityValue === 1 || availabilityValue === '1' || availabilityValue === 'yes'
+    return availabilityValue === 1 || availabilityValue === '1' || availabilityValue === 'yes' || availabilityValue === true
   }
 
   // Helper function to check if member is unavailable
-  // Unavailable: voter_available === 0 and not_available_status is not empty
+  // Unavailable: voter_available === 0, false, or empty AND not_available_status is not empty
   const isMemberUnavailable = (member) => {
     const availabilityValue = pickValue(member, [
       'voter_available',
@@ -220,7 +220,7 @@ const KaryakartaPhonebookMembers = ({ navigation }) => {
       .toString()
       .trim()
     
-    const isNotVisited = availabilityValue === 0 || availabilityValue === '0' || !availabilityValue
+    const isNotVisited = availabilityValue === 0 || availabilityValue === '0' || availabilityValue === false || !availabilityValue
     return isNotVisited && notAvailableStatus !== ''
   }
 
@@ -239,7 +239,7 @@ const KaryakartaPhonebookMembers = ({ navigation }) => {
       .trim()
     
     // If visited, not remaining
-    if (availabilityValue === 1 || availabilityValue === '1' || availabilityValue === 'yes') {
+    if (availabilityValue === 1 || availabilityValue === '1' || availabilityValue === 'yes' || availabilityValue === true) {
       return false
     }
     // If unavailable, not remaining
@@ -322,6 +322,34 @@ const KaryakartaPhonebookMembers = ({ navigation }) => {
     })
   }
 
+  const handleMobileEdit = (voter, newMobileNumber) => {
+    if (!voter || !newMobileNumber) return
+    
+    // Update the member's mobile number in the state
+    setMembers((prev) =>
+      prev.map((m) => {
+        // Match member by id, voter_id, or admin_id
+        const isMatch = 
+          (m.id && voter.id && m.id === voter.id) ||
+          (m.voter_id && voter.voter_id && m.voter_id === voter.voter_id) ||
+          (m.admin_id && voter.admin_id && m.admin_id === voter.admin_id)
+        
+        if (isMatch) {
+          return {
+            ...m,
+            mobile: newMobileNumber,
+            mobile_no: newMobileNumber,
+            contact_no: newMobileNumber,
+            phone: newMobileNumber,
+            phone_no: newMobileNumber,
+            mobileNo: newMobileNumber
+          }
+        }
+        return m
+      })
+    )
+  }
+
   return (
     <div className="flex flex-col w-full h-screen overflow-hidden" style={{ backgroundColor: '#e5e8ff' }}>
       <PageHeader
@@ -402,6 +430,14 @@ const KaryakartaPhonebookMembers = ({ navigation }) => {
                   const surname = member.f_eng_surname || ''
                   const fullName = `${firstName} ${surname}`.trim() || buildFullName(member)
                   
+                  // Determine card background color
+                  // White if voter_available === false AND not_available_status is empty
+                  // Sky color otherwise
+                  const voterAvailable = member.voter_available
+                  const notAvailableStatus = (member.not_available_status || member.notAvailableStatus || '').toString().trim()
+                  const isRemaining = voterAvailable === false && notAvailableStatus === ''
+                  const cardBgColor = isRemaining ? 'white' : 'sky'
+                  
                   return (
                     <VoterCard
                       key={`${member.id || member.voter_id || index}`}
@@ -416,8 +452,11 @@ const KaryakartaPhonebookMembers = ({ navigation }) => {
                       onCall={(contact) => handleCall(contact, member)}
                       onFamily={handleFamily}
                       onCheckModal={handleCheck}
+                      onEditMobile={handleMobileEdit}
                       showLocationButton
+                      showEditButton={true}
                       showOtherAddress
+                      cardBgColor={cardBgColor}
                     />
                   )
                 })}

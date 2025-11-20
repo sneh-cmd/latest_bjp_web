@@ -251,6 +251,31 @@ const DateDetailSlide = ({ navigation }) => {
     })
   }
 
+  const handleMobileEdit = (voter, newMobileNumber) => {
+    if (!voter || !newMobileNumber) return
+    
+    // Update the voter's mobile number in the state
+    setVoters((prev) =>
+      prev.map((v) => {
+        // Match voter by id, voter_id, or admin_id
+        const isMatch = 
+          (v.id && voter.id && v.id === voter.id) ||
+          (v.voter_id && voter.voter_id && v.voter_id === voter.voter_id) ||
+          (v.admin_id && voter.admin_id && v.admin_id === voter.admin_id)
+        
+        if (isMatch) {
+          return {
+            ...v,
+            mobile: newMobileNumber,
+            contact_no: newMobileNumber,
+            phone: newMobileNumber
+          }
+        }
+        return v
+      })
+    )
+  }
+
   // Format date for display
   const displayDate = categoryData.date || categoryData.dateForAPI || 'विवरण'
   const totalFiltered = filteredVoters.length
@@ -358,8 +383,10 @@ const DateDetailSlide = ({ navigation }) => {
                       setModalMessage('मोबाइल नंबर नहीं मिला')
                       setShowModal(true)
                     }}
+                    onEditMobile={handleMobileEdit}
                     showLocationButton={false}
-                    showEditButton={false}
+                    showEditButton={true}
+                    showOtherAddress={true}
                   />
                 ))}
               </div>

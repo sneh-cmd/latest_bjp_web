@@ -302,6 +302,10 @@ export const apiService = {
         resultTag = 'display_surname_match_adminResult';
       } else if (soapAction === 'display_surname_group_sp') {
         resultTag = 'display_surname_group_spResult';
+      } else if (soapAction === 'dis_volunteer_slip_sending_count') {
+        resultTag = 'dis_volunteer_slip_sending_countResult';
+      } else if (soapAction === 'dis_my_slip_sending_voter') {
+        resultTag = 'dis_my_slip_sending_voterResult';
       }
       
       const jsonMatch = xmlText.match(new RegExp(`<${resultTag}>(.*?)<\/${resultTag}>`, 's'));
@@ -399,6 +403,16 @@ export const apiService = {
         
         // Special handling for phonebook match admin endpoint
         if (soapAction === 'display_all_phonebook_match_admin') {
+          return parsedData.result;
+        }
+        
+        // Special handling for volunteer slip sending count endpoint
+        if (soapAction === 'dis_volunteer_slip_sending_count') {
+          return parsedData.result;
+        }
+        
+        // Special handling for my slip sending voter endpoint
+        if (soapAction === 'dis_my_slip_sending_voter') {
           return parsedData.result;
         }
         
@@ -1327,18 +1341,19 @@ export const apiService = {
               lastLogin: admin.last_login
             }));
           } else if (soapAction === 'dis_all_admin') {
-            // Transform all admin display data
-            return parsedData.result.map(admin => ({
-              admin_id: admin.admin_id,
-              name: admin.name,
+            // Transform all admin data (mixed roles)
+            return (parsedData.result || []).map(admin => ({
+              adminId: admin.admin_id,
               type: admin.type,
-              sub_type: admin.sub_type,
+              subType: admin.sub_type,
               designation: admin.designation,
-              mobile_no: admin.mobile_no,
-              photo_path: admin.photo_path,
-              temp_status: admin.temp_status,
-              booth_javabdari: admin.booth_javabdari,
-              last_login: admin.last_login
+              name: admin.name,
+              mobileNo: admin.mobile_no,
+              photo: admin.photo,
+              photoPath: admin.photo_path,
+              tempStatus: admin.temp_status,
+              boothJavabdari: admin.booth_javabdari,
+              lastLogin: admin.last_login
             }));
           } else if (soapAction === 'dis_sub_admin') {
             // Transform sub-admin display data
@@ -1691,7 +1706,9 @@ export const apiService = {
                 soapAction === 'display_booth_wise_phonebook' ||
                 soapAction === 'display_booth_wise_phonebook_member' ||
                 soapAction === 'display_surname_match_admin' ||
-                soapAction === 'display_surname_group_sp') {
+                soapAction === 'display_surname_group_sp' ||
+                soapAction === 'dis_volunteer_slip_sending_count' ||
+                soapAction === 'dis_my_slip_sending_voter') {
               return [];
             }
           }
@@ -1842,19 +1859,18 @@ export const apiService = {
     );
   },
 
-  // Display all admin function
-  displayAllAdmin: async function(panelApiUrl) {
+  // Display all admin (org wide list)
+  disAllAdmin: async function(panelApiUrl) {
     const soapBody = `<dis_all_admin xmlns="http://tempuri.org/" />`;
     
-    // Use helper function to get admin endpoint
     const adminEndpoint = getAdminEndpoint(panelApiUrl);
     
     return this.makeRequest(
       adminEndpoint,
-      'POST', 
+      'POST',
       'dis_all_admin',
       soapBody,
-      true // Use admin authentication
+      true
     );
   },
 
@@ -2717,6 +2733,39 @@ export const display_booth_wise_phonebook_member = async function(boothNo, panel
     true
   );
 };
+
+// Display volunteer slip sending count - slip promotion data
+export const disVolunteerSlipSendingCount = async function(panelApiUrl) {
+  const soapBody = `<dis_volunteer_slip_sending_count xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_volunteer_slip_sending_count',
+    soapBody,
+    true
+  );
+};
+
+// Display my slip sending voter - voters who received slips from a specific volunteer
+export const disMySlipSendingVoter = async function(userId, panelApiUrl) {
+  const soapBody = `<dis_my_slip_sending_voter xmlns="http://tempuri.org/">
+    <user_id>${userId}</user_id>
+  </dis_my_slip_sending_voter>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_my_slip_sending_voter',
+    soapBody,
+    true
+  );
+};
+
 
 // Scheme wise survey dashboard - new function
 export const displaySchemeWiseSurveyDash = async function(panelApiUrl) {

@@ -11,7 +11,9 @@ const VoterCard = ({
   onEditMobile,
   showLocationButton = false,
   showEditButton = false,
-  showOtherAddress = true
+  showOtherAddress = true,
+  topBadge = null,
+  cardBgColor = 'white' // 'white' or 'sky'
 }) => {
   // Extract voter contact with fallbacks
   const voterContact = voter.mobile || voter.contact_no || voter.phone || ''
@@ -70,10 +72,21 @@ const VoterCard = ({
     }
   }
 
+  // Determine card background color
+  const cardBgClass = cardBgColor === 'white' 
+    ? 'bg-white' 
+    : 'bg-sky-50' // sky color for remaining visits
+
   return (
-    <div key={cardKey} className="bg-white rounded-xl border border-gray-300 p-4 h-full flex flex-col relative">
-      {/* Name */}
-      <div className="text-base font-extrabold tracking-wide mb-3">
+    <div key={cardKey} className={`${cardBgClass} rounded-xl border border-gray-300 p-4 h-full flex flex-col relative overflow-visible`}>
+      {/* Top Badge */}
+      {topBadge && (
+        <div className="absolute top-2 left-2 z-20">
+          {topBadge}
+        </div>
+      )}
+      {/* Name - add padding-top when badge is present to avoid overlap */}
+      <div className={`text-base font-extrabold tracking-wide mb-3 ${topBadge ? 'pt-8' : ''}`}>
         {index + 1}.&nbsp;&nbsp;{voterName}
       </div>
 
@@ -116,7 +129,7 @@ const VoterCard = ({
           <span className="font-medium text-gray-700 w-20 sm:w-24 flex-shrink-0">मोबाइल:</span>
           <div className="flex items-center min-w-0">
             <span className="text-gray-900 truncate">{voterContact || '-'}</span>
-            {showEditButton && (
+            {/* {showEditButton && (
               <button
                 className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0"
                 onClick={handleMobileEdit}
@@ -126,7 +139,7 @@ const VoterCard = ({
                   <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                 </svg>
               </button>
-            )}
+            )} */}
           </div>
         </div>
 

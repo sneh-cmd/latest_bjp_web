@@ -180,6 +180,31 @@ const SurnameGroupMemberList = ({ navigation }) => {
     })
   }
 
+  const handleMobileEdit = (voter, newMobileNumber) => {
+    if (!voter || !newMobileNumber) return
+    
+    // Update the member's mobile number in the state
+    setMembers((prev) =>
+      prev.map((m) => {
+        // Match member by id, voter_id, or admin_id
+        const isMatch = 
+          (m.id && voter.id && m.id === voter.id) ||
+          (m.voter_id && voter.voter_id && m.voter_id === voter.voter_id) ||
+          (m.admin_id && voter.admin_id && m.admin_id === voter.admin_id)
+        
+        if (isMatch) {
+          return {
+            ...m,
+            mobile: newMobileNumber,
+            contact_no: newMobileNumber,
+            phone: newMobileNumber,
+            mobile_no: newMobileNumber
+          }
+        }
+        return m
+      })
+    )
+  }
 
   return (
     <div className="flex flex-col w-full h-screen overflow-hidden" style={{ backgroundColor: '#e5e8ff' }}>
@@ -271,8 +296,9 @@ const SurnameGroupMemberList = ({ navigation }) => {
                 onCall={(contact) => handleCall(contact)}
                 onFamily={handleFamily}
                 onCheckModal={handleCheckModal}
+                onEditMobile={handleMobileEdit}
                 showLocationButton={true}
-                showEditButton={false}
+                showEditButton={true}
                 showOtherAddress={false}
               />
             ))}
