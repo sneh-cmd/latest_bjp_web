@@ -190,6 +190,8 @@ export const apiService = {
         resultTag = 'admin_loginResult';
       } else if (soapAction === 'display_admin') {
         resultTag = 'display_adminResult';
+      } else if (soapAction === 'dis_all_admin') {
+        resultTag = 'dis_all_adminResult';
       } else if (soapAction === 'dis_sub_admin') {
         resultTag = 'dis_sub_adminResult';
       } else if (soapAction === 'display_volunteer') {
@@ -1324,6 +1326,20 @@ export const apiService = {
               tempStatus: admin.temp_status,
               lastLogin: admin.last_login
             }));
+          } else if (soapAction === 'dis_all_admin') {
+            // Transform all admin display data
+            return parsedData.result.map(admin => ({
+              admin_id: admin.admin_id,
+              name: admin.name,
+              type: admin.type,
+              sub_type: admin.sub_type,
+              designation: admin.designation,
+              mobile_no: admin.mobile_no,
+              photo_path: admin.photo_path,
+              temp_status: admin.temp_status,
+              booth_javabdari: admin.booth_javabdari,
+              last_login: admin.last_login
+            }));
           } else if (soapAction === 'dis_sub_admin') {
             // Transform sub-admin display data
             return parsedData.result.map(subAdmin => ({
@@ -1821,6 +1837,22 @@ export const apiService = {
       adminEndpoint,
       'POST', 
       'display_admin',
+      soapBody,
+      true // Use admin authentication
+    );
+  },
+
+  // Display all admin function
+  displayAllAdmin: async function(panelApiUrl) {
+    const soapBody = `<dis_all_admin xmlns="http://tempuri.org/" />`;
+    
+    // Use helper function to get admin endpoint
+    const adminEndpoint = getAdminEndpoint(panelApiUrl);
+    
+    return this.makeRequest(
+      adminEndpoint,
+      'POST', 
+      'dis_all_admin',
       soapBody,
       true // Use admin authentication
     );

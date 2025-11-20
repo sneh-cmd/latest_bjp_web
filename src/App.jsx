@@ -6,6 +6,7 @@ import PanelSelectionSlide from './components/PanelSelectionSlide'
 import LoginSlide from './components/LoginSlide'
 import AdminDashboard from './components/admindasbord/dashboard/AdminDashboard'
 import AdminList from './components/admindasbord/lists/AdminList'
+import AllUsersList from './components/admindasbord/lists/AllUsersList'
 import SubAdmin from './components/admindasbord/lists/SubAdmin'
 import ShaktiKendraPramukh from './components/admindasbord/lists/ShaktiKendraPramukh'
 import Karyakarta from './components/admindasbord/lists/Karyakarta'
@@ -143,6 +144,14 @@ function AdminListWrapper() {
   return (
     <NavigationProvider>
       <AdminList />
+    </NavigationProvider>
+  )
+}
+
+function AllUsersListWrapper() {
+  return (
+    <NavigationProvider>
+      <AllUsersList />
     </NavigationProvider>
   )
 }
@@ -594,6 +603,7 @@ function App() {
           <Route path="/login/:corporationId/:panelId" element={<LoginWrapper />} />
           <Route path="/admin" element={<AdminDashboardWrapper />} />
           <Route path="/admin-list" element={<AdminListWrapper />} />
+          <Route path="/all-users" element={<AllUsersListWrapper />} />
           <Route path="/sub-admin" element={<SubAdminWrapper />} />
           <Route path="/shakti-kendra-pramukh" element={<ShaktiKendraPramukhWrapper />} />
           <Route path="/karyakarta" element={<KaryakartaWrapper />} />

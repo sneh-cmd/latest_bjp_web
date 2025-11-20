@@ -39,6 +39,7 @@ const AdminDashboard = ({ navigation }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
+  const [chartSize, setChartSize] = useState({ width: '120px', height: '120px', fontSize: 12 })
 
   // Get user data from localStorage or navigation state
   const getUserData = () => {
@@ -138,6 +139,30 @@ const AdminDashboard = ({ navigation }) => {
     }
   }, [panelVoterCount, userData])
 
+  // Handle responsive chart sizing - compact version
+  useEffect(() => {
+    const updateChartSize = () => {
+      const width = window.innerWidth
+      if (width < 640) {
+        setChartSize({ width: '100px', height: '100px', fontSize: 10 })
+      } else if (width >= 640 && width < 768) {
+        setChartSize({ width: '110px', height: '110px', fontSize: 11 })
+      } else if (width >= 768 && width < 1024) {
+        setChartSize({ width: '130px', height: '130px', fontSize: 12 })
+      } else if (width >= 1024 && width < 1280) {
+        setChartSize({ width: '140px', height: '140px', fontSize: 13 })
+      } else if (width >= 1280 && width < 1536) {
+        setChartSize({ width: '150px', height: '150px', fontSize: 14 })
+      } else {
+        setChartSize({ width: '160px', height: '160px', fontSize: 15 })
+      }
+    }
+
+    updateChartSize()
+    window.addEventListener('resize', updateChartSize)
+    return () => window.removeEventListener('resize', updateChartSize)
+  }, [])
+
 
   const handleBack = () => {
     setIsVisible(false)
@@ -188,7 +213,7 @@ const AdminDashboard = ({ navigation }) => {
 
   const handleAllUsersClick = () => {
     handleSidebarClose()
-    
+    navigate('/all-users')
   }
 
   const handleChangeCorporation = () => {
@@ -346,8 +371,8 @@ const AdminDashboard = ({ navigation }) => {
       iconColor: 'text-amber-600',
       hoverColor: 'hover:from-amber-600 hover:to-yellow-600',
       shadowColor: 'shadow-amber-200'
-    }/* ,
-    {
+    },
+    /* {
       id: 'call-center',
       name: 'कॉल सर्वे यूज़र',
       icon: 'call-center',
@@ -686,32 +711,32 @@ const AdminDashboard = ({ navigation }) => {
       <div className="relative z-10 px-2 sm:px-4 py-2 sm:py-3">
         <div className="flex flex-col sm:flex-row items-stretch gap-4 sm:gap-6">
           {/* Panel 1 - Information */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-gray-200 flex-1 flex items-center justify-center">
-            <div className="text-center w-full">
-              <div className="bg-blue-100 rounded-lg px-3 py-1 mb-2 inline-block">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-gray-200 flex-1">
+            <div className="flex flex-col items-center justify-evenly gap-3 sm:gap-4 w-full h-full">
+              <div className="bg-blue-100 rounded-lg px-3 py-1 inline-block">
                 <h2 className="text-xs sm:text-sm font-bold" style={{ color: '#102463' }}>
                   {userData?.panel?.name || 'प्रभाग 2'}
                 </h2>
               </div>
-            <h2 className="text-xs sm:text-sm font-medium mb-1" style={{ color: '#102463' }}>
-                  {userData?.corporation?.name || 'ठाणे महानगरपालिका'}
-                </h2>
-            <p className="text-lg sm:text-2xl font-bold" style={{ color: '#102463' }}>
+              <h2 className="text-base sm:text-lg md:text-xl lg:text-xl 2xl:text-2xl font-medium text-center" style={{ color: '#102463' }}>
+                {userData?.corporation?.name || 'ठाणे महानगरपालिका'}
+              </h2>
+              <p className="text-base sm:text-lg md:text-lg lg:text-lg xl:text-3xl 2xl:text-3xl font-bold text-center" style={{ color: '#102463' }}>
                 टोटल मतदाता : {panelVoterCount > 0 ? panelVoterCount.toLocaleString('en-IN') : '45,132'}
-            </p>
-              </div>
-              </div>
+              </p>
+            </div>
+          </div>
 
           {/* Panel 2 - Slip Progress Chart */}
           <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-gray-200 flex-1">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <div className="flex sm:flex-row items-center justify-center gap-2 sm:gap-2 md:gap-3 lg:gap-3 xl:gap-4 2xl:gap-4">
               {/* Pie Chart */}
-              <div className="w-full sm:w-auto">
+              <div className="flex items-center justify-center">
                 <Chart
-                  width={'150px'}
-                  height={'150px'}
+                  width={chartSize.width}
+                  height={chartSize.height}
                   chartType="PieChart"
-                  loader={<div className="text-center py-8 text-sm">लोड हो रहा है...</div>}
+                  loader={<div className="text-center py-4 text-xs sm:text-sm">लोड हो रहा है...</div>}
                   data={[
                     ['Status', 'Value'],
                     ['सेंड', 12125],
@@ -722,7 +747,7 @@ const AdminDashboard = ({ navigation }) => {
                     title: 'स्लिप प्रोग्रेश',
                     titleTextStyle: {
                       color: '#102463',
-                      fontSize: 16,
+                      fontSize: chartSize.fontSize,
                       bold: true,
                     },
                     colors: ['#ef4444', '#86efac', '#fbbf24'],
@@ -734,22 +759,24 @@ const AdminDashboard = ({ navigation }) => {
                     pieHole: 0,
                     is3D: true,
                     chartArea: {
-                      width: '80%',
-                      height: '80%',
+                      width: '85%',
+                      height: '75%',
+                      left: '7.5%',
+                      top: '15%',
                     },
                   }}
                 />
             </div>
             
               {/* Data Labels */}
-              <div className="flex flex-col gap-2 text-left">
-                <p className="text-sm sm:text-base font-semibold" style={{ color: '#102463' }}>
+              <div className="flex flex-col gap-1.5 sm:gap-2 text-left">
+                <p className="text-base sm:text-sm md:text-md lg:text-sm xl:text-base 2xl:text-2xl font-semibold" style={{ color: '#102463' }}>
                   टोटल : {panelVoterCount > 0 ? panelVoterCount.toLocaleString('en-IN') : '45,132'}
                 </p>
-                <p className="text-sm sm:text-base font-semibold" style={{ color: '#102463' }}>
+                <p className="text-base sm:text-sm md:text-md lg:text-sm xl:text-base 2xl:text-2xl font-semibold" style={{ color: '#102463' }}>
                   सेंड : 12,125
                 </p>
-                <p className="text-sm sm:text-base font-semibold" style={{ color: '#102463' }}>
+                <p className="text-base sm:text-sm md:text-md lg:text-sm xl:text-base 2xl:text-2xl font-semibold" style={{ color: '#102463' }}>
                   बाकि : 14,458
                 </p>
                 </div>
@@ -909,7 +936,7 @@ const AdminDashboard = ({ navigation }) => {
       {/* Combined Section: कार्यकर्ता के पहचानवाले and रिपोर्ट */}
       <div className="relative z-10 px-2 sm:px-4 pb-2 sm:pb-4">
         <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
-          <div className="flex-1 lg:flex-[0.35]">
+          <div className="flex-1 lg:flex-[0.33]">
             <div className="w-full bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-gray-200">
               {/* Heading inside card */}
               <div className="flex items-center justify-between">
@@ -924,9 +951,9 @@ const AdminDashboard = ({ navigation }) => {
             
               {/* कार्यकर्ता के पहचानवाले Cards */}
               <div className="mt-3 border-t border-gray-100 pt-3">
-                <div className="flex flex-wrap justify-evenly gap-2 sm:gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3">
                   {karyakartaCards.map((card) => {
-                    const commonClassName = `group relative bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-200 ${card.borderHoverClass} transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col items-center justify-center min-h-[120px] 2xl:min-h-[150px] w-auto min-w-[120px] sm:min-w-[140px] 2xl:min-w-[160px] max-w-[140px] sm:max-w-[160px] 2xl:max-w-[180px] overflow-hidden ${!card.isButton ? 'cursor-pointer' : ''}`
+                    const commonClassName = `group relative bg-white rounded-xl sm:rounded-2xl p-3 border border-gray-200 ${card.borderHoverClass} transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col items-center justify-center min-h-[100px] sm:min-h-[110px] md:min-h-[120px] lg:min-h-[130px] xl:min-h-[140px] 2xl:min-h-[150px] w-full overflow-hidden ${!card.isButton ? 'cursor-pointer' : ''}`
                     
                     const cardContent = (
                       <>
@@ -934,7 +961,7 @@ const AdminDashboard = ({ navigation }) => {
                         <div className={`absolute inset-0 bg-gradient-to-br ${card.overlayClass} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
             
             {/* Icon Container */}
-                        <div className={`relative w-10 h-10 sm:w-12 sm:h-12 2xl:w-14 2xl:h-14 bg-gradient-to-br ${card.iconWrapperClass} rounded-xl flex items-center justify-center mb-2 sm:mb-3 2xl:mb-4 group-hover:scale-110 transition-all duration-300 shadow-md group-hover:shadow-lg`}>
+                        <div className={`relative w-10 h-10 sm:w-12 sm:h-12 md:w-12 md:h-12 lg:w-14 lg:h-14 xl:w-14 xl:h-14 2xl:w-16 2xl:h-16 bg-gradient-to-br ${card.iconWrapperClass} rounded-xl flex items-center justify-center mb-2 sm:mb-3 md:mb-3 lg:mb-4 xl:mb-4 2xl:mb-4 group-hover:scale-110 transition-all duration-300 shadow-md group-hover:shadow-lg`}>
                           <div className={`absolute inset-0 bg-gradient-to-br ${card.iconGradientClass} opacity-0 group-hover:opacity-30 rounded-xl transition-opacity duration-300`}></div>
               <div className="relative z-10">
                             {card.icon}
@@ -943,7 +970,7 @@ const AdminDashboard = ({ navigation }) => {
             
                         {/* Title */}
                         <span 
-                          className={`text-gray-700 text-xs sm:text-sm 2xl:text-base font-semibold text-center leading-tight ${card.textHoverClass} transition-colors duration-300 relative z-10`}
+                          className={`text-gray-700 text-[10px] sm:text-xs md:text-sm lg:text-sm xl:text-base 2xl:text-lg font-semibold text-center leading-tight ${card.textHoverClass} transition-colors duration-300 relative z-10 px-1 break-words`}
                           style={card.textColor ? { color: card.textColor } : {}}
                         >
                           {card.label}
@@ -951,10 +978,10 @@ const AdminDashboard = ({ navigation }) => {
             
             {/* Hover Indicator */}
                         {card.indicatorGradient ? (
-                          <div className={`absolute bottom-2 right-2 w-2 h-2 bg-gradient-to-r ${card.indicatorGradient} rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                          <div className={`absolute bottom-2 sm:bottom-2 md:bottom-2.5 lg:bottom-2.5 xl:bottom-3 2xl:bottom-3 right-2 sm:right-2 md:right-2.5 lg:right-2.5 xl:right-3 2xl:right-3 w-2 h-2 sm:w-2 sm:h-2 md:w-2.5 md:h-2.5 lg:w-2.5 lg:h-2.5 xl:w-3 xl:h-3 2xl:w-3 2xl:h-3 bg-gradient-to-r ${card.indicatorGradient} rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
                         ) : (
                           <div 
-                            className="absolute bottom-2 right-2 w-2 h-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                            className="absolute bottom-2 sm:bottom-2 md:bottom-2.5 lg:bottom-2.5 xl:bottom-3 2xl:bottom-3 right-2 sm:right-2 md:right-2.5 lg:right-2.5 xl:right-3 2xl:right-3 w-2 h-2 sm:w-2 sm:h-2 md:w-2.5 md:h-2.5 lg:w-2.5 lg:h-2.5 xl:w-3 xl:h-3 2xl:w-3 2xl:h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                             style={{ backgroundColor: card.indicatorColor }}
                           ></div>
                         )}
@@ -985,7 +1012,7 @@ const AdminDashboard = ({ navigation }) => {
         </div>
       </div>
 
-          <div className="flex-1 lg:flex-[0.65]">
+          <div className="flex-1 lg:flex-[0.67]">
             <div className="w-full bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-gray-200">
               {/* रिपोर्ट Section - Heading */}
               <div className="flex items-center justify-between">
