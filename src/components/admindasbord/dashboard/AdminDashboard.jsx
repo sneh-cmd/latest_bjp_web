@@ -346,7 +346,7 @@ const AdminDashboard = ({ navigation }) => {
       iconColor: 'text-amber-600',
       hoverColor: 'hover:from-amber-600 hover:to-yellow-600',
       shadowColor: 'shadow-amber-200'
-    },
+    }/* ,
     {
       id: 'call-center',
       name: 'कॉल सर्वे यूज़र',
@@ -356,7 +356,7 @@ const AdminDashboard = ({ navigation }) => {
       iconColor: 'text-slate-600',
       hoverColor: 'hover:from-slate-600 hover:to-gray-600',
       shadowColor: 'shadow-slate-200'
-    }
+    } */
    
   ]
 
@@ -822,7 +822,7 @@ const AdminDashboard = ({ navigation }) => {
       </div>
 
           <div className="mt-3 border-t border-gray-100 pt-3">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
           {roleCards.map((role, index) => (
             <button
               key={role.id}
@@ -876,7 +876,7 @@ const AdminDashboard = ({ navigation }) => {
 
       {/* Responsive Voter List Search Cards */}
       <div className="relative z-10 px-2 sm:px-4 pb-2 sm:pb-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4 px-2 sm:px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
           {voterSearchButtons.map((button) => (
           <button
               key={button.id}
