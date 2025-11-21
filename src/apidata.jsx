@@ -306,6 +306,18 @@ export const apiService = {
         resultTag = 'dis_volunteer_slip_sending_countResult';
       } else if (soapAction === 'dis_my_slip_sending_voter') {
         resultTag = 'dis_my_slip_sending_voterResult';
+      } else if (soapAction === 'get_total_slip_distribution_count') {
+        resultTag = 'get_total_slip_distribution_countResult';
+      } else if (soapAction === 'phonebook_wise_slip_sending') {
+        resultTag = 'phonebook_wise_slip_sendingResult';
+      } else if (soapAction === 'dis_booth_wise_slip_send_dash') {
+        resultTag = 'dis_booth_wise_slip_send_dashResult';
+      } else if (soapAction === 'dis_phonebook_wise_slip_send_dash') {
+        resultTag = 'dis_phonebook_wise_slip_send_dashResult';
+      } else if (soapAction === 'dis_polling_location_wise_slip_send_dash') {
+        resultTag = 'dis_polling_location_wise_slip_send_dashResult';
+      } else if (soapAction === 'dis_user_wise_slip_distribution') {
+        resultTag = 'dis_user_wise_slip_distributionResult';
       }
       
       const jsonMatch = xmlText.match(new RegExp(`<${resultTag}>(.*?)<\/${resultTag}>`, 's'));
@@ -318,6 +330,101 @@ export const apiService = {
         }
         
         const parsedData = JSON.parse(jsonString);
+        
+        // Special handling for get_total_slip_distribution_count
+        if (soapAction === 'get_total_slip_distribution_count') {
+          // Check if response has Success and result structure
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result) && parsedData.result.length > 0) {
+            // Return the first item from result array
+            return parsedData.result[0];
+          }
+          // If parsedData is already the object we need, return it
+          if (parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData) && !parsedData.Success) {
+            return parsedData;
+          }
+          // If it's wrapped in a result property (non-array), return that
+          if (parsedData.result && typeof parsedData.result === 'object' && !Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          // Otherwise return the parsed data as-is
+          return parsedData;
+        }
+        
+        // Special handling for phonebook_wise_slip_sending
+        if (soapAction === 'phonebook_wise_slip_sending') {
+          // Check if response has Success and result structure
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            // Return the entire result array
+            return parsedData.result;
+          }
+          // If parsedData is already an array, return it
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          // If it's wrapped in a result property (non-array), return as array
+          if (parsedData.result && typeof parsedData.result === 'object') {
+            return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
+          }
+          // Otherwise return the parsed data as-is
+          return parsedData;
+        }
+        
+        // Special handling for dis_booth_wise_slip_send_dash
+        if (soapAction === 'dis_booth_wise_slip_send_dash') {
+          // Check if response has Success and result structure
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            // Return the entire result array
+            return parsedData.result;
+          }
+          // If parsedData is already an array, return it
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          // If it's wrapped in a result property (non-array), return as array
+          if (parsedData.result && typeof parsedData.result === 'object') {
+            return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
+          }
+          // Otherwise return the parsed data as-is
+          return parsedData;
+        }
+        
+        // Special handling for dis_phonebook_wise_slip_send_dash
+        if (soapAction === 'dis_phonebook_wise_slip_send_dash') {
+          // Check if response has Success and result structure
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            // Return the entire result array
+            return parsedData.result;
+          }
+          // If parsedData is already an array, return it
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          // If it's wrapped in a result property (non-array), return as array
+          if (parsedData.result && typeof parsedData.result === 'object') {
+            return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
+          }
+          // Otherwise return the parsed data as-is
+          return parsedData;
+        }
+        
+        // Special handling for dis_polling_location_wise_slip_send_dash
+        if (soapAction === 'dis_polling_location_wise_slip_send_dash') {
+          // Check if response has Success and result structure
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            // Return the entire result array
+            return parsedData.result;
+          }
+          // If parsedData is already an array, return it
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          // If it's wrapped in a result property (non-array), return as array
+          if (parsedData.result && typeof parsedData.result === 'object') {
+            return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
+          }
+          // Otherwise return the parsed data as-is
+          return parsedData;
+        }
         
         // Transform the data based on the action
         // Handle different success codes - "1" for data, "2" for operation success
@@ -413,6 +520,11 @@ export const apiService = {
         
         // Special handling for my slip sending voter endpoint
         if (soapAction === 'dis_my_slip_sending_voter') {
+          return parsedData.result;
+        }
+        
+        // Special handling for user wise slip distribution endpoint
+        if (soapAction === 'dis_user_wise_slip_distribution') {
           return parsedData.result;
         }
         
@@ -1708,7 +1820,8 @@ export const apiService = {
                 soapAction === 'display_surname_match_admin' ||
                 soapAction === 'display_surname_group_sp' ||
                 soapAction === 'dis_volunteer_slip_sending_count' ||
-                soapAction === 'dis_my_slip_sending_voter') {
+                soapAction === 'dis_my_slip_sending_voter' ||
+                soapAction === 'dis_user_wise_slip_distribution') {
               return [];
             }
           }
@@ -2702,6 +2815,93 @@ export const display_no_phonebook_match_user = async function(panelApiUrl) {
   );
 };
 
+// Get total slip distribution count
+export const get_total_slip_distribution_count = async function(panelApiUrl) {
+  const soapBody = `<get_total_slip_distribution_count xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'get_total_slip_distribution_count',
+    soapBody,
+    true
+  );
+};
+
+// Phonebook wise slip sending
+export const phonebook_wise_slip_sending = async function(userId, panelApiUrl) {
+  // Validate userId
+  if (!userId) {
+    throw new Error('user_id is required')
+  }
+
+  const numericUserId = Number.parseInt(String(userId).trim(), 10)
+  if (Number.isNaN(numericUserId) || numericUserId <= 0) {
+    throw new Error(`Invalid user_id: ${userId}. Must be a positive number.`)
+  }
+
+  const soapBody = `<phonebook_wise_slip_sending xmlns="http://tempuri.org/">
+    <user_id>${numericUserId}</user_id>
+  </phonebook_wise_slip_sending>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'phonebook_wise_slip_sending',
+    soapBody,
+    true
+  );
+};
+
+// Booth wise slip send dashboard
+export const dis_booth_wise_slip_send_dash = async function(panelApiUrl) {
+  const soapBody = `<dis_booth_wise_slip_send_dash xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_booth_wise_slip_send_dash',
+    soapBody,
+    true
+  );
+};
+
+// Phonebook wise slip send dashboard
+export const dis_phonebook_wise_slip_send_dash = async function(panelApiUrl) {
+  const soapBody = `<dis_phonebook_wise_slip_send_dash xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_phonebook_wise_slip_send_dash',
+    soapBody,
+    true
+  );
+};
+
+// Polling location wise slip send dashboard
+export const dis_polling_location_wise_slip_send_dash = async function(panelApiUrl) {
+  const soapBody = `<dis_polling_location_wise_slip_send_dash xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_polling_location_wise_slip_send_dash',
+    soapBody,
+    true
+  );
+};
+
 // Display booth wise phonebook - booth wise known voters list
 export const display_booth_wise_phonebook = async function(panelApiUrl) {
   const soapBody = `<display_booth_wise_phonebook xmlns="http://tempuri.org/" />`;
@@ -2761,6 +2961,21 @@ export const disMySlipSendingVoter = async function(userId, panelApiUrl) {
     adminEndpoint,
     'POST',
     'dis_my_slip_sending_voter',
+    soapBody,
+    true
+  );
+};
+
+// Display user wise slip distribution - workers with their slip sending counts
+export const disUserWiseSlipDistribution = async function(panelApiUrl) {
+  const soapBody = `<dis_user_wise_slip_distribution xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_user_wise_slip_distribution',
     soapBody,
     true
   );

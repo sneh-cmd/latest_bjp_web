@@ -794,12 +794,12 @@ const CadreSurveyReport = ({ navigation }) => {
                 <div className={`flex flex-col items-center ${card.spaceY}`}>
                   <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: card.textColor }}>
                     {card.label}
-                  </div>
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
+                </div>
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
                     {card.icon}
-                  </div>
                 </div>
               </div>
+            </div>
             ))}
           </div>
         </div>

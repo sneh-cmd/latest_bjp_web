@@ -55,6 +55,12 @@ import MatchRemaining from './components/admindasbord/third_list/MatchRemaining'
 import VolunteerSlipPrachar from './components/admindasbord/forth_list/volunteer/VolunteerSlipPrachar'
 import VolunteerSlipVoters from './components/admindasbord/forth_list/volunteer/VolunteerSlipVoters'
 import SlipPracharReport from './components/admindasbord/forth_list/slip_sending/SlipPracharReport'
+import BoothWiseSlipReport from './components/admindasbord/forth_list/slip_sending/BoothWiseSlipReport'
+import PollingStationWiseSlipReport from './components/admindasbord/forth_list/slip_sending/PollingStationWiseSlipReport'
+import DateWiseSlipReport from './components/admindasbord/forth_list/slip_sending/DateWiseSlipReport'
+import PhonebookWiseSlipReport from './components/admindasbord/forth_list/slip_sending/PhonebookWiseSlipReport'
+import MyPhonebookSlipReport from './components/admindasbord/forth_list/slip_sending/MyPhonebookSlipReport'
+import WorkerWiseSlipReport from './components/admindasbord/forth_list/slip_sending/WorkerWiseSlipReport'
 import BoothWisePhonebook from './components/admindasbord/third_list/BoothWisePhonebook'
 import BoothWisePhonebookMember from './components/admindasbord/third_list/BoothWisePhonebookMember'
 import SurnameGroupPhonebook from './components/admindasbord/third_list/SurnameGroupPhonebook'
@@ -531,6 +537,54 @@ function SlipPracharReportWrapper() {
   )
 }
 
+function BoothWiseSlipReportWrapper() {
+  return (
+    <NavigationProvider>
+      <BoothWiseSlipReport />
+    </NavigationProvider>
+  )
+}
+
+function PollingStationWiseSlipReportWrapper() {
+  return (
+    <NavigationProvider>
+      <PollingStationWiseSlipReport />
+    </NavigationProvider>
+  )
+}
+
+function DateWiseSlipReportWrapper() {
+  return (
+    <NavigationProvider>
+      <DateWiseSlipReport />
+    </NavigationProvider>
+  )
+}
+
+function PhonebookWiseSlipReportWrapper() {
+  return (
+    <NavigationProvider>
+      <PhonebookWiseSlipReport />
+    </NavigationProvider>
+  )
+}
+
+function MyPhonebookSlipReportWrapper() {
+  return (
+    <NavigationProvider>
+      <MyPhonebookSlipReport />
+    </NavigationProvider>
+  )
+}
+
+function WorkerWiseSlipReportWrapper() {
+  return (
+    <NavigationProvider>
+      <WorkerWiseSlipReport />
+    </NavigationProvider>
+  )
+}
+
 function MatchRemainingWrapper() {
   return (
     <NavigationProvider>
@@ -685,6 +739,12 @@ function App() {
           <Route path="/volunteer-slip-prachar" element={<VolunteerSlipPracharWrapper />} />
           <Route path="/volunteer-slip-voters" element={<VolunteerSlipVotersWrapper />} />
           <Route path="/slip-prachar-report" element={<SlipPracharReportWrapper />} />
+          <Route path="/booth-wise-slip-report" element={<BoothWiseSlipReportWrapper />} />
+          <Route path="/polling-station-wise-slip-report" element={<PollingStationWiseSlipReportWrapper />} />
+          <Route path="/date-wise-slip-report" element={<DateWiseSlipReportWrapper />} />
+          <Route path="/phonebook-wise-slip-report" element={<PhonebookWiseSlipReportWrapper />} />
+          <Route path="/my-phonebook-slip-report" element={<MyPhonebookSlipReportWrapper />} />
+          <Route path="/worker-wise-slip-report" element={<WorkerWiseSlipReportWrapper />} />
           <Route path="/match-remaining" element={<MatchRemainingWrapper />} />
           <Route path="/booth-wise-phonebook" element={<BoothWisePhonebookWrapper />} />
           <Route path="/booth-wise-phonebook-member" element={<BoothWisePhonebookMemberWrapper />} />
