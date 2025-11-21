@@ -585,7 +585,7 @@ const AdminDashboard = ({ navigation }) => {
           <path d="M8 4h8v2H8V4zm0 4h8v2H8V8zm0 4h5v2H8v-2z" fill="white"/>
         </svg>
       ),
-      onClick: null,
+      onClick: () => navigate('/slip-prachar-report'),
     },
     {
       id: 'cadre-survey-report',

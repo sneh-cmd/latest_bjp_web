@@ -54,6 +54,7 @@ import KaryakartaPhonebookMembers from './components/admindasbord/third_list/Pho
 import MatchRemaining from './components/admindasbord/third_list/MatchRemaining'
 import VolunteerSlipPrachar from './components/admindasbord/forth_list/volunteer/VolunteerSlipPrachar'
 import VolunteerSlipVoters from './components/admindasbord/forth_list/volunteer/VolunteerSlipVoters'
+import SlipPracharReport from './components/admindasbord/forth_list/slip_sending/SlipPracharReport'
 import BoothWisePhonebook from './components/admindasbord/third_list/BoothWisePhonebook'
 import BoothWisePhonebookMember from './components/admindasbord/third_list/BoothWisePhonebookMember'
 import SurnameGroupPhonebook from './components/admindasbord/third_list/SurnameGroupPhonebook'
@@ -522,6 +523,14 @@ function VolunteerSlipVotersWrapper() {
   )
 }
 
+function SlipPracharReportWrapper() {
+  return (
+    <NavigationProvider>
+      <SlipPracharReport />
+    </NavigationProvider>
+  )
+}
+
 function MatchRemainingWrapper() {
   return (
     <NavigationProvider>
@@ -675,6 +684,7 @@ function App() {
           <Route path="/karyakarta-phonebook-members" element={<KaryakartaPhonebookMembersWrapper />} />
           <Route path="/volunteer-slip-prachar" element={<VolunteerSlipPracharWrapper />} />
           <Route path="/volunteer-slip-voters" element={<VolunteerSlipVotersWrapper />} />
+          <Route path="/slip-prachar-report" element={<SlipPracharReportWrapper />} />
           <Route path="/match-remaining" element={<MatchRemainingWrapper />} />
           <Route path="/booth-wise-phonebook" element={<BoothWisePhonebookWrapper />} />
           <Route path="/booth-wise-phonebook-member" element={<BoothWisePhonebookMemberWrapper />} />

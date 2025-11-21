@@ -1147,8 +1147,17 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                       </div>
                     </div>
                   ) : (
-                    filteredVoters.map((voter) => (
-                    <div key={voter.id} className="bg-white border border-gray-200 rounded-lg p-2 sm:p-4">
+                    filteredVoters.map((voter) => {
+                      // Determine card background color
+                      // White if voter_available === 0 AND not_available_status is empty
+                      // Sky color otherwise
+                      const voterAvailable = voter.voter_available
+                      const notAvailableStatus = (voter.not_available_status || '').toString().trim()
+                      const isRemaining = (voterAvailable === 0 || voterAvailable === false) && notAvailableStatus === ''
+                      const cardBgClass = isRemaining ? 'bg-white' : 'bg-sky-50'
+                      
+                      return (
+                    <div key={voter.id} className={`${cardBgClass} border border-gray-200 rounded-lg p-2 sm:p-4`}>
                       {/* Voter Header */}
                       <div className="flex items-center justify-between mb-2 sm:mb-3">
                         <h3 className="text-sm sm:text-lg font-semibold text-gray-900">
@@ -1255,7 +1264,8 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                         </button>
                       </div>
                     </div>
-                    ))
+                      )
+                    })
                   )}
                 </div>
               </div>
