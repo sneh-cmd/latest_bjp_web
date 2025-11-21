@@ -41,11 +41,18 @@ const SlipPracharReport = ({ navigation }) => {
       id: 'my-phonebook',
       label: 'मेरा फोनबुक पर्ची रिपोर्ट',
       icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M20 0H4c-1.1 0-2 .9-2 2v20l4-4h14c1.1 0 2-.9 2-2V2c0-1.1-.9-2-2-2zm0 16H6l-2 2V2h16v14z"/>
-          <circle cx="9" cy="7" r="1.5" fill="currentColor"/>
-          <circle cx="15" cy="7" r="1.5" fill="currentColor"/>
-          <path d="M12 10c-1.38 0-2.5 1.12-2.5 2.5h5c0-1.38-1.12-2.5-2.5-2.5z"/>
+        <svg className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Phonebook cover - light blue */}
+          <rect x="20" y="15" width="60" height="70" rx="3" fill="#93c5fd" stroke="#3b82f6" strokeWidth="2"/>
+          {/* Phonebook pages - white */}
+          <rect x="25" y="20" width="50" height="60" rx="2" fill="white"/>
+          {/* Person silhouette - dark gray */}
+          <circle cx="50" cy="40" r="8" fill="#4b5563"/>
+          <rect x="42" y="48" width="16" height="20" rx="8" fill="#4b5563"/>
+          {/* Lines on pages */}
+          <line x1="30" y1="55" x2="70" y2="55" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="30" y1="62" x2="65" y2="62" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="30" y1="69" x2="60" y2="69" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
       ),
       onClick: () => console.log('My Phonebook Slip Report')
@@ -54,10 +61,16 @@ const SlipPracharReport = ({ navigation }) => {
       id: 'booth-wise',
       label: 'बूथ अनुसार',
       icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-          <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
-          <rect x="10" y="10" width="4" height="4" fill="currentColor"/>
+        <svg className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Voting booth base - dark blue */}
+          <rect x="25" y="50" width="50" height="35" rx="2" fill="#1e3a8a" stroke="#1e40af" strokeWidth="2"/>
+          {/* Red curtain */}
+          <path d="M25 50 Q50 30 75 50 L75 85 Q50 65 25 85 Z" fill="#dc2626" stroke="#b91c1c" strokeWidth="2"/>
+          {/* Curtain folds */}
+          <path d="M40 50 Q45 42 50 50" stroke="#b91c1c" strokeWidth="1.5" fill="none"/>
+          <path d="M50 50 Q55 42 60 50" stroke="#b91c1c" strokeWidth="1.5" fill="none"/>
+          {/* Booth door outline */}
+          <rect x="35" y="55" width="30" height="25" rx="1" fill="none" stroke="#1e40af" strokeWidth="1.5" strokeDasharray="2 2"/>
         </svg>
       ),
       onClick: () => console.log('Booth Wise')
@@ -66,11 +79,18 @@ const SlipPracharReport = ({ navigation }) => {
       id: 'phonebook-wise',
       label: 'फोनबूक अनुसार',
       icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M20 0H4c-1.1 0-2 .9-2 2v20l4-4h14c1.1 0 2-.9 2-2V2c0-1.1-.9-2-2-2zm0 16H6l-2 2V2h16v14z"/>
-          <circle cx="9" cy="7" r="1.5" fill="currentColor"/>
-          <circle cx="15" cy="7" r="1.5" fill="currentColor"/>
-          <path d="M12 10c-1.38 0-2.5 1.12-2.5 2.5h5c0-1.38-1.12-2.5-2.5-2.5z"/>
+        <svg className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Phonebook cover - light blue */}
+          <rect x="20" y="15" width="60" height="70" rx="3" fill="#93c5fd" stroke="#3b82f6" strokeWidth="2"/>
+          {/* Phonebook pages - white */}
+          <rect x="25" y="20" width="50" height="60" rx="2" fill="white"/>
+          {/* Person silhouette - dark gray */}
+          <circle cx="50" cy="40" r="8" fill="#4b5563"/>
+          <rect x="42" y="48" width="16" height="20" rx="8" fill="#4b5563"/>
+          {/* Lines on pages */}
+          <line x1="30" y1="55" x2="70" y2="55" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="30" y1="62" x2="65" y2="62" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="30" y1="69" x2="60" y2="69" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
       ),
       onClick: () => console.log('Phonebook Wise')
@@ -79,9 +99,21 @@ const SlipPracharReport = ({ navigation }) => {
       id: 'polling-station-wise',
       label: 'मतदान स्थल अनुसार',
       icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-          <path d="M7 10h2v7H7zm4 0h2v7h-2zm4 0h2v7h-2z"/>
+        <svg className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Ballot box - brown */}
+          <rect x="30" y="40" width="40" height="50" rx="3" fill="#92400e" stroke="#78350f" strokeWidth="2.5"/>
+          {/* Box top */}
+          <rect x="28" y="38" width="44" height="6" rx="2" fill="#a16207" stroke="#78350f" strokeWidth="2"/>
+          {/* Slot opening */}
+          <rect x="40" y="35" width="20" height="4" rx="1" fill="#451a03"/>
+          {/* Hand inserting document */}
+          <path d="M15 60 Q20 55 25 60 Q30 65 35 60" stroke="#fbbf24" strokeWidth="3" fill="none" strokeLinecap="round"/>
+          <circle cx="20" cy="58" r="4" fill="#fbbf24"/>
+          {/* Document being inserted */}
+          <rect x="30" y="50" width="12" height="18" rx="1" fill="white" stroke="#9ca3af" strokeWidth="1.5"/>
+          <line x1="33" y1="55" x2="39" y2="55" stroke="#4b5563" strokeWidth="1" strokeLinecap="round"/>
+          <line x1="33" y1="60" x2="38" y2="60" stroke="#4b5563" strokeWidth="1" strokeLinecap="round"/>
+          <line x1="33" y1="65" x2="40" y2="65" stroke="#4b5563" strokeWidth="1" strokeLinecap="round"/>
         </svg>
       ),
       onClick: () => console.log('Polling Station Wise')
@@ -90,8 +122,17 @@ const SlipPracharReport = ({ navigation }) => {
       id: 'worker-slip',
       label: 'कार्यकर्ता का स्लिप प्रचार',
       icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+        <svg className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Three overlapping blue human silhouettes */}
+          {/* First person - left */}
+          <circle cx="30" cy="30" r="10" fill="#3b82f6" opacity="0.9"/>
+          <rect x="22" y="40" width="16" height="30" rx="8" fill="#3b82f6" opacity="0.9"/>
+          {/* Second person - center */}
+          <circle cx="50" cy="28" r="10" fill="#2563eb" opacity="0.95"/>
+          <rect x="42" y="38" width="16" height="32" rx="8" fill="#2563eb" opacity="0.95"/>
+          {/* Third person - right */}
+          <circle cx="70" cy="30" r="10" fill="#1d4ed8" opacity="0.9"/>
+          <rect x="62" y="40" width="16" height="30" rx="8" fill="#1d4ed8" opacity="0.9"/>
         </svg>
       ),
       onClick: () => console.log('Worker Slip Campaign')
@@ -100,11 +141,46 @@ const SlipPracharReport = ({ navigation }) => {
       id: 'date-wise',
       label: 'तारीख अनुसार',
       icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+        <svg className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Calendar - black outline */}
+          <rect x="20" y="20" width="60" height="65" rx="4" fill="none" stroke="#1f2937" strokeWidth="3"/>
+          {/* Calendar header */}
+          <rect x="20" y="20" width="60" height="18" rx="4" fill="#374151"/>
+          {/* Calendar grid lines */}
+          <line x1="35" y1="38" x2="35" y2="85" stroke="#6b7280" strokeWidth="1.5" opacity="0.5"/>
+          <line x1="50" y1="38" x2="50" y2="85" stroke="#6b7280" strokeWidth="1.5" opacity="0.5"/>
+          <line x1="65" y1="38" x2="65" y2="85" stroke="#6b7280" strokeWidth="1.5" opacity="0.5"/>
+          <line x1="20" y1="50" x2="80" y2="50" stroke="#6b7280" strokeWidth="1.5" opacity="0.5"/>
+          <line x1="20" y1="62" x2="80" y2="62" stroke="#6b7280" strokeWidth="1.5" opacity="0.5"/>
+          <line x1="20" y1="74" x2="80" y2="74" stroke="#6b7280" strokeWidth="1.5" opacity="0.5"/>
+          {/* Date dots */}
+          <circle cx="35" cy="56" r="2" fill="#1f2937"/>
+          <circle cx="50" cy="56" r="2" fill="#1f2937"/>
+          <circle cx="65" cy="56" r="2" fill="#1f2937"/>
+          <circle cx="35" cy="68" r="2" fill="#1f2937"/>
+          <circle cx="50" cy="68" r="2" fill="#1f2937"/>
+          {/* Clock icon - bottom right */}
+          <circle cx="72" cy="75" r="8" fill="none" stroke="#1f2937" strokeWidth="2"/>
+          <line x1="72" y1="75" x2="72" y2="70" stroke="#1f2937" strokeWidth="2" strokeLinecap="round"/>
+          <line x1="72" y1="75" x2="76" y2="75" stroke="#1f2937" strokeWidth="2" strokeLinecap="round"/>
+          <circle cx="72" cy="75" r="1.5" fill="#1f2937"/>
         </svg>
       ),
       onClick: () => console.log('Date Wise')
+    },
+    {
+      id: 'master-search',
+      label: 'मास्टर सर्च',
+      icon: (
+        <svg className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Search icon - magnifying glass */}
+          <circle cx="45" cy="45" r="18" fill="none" stroke="#102463" strokeWidth="4" strokeLinecap="round"/>
+          <line x1="58" y1="58" x2="75" y2="75" stroke="#102463" strokeWidth="4" strokeLinecap="round"/>
+          {/* Search lines inside */}
+          <circle cx="45" cy="45" r="12" fill="none" stroke="#102463" strokeWidth="2" opacity="0.3"/>
+        </svg>
+      ),
+      onClick: () => console.log('Master Search')
     }
   ]
 
@@ -197,61 +273,61 @@ const SlipPracharReport = ({ navigation }) => {
           {/* Dotted Line */}
           <div className="border-t border-dashed border-gray-300 my-6"></div>
 
-          {/* Sent/Not Sent Stats */}
-          <div className="flex justify-around items-center mb-6">
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                <span className="text-lg font-semibold text-gray-800">भेज दिया</span>
+          {/* Combined Section: Sent/Not Sent Stats and Sent Breakdown in one row */}
+          <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 my-4 sm:my-6">
+            {/* Left Section: Sent/Not Sent Stats */}
+            <div className="flex-1 w-full md:w-auto flex justify-around items-center">
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-1 sm:mb-2">
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 mr-1.5 sm:mr-2"></div>
+                  <span className="text-base sm:text-lg font-semibold text-gray-800">भेज दिया</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{sentCount}</div>
               </div>
-              <div className="text-2xl font-bold text-gray-900">{sentCount}</div>
+              <div className="text-center">
+                <div className="flex items-center justify-center mb-1 sm:mb-2">
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 mr-1.5 sm:mr-2"></div>
+                  <span className="text-base sm:text-lg font-semibold text-gray-800">नहीं भेजा</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{notSentCount.toLocaleString('en-IN')}</div>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
-                <span className="text-lg font-semibold text-gray-800">नहीं भेजा</span>
-              </div>
-              <div className="text-2xl font-bold text-gray-900">{notSentCount.toLocaleString('en-IN')}</div>
-            </div>
-          </div>
 
-          {/* Dotted Line */}
-          <div className="border-t border-dashed border-gray-300 my-6"></div>
+            {/* Separating Line - Horizontal on mobile, Vertical on desktop */}
+            <div className="w-full md:w-0 md:h-20 border-t md:border-t-0 md:border-l border-dashed border-gray-300 my-2 md:my-0"></div>
 
-          {/* Sent Breakdown */}
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-              भेज दिया ({sentCount})
-            </h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-1">{whatsappCount}</div>
-                <div className="text-sm text-gray-600">Whatsapp</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-1">{smsCount}</div>
-                <div className="text-sm text-gray-600">SMS</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-1">{printSlipCount}</div>
-                <div className="text-sm text-gray-600">Print Slip</div>
+            {/* Right Section: Sent Breakdown */}
+            <div className="flex-1 w-full md:w-auto">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{whatsappCount}</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Whatsapp</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{smsCount}</div>
+                  <div className="text-xs sm:text-sm text-gray-600">SMS</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{printSlipCount}</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Print Slip</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Navigation Buttons Grid */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
           {navigationButtons.map((button) => (
             <button
               key={button.id}
               onClick={button.onClick}
-              className="bg-white rounded-xl shadow-md p-4 flex flex-col items-center justify-center hover:shadow-lg transition-shadow duration-200 min-h-[120px] border border-gray-100 hover:border-blue-300"
+              className="bg-white rounded-lg sm:rounded-xl shadow-md p-2 sm:p-3 md:p-4 flex flex-col items-center justify-center hover:shadow-lg transition-shadow duration-200 min-h-[100px] sm:min-h-[110px] md:min-h-[120px] border border-gray-100 hover:border-blue-300"
             >
               <div className="text-blue-600 mb-3">
                 {button.icon}
               </div>
-              <span className="text-xs text-center text-gray-700 font-medium leading-tight">
+              <span className="text-[10px] sm:text-xs md:text-sm lg:text-base font-semibold leading-tight">
                 {button.label}
               </span>
             </button>

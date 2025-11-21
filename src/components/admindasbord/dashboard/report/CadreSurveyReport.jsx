@@ -105,6 +105,302 @@ const CadreSurveyReport = ({ navigation }) => {
     fetchSurveyDashboard()
   }, [fetchSurveyDashboard])
 
+  // Survey Report Cards Data Array
+  const surveyReportCards = [
+    {
+      id: 'booth-wise-survey',
+      route: '/booth-wise-survey',
+      label: 'बूथ अनुसार सर्वे',
+      textColor: '#06b6d4',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-cyan-50',
+      borderColor: 'border-cyan-200',
+      hoverBorderColor: 'hover:border-cyan-400',
+      spaceY: 'space-y-2 sm:space-y-2.5 md:space-y-3',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="25" cy="25" r="6" fill="#4a5568"/>
+          <rect x="22" y="31" width="6" height="12" rx="3" fill="#4a5568"/>
+          <rect x="20" y="43" width="3" height="8" rx="1.5" fill="#4a5568"/>
+          <rect x="27" y="43" width="3" height="8" rx="1.5" fill="#4a5568"/>
+          <rect x="35" y="18" width="48" height="68" rx="4" fill="#06b6d4" opacity="0.2" stroke="#06b6d4" strokeWidth="2.5"/>
+          <rect x="38" y="12" width="42" height="10" rx="2" fill="#06b6d4" opacity="0.4"/>
+          <line x1="42" y1="32" x2="75" y2="32" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="42" y1="42" x2="75" y2="42" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="42" y1="52" x2="75" y2="52" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="42" y1="62" x2="68" y2="62" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round"/>
+          <rect x="40" y="29" width="5" height="5" rx="1" fill="#06b6d4" stroke="#06b6d4" strokeWidth="1.5"/>
+          <rect x="40" y="39" width="5" height="5" rx="1" fill="#06b6d4" stroke="#06b6d4" strokeWidth="1.5"/>
+          <rect x="40" y="49" width="5" height="5" rx="1" fill="#06b6d4" stroke="#06b6d4" strokeWidth="1.5"/>
+          <rect x="70" y="45" width="8" height="2" rx="1" fill="#06b6d4" opacity="0.6"/>
+          <path d="M72 50 L78 50 L77 48 L73 48 Z" fill="#06b6d4" opacity="0.6"/>
+        </svg>
+      )
+    },
+    {
+      id: 'date-wise-survey',
+      route: '/date-wise-survey',
+      label: 'तारीख अनुसार सर्वे',
+      textColor: '#f97316',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-orange-50',
+      borderColor: 'border-orange-200',
+      hoverBorderColor: 'hover:border-orange-400',
+      spaceY: 'space-y-1 sm:space-y-1.5 md:space-y-2',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="25" cy="25" r="6" fill="#4a5568"/>
+          <rect x="22" y="31" width="6" height="12" rx="3" fill="#4a5568"/>
+          <rect x="20" y="43" width="3" height="8" rx="1.5" fill="#4a5568"/>
+          <rect x="27" y="43" width="3" height="8" rx="1.5" fill="#4a5568"/>
+          <rect x="35" y="18" width="52" height="65" rx="5" fill="white" stroke="#f97316" strokeWidth="3"/>
+          <rect x="35" y="18" width="52" height="14" rx="5" fill="#f97316" opacity="0.9"/>
+          <text x="61" y="29" textAnchor="middle" fontSize="11" fill="white" fontWeight="bold">MAR</text>
+          <line x1="48" y1="32" x2="48" y2="83" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
+          <line x1="61" y1="32" x2="61" y2="83" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
+          <line x1="74" y1="32" x2="74" y2="83" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
+          <line x1="38" y1="45" x2="87" y2="45" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
+          <line x1="38" y1="58" x2="87" y2="58" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
+          <line x1="38" y1="71" x2="87" y2="71" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
+          <text x="61" y="64" textAnchor="middle" fontSize="18" fill="#f97316" fontWeight="bold">15</text>
+          <circle cx="61" cy="62" r="14" fill="#ef4444" opacity="0.25"/>
+          <circle cx="61" cy="62" r="10" fill="#ef4444" opacity="0.35"/>
+        </svg>
+      )
+    },
+    {
+      id: 'scheme-wise-survey',
+      route: '/scheme-wise-survey',
+      label: 'योजना अनुसार सर्वे',
+      textColor: '#102463',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-indigo-50',
+      borderColor: 'border-indigo-200',
+      hoverBorderColor: 'hover:border-indigo-400',
+      spaceY: 'space-y-1.5 sm:space-y-2 md:space-y-3',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g opacity="0.95">
+            <path d="M20 55 Q20 38 30 38 L38 38 Q48 38 48 55 L48 72 Q48 78 42 78 L26 78 Q20 78 20 72 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
+            <circle cx="34" cy="48" r="4" fill="#f97316"/>
+            <text x="34" y="56" textAnchor="middle" fontSize="10" fill="#f97316" fontWeight="bold">₹</text>
+            <path d="M26 38 Q26 32 30 32" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          </g>
+          <g opacity="0.8">
+            <path d="M32 60 Q32 43 42 43 L50 43 Q60 43 60 60 L60 77 Q60 83 54 83 L38 83 Q32 83 32 77 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
+            <circle cx="46" cy="53" r="4" fill="#f97316"/>
+            <text x="46" y="61" textAnchor="middle" fontSize="10" fill="#f97316" fontWeight="bold">₹</text>
+            <path d="M38 43 Q38 37 42 37" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          </g>
+          <g opacity="0.65">
+            <path d="M44 65 Q44 48 54 48 L62 48 Q72 48 72 65 L72 82 Q72 88 66 88 L50 88 Q44 88 44 82 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
+            <circle cx="58" cy="58" r="4" fill="#f97316"/>
+            <text x="58" y="66" textAnchor="middle" fontSize="10" fill="#f97316" fontWeight="bold">₹</text>
+            <path d="M50 48 Q50 42 54 42" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          </g>
+        </svg>
+      )
+    },
+    {
+      id: 'ration-card-wise-survey',
+      route: '/ration-card-wise-survey',
+      label: 'राशन कार्ड अनुसार सर्वे',
+      textColor: '#f59e0b',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-amber-50',
+      borderColor: 'border-amber-200',
+      hoverBorderColor: 'hover:border-amber-400',
+      spaceY: 'space-y-1.5 sm:space-y-2 md:space-y-3',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 65 Q20 55 25 55 Q30 55 30 65 Q30 75 25 75 Q20 75 20 65" fill="#fbbf24" opacity="0.7"/>
+          <path d="M25 60 Q28 58 32 60 Q35 58 38 60" stroke="#f59e0b" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          <rect x="38" y="28" width="20" height="28" rx="2.5" fill="#3b82f6" stroke="#2563eb" strokeWidth="2"/>
+          <rect x="42" y="26" width="20" height="28" rx="2.5" fill="#10b981" stroke="#059669" strokeWidth="2"/>
+          <rect x="46" y="24" width="20" height="28" rx="2.5" fill="#f59e0b" stroke="#d97706" strokeWidth="2"/>
+          <rect x="41" y="32" width="16" height="2.5" rx="1" fill="white" opacity="0.9"/>
+          <rect x="41" y="37" width="12" height="2" rx="1" fill="white" opacity="0.7"/>
+          <rect x="45" y="37" width="12" height="2" rx="1" fill="white" opacity="0.7"/>
+          <rect x="43" y="41" width="14" height="2" rx="1" fill="white" opacity="0.7"/>
+        </svg>
+      )
+    },
+    {
+      id: 'community-wise-survey',
+      route: '/community-wise-survey',
+      label: 'समुदाय अनुसार सर्वे',
+      textColor: '#102463',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-pink-50',
+      borderColor: 'border-pink-200',
+      hoverBorderColor: 'hover:border-pink-400',
+      spaceY: 'space-y-1.5 sm:space-y-2 md:space-y-3',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="28" cy="38" rx="10" ry="8" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2"/>
+          <path d="M20 38 Q18 32 22 30 Q26 28 28 34" stroke="#f59e0b" strokeWidth="2" fill="none" strokeLinecap="round"/>
+          <path d="M36 38 Q38 32 34 30 Q30 28 28 34" stroke="#f59e0b" strokeWidth="2" fill="none" strokeLinecap="round"/>
+          <ellipse cx="50" cy="38" rx="10" ry="8" fill="#34d399" stroke="#059669" strokeWidth="2"/>
+          <path d="M42 38 Q40 32 44 30 Q48 28 50 34" stroke="#059669" strokeWidth="2" fill="none" strokeLinecap="round"/>
+          <path d="M58 38 Q60 32 56 30 Q52 28 50 34" stroke="#059669" strokeWidth="2" fill="none" strokeLinecap="round"/>
+          <ellipse cx="72" cy="38" rx="10" ry="8" fill="#60a5fa" stroke="#2563eb" strokeWidth="2"/>
+          <path d="M64 38 Q62 32 66 30 Q70 28 72 34" stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round"/>
+          <path d="M80 38 Q82 32 78 30 Q74 28 72 34" stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round"/>
+          <ellipse cx="39" cy="58" rx="10" ry="8" fill="#f472b6" stroke="#db2777" strokeWidth="2"/>
+          <path d="M31 58 Q29 52 33 50 Q37 48 39 54" stroke="#db2777" strokeWidth="2" fill="none" strokeLinecap="round"/>
+          <path d="M47 58 Q49 52 45 50 Q41 48 39 54" stroke="#db2777" strokeWidth="2" fill="none" strokeLinecap="round"/>
+          <path d="M28 46 Q35 50 39 48 Q43 50 50 46 Q57 50 72 46" stroke="#102463" strokeWidth="3" fill="none" strokeLinecap="round"/>
+          <path d="M39 50 Q39 55 39 58" stroke="#102463" strokeWidth="3" fill="none" strokeLinecap="round"/>
+        </svg>
+      )
+    },
+    {
+      id: 'caste-wise-survey',
+      route: '/caste-wise-survey',
+      label: 'कास्ट अनुसार सर्वे',
+      textColor: '#102463',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-slate-50',
+      borderColor: 'border-slate-200',
+      hoverBorderColor: 'hover:border-slate-400',
+      spaceY: 'space-y-2 sm:space-y-2.5 md:space-y-3',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g opacity="0.9">
+            <path d="M20 60 Q20 42 30 42 L38 42 Q48 42 48 60 L48 77 Q48 84 42 84 L26 84 Q20 84 20 77 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
+            <circle cx="34" cy="52" r="4" fill="#f97316"/>
+            <text x="34" y="60" textAnchor="middle" fontSize="11" fill="#f97316" fontWeight="bold">₹</text>
+            <path d="M26 42 Q26 35 30 35" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          </g>
+          <g opacity="0.75">
+            <path d="M35 65 Q35 47 45 47 L53 47 Q63 47 63 65 L63 82 Q63 89 57 89 L41 89 Q35 89 35 82 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
+            <circle cx="49" cy="57" r="4" fill="#f97316"/>
+            <text x="49" y="65" textAnchor="middle" fontSize="11" fill="#f97316" fontWeight="bold">₹</text>
+            <path d="M41 47 Q41 40 45 40" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          </g>
+          <g opacity="0.6">
+            <path d="M50 70 Q50 52 60 52 L68 52 Q78 52 78 70 L78 87 Q78 94 72 94 L56 94 Q50 94 50 87 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
+            <circle cx="64" cy="62" r="4" fill="#f97316"/>
+            <text x="64" y="70" textAnchor="middle" fontSize="11" fill="#f97316" fontWeight="bold">₹</text>
+            <path d="M56 52 Q56 45 60 45" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+          </g>
+        </svg>
+      )
+    },
+    {
+      id: 'education-profession-wise-survey',
+      route: '/education-profession-wise-survey',
+      label: 'शिक्षा/व्यवसाय अनुसार...',
+      textColor: '#84cc16',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-lime-50',
+      borderColor: 'border-lime-200',
+      hoverBorderColor: 'hover:border-lime-400',
+      spaceY: 'space-y-2 sm:space-y-2.5 md:space-y-3',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M25 38 L50 28 L75 38 L50 48 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
+          <ellipse cx="50" cy="38" rx="25" ry="4" fill="#102463" opacity="0.35"/>
+          <circle cx="75" cy="38" r="2" fill="#84cc16"/>
+          <line x1="75" y1="40" x2="75" y2="45" stroke="#84cc16" strokeWidth="1.5" strokeLinecap="round"/>
+          <rect x="30" y="50" width="40" height="26" rx="2.5" fill="#102463" opacity="0.25" stroke="#102463" strokeWidth="2"/>
+          <rect x="33" y="54" width="34" height="5" rx="1" fill="#102463"/>
+          <rect x="33" y="62" width="34" height="5" rx="1" fill="#102463"/>
+          <rect x="33" y="70" width="28" height="5" rx="1" fill="#102463"/>
+          <line x1="36" y1="56" x2="40" y2="56" stroke="#84cc16" strokeWidth="2" strokeLinecap="round"/>
+          <line x1="36" y1="64" x2="40" y2="64" stroke="#84cc16" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      )
+    },
+    {
+      id: 'redevelopment-building',
+      route: '/redevelopment-building',
+      label: 'पुनर्विकास भवन',
+      textColor: '#0d9488',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-teal-50',
+      borderColor: 'border-teal-200',
+      hoverBorderColor: 'hover:border-teal-400',
+      spaceY: 'space-y-2 sm:space-y-2.5 md:space-y-3',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="25" width="60" height="40" rx="3" fill="#0d9488" stroke="#0f766e" strokeWidth="2.5"/>
+          <rect x="25" y="30" width="50" height="30" rx="2" fill="#134e4a" opacity="0.8"/>
+          <rect x="28" y="33" width="44" height="24" rx="1.5" fill="#14b8a6" opacity="0.6"/>
+          <rect x="28" y="33" width="44" height="6" rx="1.5" fill="#0d9488"/>
+          <circle cx="32" cy="36" r="1.5" fill="#fbbf24"/>
+          <circle cx="37" cy="36" r="1.5" fill="#ef4444"/>
+          <circle cx="42" cy="36" r="1.5" fill="#22c55e"/>
+          <line x1="32" y1="43" x2="42" y2="43" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="32" y1="48" x2="38" y2="48" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="32" y1="53" x2="45" y2="53" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="65" cy="45" r="8" fill="#0d9488" stroke="#0f766e" strokeWidth="2"/>
+          <path d="M65 37 L67 39 L71 37 L69 41 L73 41 L71 43 L73 47 L69 47 L67 51 L65 49 L63 51 L61 47 L57 47 L59 43 L57 41 L61 41 L63 37 Z" fill="#fbbf24" opacity="0.9"/>
+          <rect x="45" y="65" width="10" height="4" rx="1" fill="#0f766e"/>
+          <rect x="38" y="69" width="24" height="3" rx="1.5" fill="#0f766e"/>
+        </svg>
+      )
+    },
+    {
+      id: 'death-survey',
+      route: '/death-survey',
+      label: 'मृत्यु सर्वेक्षण',
+      textColor: '#4b5563',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-gray-50',
+      borderColor: 'border-gray-200',
+      hoverBorderColor: 'hover:border-gray-400',
+      spaceY: 'space-y-2 sm:space-y-2.5 md:space-y-3',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="35" y="45" width="30" height="40" rx="2" fill="#6b7280" stroke="#4b5563" strokeWidth="2.5"/>
+          <path d="M35 45 Q50 35 65 45" stroke="#4b5563" strokeWidth="2.5" fill="#6b7280"/>
+          <text x="50" y="68" textAnchor="middle" fontSize="12" fill="#ffffff" fontWeight="bold" fontFamily="Arial, sans-serif">R.I.P</text>
+          <line x1="50" y1="25" x2="50" y2="45" stroke="#4b5563" strokeWidth="3" strokeLinecap="round"/>
+          <line x1="42" y1="35" x2="58" y2="35" stroke="#4b5563" strokeWidth="3" strokeLinecap="round"/>
+          <circle cx="42" cy="55" r="2" fill="#9ca3af" opacity="0.6"/>
+          <circle cx="58" cy="55" r="2" fill="#9ca3af" opacity="0.6"/>
+          <circle cx="42" cy="75" r="2" fill="#9ca3af" opacity="0.6"/>
+          <circle cx="58" cy="75" r="2" fill="#9ca3af" opacity="0.6"/>
+        </svg>
+      )
+    },
+    {
+      id: 'transferred-survey',
+      route: '/transferred-survey',
+      label: 'स्थानांतरित सर्वेक्षण',
+      textColor: '#2563eb',
+      gradientFrom: 'from-white',
+      gradientTo: 'to-blue-50',
+      borderColor: 'border-blue-200',
+      hoverBorderColor: 'hover:border-blue-400',
+      spaceY: 'space-y-2 sm:space-y-2.5 md:space-y-3',
+      icon: (
+        <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="25" y="50" width="45" height="25" rx="3" fill="#2563eb" stroke="#1d4ed8" strokeWidth="2.5"/>
+          <rect x="25" y="40" width="20" height="15" rx="2" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="2.5"/>
+          <rect x="28" y="42" width="14" height="10" rx="1.5" fill="#dbeafe" opacity="0.8"/>
+          <line x1="48" y1="50" x2="48" y2="75" stroke="#1d4ed8" strokeWidth="2"/>
+          <line x1="52" y1="55" x2="65" y2="55" stroke="#1e40af" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="52" y1="62" x2="65" y2="62" stroke="#1e40af" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="52" y1="68" x2="62" y2="68" stroke="#1e40af" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="35" cy="78" r="6" fill="#1e293b" stroke="#0f172a" strokeWidth="2"/>
+          <circle cx="35" cy="78" r="3.5" fill="#64748b"/>
+          <circle cx="55" cy="78" r="6" fill="#1e293b" stroke="#0f172a" strokeWidth="2"/>
+          <circle cx="55" cy="78" r="3.5" fill="#64748b"/>
+          <rect x="50" y="45" width="18" height="12" rx="1" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1.5"/>
+          <path d="M50 45 L59 38 L68 45 Z" fill="#f59e0b" stroke="#d97706" strokeWidth="1.5"/>
+          <rect x="56" y="52" width="4" height="5" rx="0.5" fill="#78350f"/>
+          <rect x="52" y="50" width="3" height="3" rx="0.5" fill="#3b82f6" opacity="0.7"/>
+          <rect x="61" y="50" width="3" height="3" rx="0.5" fill="#3b82f6" opacity="0.7"/>
+          <line x1="15" y1="60" x2="22" y2="60" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+          <line x1="15" y1="65" x2="22" y2="65" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+          <line x1="15" y1="70" x2="22" y2="70" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+        </svg>
+      )
+    }
+  ]
+
   return (
     <div 
       ref={containerRef}
@@ -489,357 +785,22 @@ const CadreSurveyReport = ({ navigation }) => {
           <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold mb-4 sm:mb-5 md:mb-6 px-2" style={{ color: '#102463' }}>सर्वे रिपोर्ट</h2>
           
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 w-full">
-            {/* बूथ अनुसार सर्वे */}
-            <div 
-              onClick={() => navigate('/booth-wise-survey')}
-              className="bg-gradient-to-br from-white to-cyan-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-cyan-200 hover:border-cyan-400 group"
-            >
-              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 md:space-y-3">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#06b6d4' }}>
-                  बूथ अनुसार सर्वे
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Person figure */}
-                    <circle cx="25" cy="25" r="6" fill="#4a5568"/>
-                    <rect x="22" y="31" width="6" height="12" rx="3" fill="#4a5568"/>
-                    <rect x="20" y="43" width="3" height="8" rx="1.5" fill="#4a5568"/>
-                    <rect x="27" y="43" width="3" height="8" rx="1.5" fill="#4a5568"/>
-                    {/* Large clipboard */}
-                    <rect x="35" y="18" width="48" height="68" rx="4" fill="#06b6d4" opacity="0.2" stroke="#06b6d4" strokeWidth="2.5"/>
-                    <rect x="38" y="12" width="42" height="10" rx="2" fill="#06b6d4" opacity="0.4"/>
-                    {/* Clipboard lines */}
-                    <line x1="42" y1="32" x2="75" y2="32" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round"/>
-                    <line x1="42" y1="42" x2="75" y2="42" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round"/>
-                    <line x1="42" y1="52" x2="75" y2="52" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round"/>
-                    <line x1="42" y1="62" x2="68" y2="62" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round"/>
-                    {/* Checkboxes */}
-                    <rect x="40" y="29" width="5" height="5" rx="1" fill="#06b6d4" stroke="#06b6d4" strokeWidth="1.5"/>
-                    <rect x="40" y="39" width="5" height="5" rx="1" fill="#06b6d4" stroke="#06b6d4" strokeWidth="1.5"/>
-                    <rect x="40" y="49" width="5" height="5" rx="1" fill="#06b6d4" stroke="#06b6d4" strokeWidth="1.5"/>
-                    {/* Office supplies in background */}
-                    <rect x="70" y="45" width="8" height="2" rx="1" fill="#06b6d4" opacity="0.6"/>
-                    <path d="M72 50 L78 50 L77 48 L73 48 Z" fill="#06b6d4" opacity="0.6"/>
-                  </svg>
+            {surveyReportCards.map((card) => (
+              <div 
+                key={card.id}
+                onClick={() => navigate(card.route)}
+                className={`bg-gradient-to-br ${card.gradientFrom} ${card.gradientTo} rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 ${card.borderColor} ${card.hoverBorderColor} group`}
+              >
+                <div className={`flex flex-col items-center ${card.spaceY}`}>
+                  <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: card.textColor }}>
+                    {card.label}
+                  </div>
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    {card.icon}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* तारीख अनुसार सर्वे */}
-            <div 
-              onClick={() => navigate('/date-wise-survey')}
-              className="bg-gradient-to-br from-white to-orange-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-orange-200 hover:border-orange-400 group"
-            >
-              <div className="flex flex-col items-center space-y-1 sm:space-y-1.5 md:space-y-2">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#f97316' }}>
-                  तारीख अनुसार सर्वे
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Person figure */}
-                    <circle cx="25" cy="25" r="6" fill="#4a5568"/>
-                    <rect x="22" y="31" width="6" height="12" rx="3" fill="#4a5568"/>
-                    <rect x="20" y="43" width="3" height="8" rx="1.5" fill="#4a5568"/>
-                    <rect x="27" y="43" width="3" height="8" rx="1.5" fill="#4a5568"/>
-                    {/* Large calendar */}
-                    <rect x="35" y="18" width="52" height="65" rx="5" fill="white" stroke="#f97316" strokeWidth="3"/>
-                    {/* Calendar header */}
-                    <rect x="35" y="18" width="52" height="14" rx="5" fill="#f97316" opacity="0.9"/>
-                    <text x="61" y="29" textAnchor="middle" fontSize="11" fill="white" fontWeight="bold">MAR</text>
-                    {/* Calendar grid lines */}
-                    <line x1="48" y1="32" x2="48" y2="83" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
-                    <line x1="61" y1="32" x2="61" y2="83" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
-                    <line x1="74" y1="32" x2="74" y2="83" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
-                    <line x1="38" y1="45" x2="87" y2="45" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
-                    <line x1="38" y1="58" x2="87" y2="58" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
-                    <line x1="38" y1="71" x2="87" y2="71" stroke="#f97316" strokeWidth="1.5" opacity="0.4"/>
-                    {/* Date number */}
-                    <text x="61" y="64" textAnchor="middle" fontSize="18" fill="#f97316" fontWeight="bold">15</text>
-                    {/* Highlight circle */}
-                    <circle cx="61" cy="62" r="14" fill="#ef4444" opacity="0.25"/>
-                    <circle cx="61" cy="62" r="10" fill="#ef4444" opacity="0.35"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* योजना अनुसार सर्वे */}
-            <div 
-              onClick={() => navigate('/scheme-wise-survey')}
-              className="bg-gradient-to-br from-white to-indigo-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-indigo-200 hover:border-indigo-400 group"
-            >
-              <div className="flex flex-col items-center space-y-1.5 sm:space-y-2 md:space-y-3">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#102463' }}>
-                  योजना अनुसार सर्वे
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Three money bags */}
-                    <g opacity="0.95">
-                      <path d="M20 55 Q20 38 30 38 L38 38 Q48 38 48 55 L48 72 Q48 78 42 78 L26 78 Q20 78 20 72 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
-                      <circle cx="34" cy="48" r="4" fill="#f97316"/>
-                      <text x="34" y="56" textAnchor="middle" fontSize="10" fill="#f97316" fontWeight="bold">₹</text>
-                      <path d="M26 38 Q26 32 30 32" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                    </g>
-                    <g opacity="0.8">
-                      <path d="M32 60 Q32 43 42 43 L50 43 Q60 43 60 60 L60 77 Q60 83 54 83 L38 83 Q32 83 32 77 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
-                      <circle cx="46" cy="53" r="4" fill="#f97316"/>
-                      <text x="46" y="61" textAnchor="middle" fontSize="10" fill="#f97316" fontWeight="bold">₹</text>
-                      <path d="M38 43 Q38 37 42 37" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                    </g>
-                    <g opacity="0.65">
-                      <path d="M44 65 Q44 48 54 48 L62 48 Q72 48 72 65 L72 82 Q72 88 66 88 L50 88 Q44 88 44 82 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
-                      <circle cx="58" cy="58" r="4" fill="#f97316"/>
-                      <text x="58" y="66" textAnchor="middle" fontSize="10" fill="#f97316" fontWeight="bold">₹</text>
-                      <path d="M50 48 Q50 42 54 42" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                    </g>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* राशन कार्ड अनुसार सर्वे */}
-            <div 
-              onClick={() => navigate('/ration-card-wise-survey')}
-              className="bg-gradient-to-br from-white to-amber-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-amber-200 hover:border-amber-400 group"
-            >
-              <div className="flex flex-col items-center space-y-1.5 sm:space-y-2 md:space-y-3">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#f59e0b' }}>
-                  राशन कार्ड अनुसार सर्वे
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Hand holding cards */}
-                    <path d="M20 65 Q20 55 25 55 Q30 55 30 65 Q30 75 25 75 Q20 75 20 65" fill="#fbbf24" opacity="0.7"/>
-                    <path d="M25 60 Q28 58 32 60 Q35 58 38 60" stroke="#f59e0b" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                    {/* Colorful cards stack */}
-                    <rect x="38" y="28" width="20" height="28" rx="2.5" fill="#3b82f6" stroke="#2563eb" strokeWidth="2"/>
-                    <rect x="42" y="26" width="20" height="28" rx="2.5" fill="#10b981" stroke="#059669" strokeWidth="2"/>
-                    <rect x="46" y="24" width="20" height="28" rx="2.5" fill="#f59e0b" stroke="#d97706" strokeWidth="2"/>
-                    {/* Card details */}
-                    <rect x="41" y="32" width="16" height="2.5" rx="1" fill="white" opacity="0.9"/>
-                    <rect x="41" y="37" width="12" height="2" rx="1" fill="white" opacity="0.7"/>
-                    <rect x="45" y="37" width="12" height="2" rx="1" fill="white" opacity="0.7"/>
-                    <rect x="43" y="41" width="14" height="2" rx="1" fill="white" opacity="0.7"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* समुदाय अनुसार सर्वे */}
-            <div 
-              onClick={() => navigate('/community-wise-survey')}
-              className="bg-gradient-to-br from-white to-pink-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-pink-200 hover:border-pink-400 group"
-            >
-              <div className="flex flex-col items-center space-y-1.5 sm:space-y-2 md:space-y-3">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#102463' }}>
-                  समुदाय अनुसार सर्वे
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Four interlocked hands - different skin tones */}
-                    {/* Hand 1 - Yellow/Tan */}
-                    <ellipse cx="28" cy="38" rx="10" ry="8" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2"/>
-                    <path d="M20 38 Q18 32 22 30 Q26 28 28 34" stroke="#f59e0b" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                    <path d="M36 38 Q38 32 34 30 Q30 28 28 34" stroke="#f59e0b" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                    
-                    {/* Hand 2 - Green */}
-                    <ellipse cx="50" cy="38" rx="10" ry="8" fill="#34d399" stroke="#059669" strokeWidth="2"/>
-                    <path d="M42 38 Q40 32 44 30 Q48 28 50 34" stroke="#059669" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                    <path d="M58 38 Q60 32 56 30 Q52 28 50 34" stroke="#059669" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                    
-                    {/* Hand 3 - Blue */}
-                    <ellipse cx="72" cy="38" rx="10" ry="8" fill="#60a5fa" stroke="#2563eb" strokeWidth="2"/>
-                    <path d="M64 38 Q62 32 66 30 Q70 28 72 34" stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                    <path d="M80 38 Q82 32 78 30 Q74 28 72 34" stroke="#2563eb" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                    
-                    {/* Hand 4 - Pink */}
-                    <ellipse cx="39" cy="58" rx="10" ry="8" fill="#f472b6" stroke="#db2777" strokeWidth="2"/>
-                    <path d="M31 58 Q29 52 33 50 Q37 48 39 54" stroke="#db2777" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                    <path d="M47 58 Q49 52 45 50 Q41 48 39 54" stroke="#db2777" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                    
-                    {/* Interconnection lines */}
-                    <path d="M28 46 Q35 50 39 48 Q43 50 50 46 Q57 50 72 46" stroke="#102463" strokeWidth="3" fill="none" strokeLinecap="round"/>
-                    <path d="M39 50 Q39 55 39 58" stroke="#102463" strokeWidth="3" fill="none" strokeLinecap="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* कास्ट अनुसार सर्वे */}
-            <div 
-              onClick={() => navigate('/caste-wise-survey')}
-              className="bg-gradient-to-br from-white to-slate-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-slate-200 hover:border-slate-400 group"
-            >
-              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 md:space-y-3">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#102463' }}>
-                  कास्ट अनुसार सर्वे
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Three money bags with rupee symbols */}
-                    <g opacity="0.9">
-                      <path d="M20 60 Q20 42 30 42 L38 42 Q48 42 48 60 L48 77 Q48 84 42 84 L26 84 Q20 84 20 77 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
-                      <circle cx="34" cy="52" r="4" fill="#f97316"/>
-                      <text x="34" y="60" textAnchor="middle" fontSize="11" fill="#f97316" fontWeight="bold">₹</text>
-                      <path d="M26 42 Q26 35 30 35" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                    </g>
-                    <g opacity="0.75">
-                      <path d="M35 65 Q35 47 45 47 L53 47 Q63 47 63 65 L63 82 Q63 89 57 89 L41 89 Q35 89 35 82 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
-                      <circle cx="49" cy="57" r="4" fill="#f97316"/>
-                      <text x="49" y="65" textAnchor="middle" fontSize="11" fill="#f97316" fontWeight="bold">₹</text>
-                      <path d="M41 47 Q41 40 45 40" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                    </g>
-                    <g opacity="0.6">
-                      <path d="M50 70 Q50 52 60 52 L68 52 Q78 52 78 70 L78 87 Q78 94 72 94 L56 94 Q50 94 50 87 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
-                      <circle cx="64" cy="62" r="4" fill="#f97316"/>
-                      <text x="64" y="70" textAnchor="middle" fontSize="11" fill="#f97316" fontWeight="bold">₹</text>
-                      <path d="M56 52 Q56 45 60 45" stroke="#0a1e4a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                    </g>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* शिक्षा/व्यवसाय अनुसार सर्वे */}
-            <div 
-              onClick={() => navigate('/education-profession-wise-survey')}
-              className="bg-gradient-to-br from-white to-lime-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-lime-200 hover:border-lime-400 group"
-            >
-              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 md:space-y-3">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#84cc16' }}>
-                  शिक्षा/व्यवसाय अनुसार...
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Graduation cap */}
-                    <path d="M25 38 L50 28 L75 38 L50 48 Z" fill="#102463" stroke="#0a1e4a" strokeWidth="2"/>
-                    <ellipse cx="50" cy="38" rx="25" ry="4" fill="#102463" opacity="0.35"/>
-                    {/* Tassel */}
-                    <circle cx="75" cy="38" r="2" fill="#84cc16"/>
-                    <line x1="75" y1="40" x2="75" y2="45" stroke="#84cc16" strokeWidth="1.5" strokeLinecap="round"/>
-                    {/* Stack of books */}
-                    <rect x="30" y="50" width="40" height="26" rx="2.5" fill="#102463" opacity="0.25" stroke="#102463" strokeWidth="2"/>
-                    <rect x="33" y="54" width="34" height="5" rx="1" fill="#102463"/>
-                    <rect x="33" y="62" width="34" height="5" rx="1" fill="#102463"/>
-                    <rect x="33" y="70" width="28" height="5" rx="1" fill="#102463"/>
-                    {/* Book pages/indicators */}
-                    <line x1="36" y1="56" x2="40" y2="56" stroke="#84cc16" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="36" y1="64" x2="40" y2="64" stroke="#84cc16" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* पुनर्विकास भवन */}
-            <div 
-              onClick={() => navigate('/redevelopment-building')}
-              className="bg-gradient-to-br from-white to-teal-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-teal-200 hover:border-teal-400 group"
-            >
-              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 md:space-y-3">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#0d9488' }}>
-                  पुनर्विकास भवन
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Computer monitor */}
-                    <rect x="20" y="25" width="60" height="40" rx="3" fill="#0d9488" stroke="#0f766e" strokeWidth="2.5"/>
-                    <rect x="25" y="30" width="50" height="30" rx="2" fill="#134e4a" opacity="0.8"/>
-                    {/* Browser window */}
-                    <rect x="28" y="33" width="44" height="24" rx="1.5" fill="#14b8a6" opacity="0.6"/>
-                    <rect x="28" y="33" width="44" height="6" rx="1.5" fill="#0d9488"/>
-                    <circle cx="32" cy="36" r="1.5" fill="#fbbf24"/>
-                    <circle cx="37" cy="36" r="1.5" fill="#ef4444"/>
-                    <circle cx="42" cy="36" r="1.5" fill="#22c55e"/>
-                    {/* Code lines */}
-                    <line x1="32" y1="43" x2="42" y2="43" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="32" y1="48" x2="38" y2="48" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="32" y1="53" x2="45" y2="53" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
-                    {/* Gear icon */}
-                    <circle cx="65" cy="45" r="8" fill="#0d9488" stroke="#0f766e" strokeWidth="2"/>
-                    <path d="M65 37 L67 39 L71 37 L69 41 L73 41 L71 43 L73 47 L69 47 L67 51 L65 49 L63 51 L61 47 L57 47 L59 43 L57 41 L61 41 L63 37 Z" fill="#fbbf24" opacity="0.9"/>
-                    {/* Monitor stand */}
-                    <rect x="45" y="65" width="10" height="4" rx="1" fill="#0f766e"/>
-                    <rect x="38" y="69" width="24" height="3" rx="1.5" fill="#0f766e"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* मृत्यु सर्वेक्षण */}
-            <div 
-              onClick={() => navigate('/death-survey')}
-              className="bg-gradient-to-br from-white to-gray-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-gray-200 hover:border-gray-400 group"
-            >
-              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 md:space-y-3">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#4b5563' }}>
-                  मृत्यु सर्वेक्षण
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Tombstone base */}
-                    <rect x="35" y="45" width="30" height="40" rx="2" fill="#6b7280" stroke="#4b5563" strokeWidth="2.5"/>
-                    {/* Tombstone top arch */}
-                    <path d="M35 45 Q50 35 65 45" stroke="#4b5563" strokeWidth="2.5" fill="#6b7280"/>
-                    {/* R.I.P text */}
-                    <text x="50" y="68" textAnchor="middle" fontSize="12" fill="#ffffff" fontWeight="bold" fontFamily="Arial, sans-serif">R.I.P</text>
-                    {/* Cross on top */}
-                    <line x1="50" y1="25" x2="50" y2="45" stroke="#4b5563" strokeWidth="3" strokeLinecap="round"/>
-                    <line x1="42" y1="35" x2="58" y2="35" stroke="#4b5563" strokeWidth="3" strokeLinecap="round"/>
-                    {/* Decorative elements */}
-                    <circle cx="42" cy="55" r="2" fill="#9ca3af" opacity="0.6"/>
-                    <circle cx="58" cy="55" r="2" fill="#9ca3af" opacity="0.6"/>
-                    <circle cx="42" cy="75" r="2" fill="#9ca3af" opacity="0.6"/>
-                    <circle cx="58" cy="75" r="2" fill="#9ca3af" opacity="0.6"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            {/* स्थानांतरित सर्वेक्षण */}
-            <div 
-              onClick={() => navigate('/transferred-survey')}
-              className="bg-gradient-to-br from-white to-blue-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-lg cursor-pointer hover:shadow-2xl hover:scale-110 transition-all duration-300 w-full border-2 border-blue-200 hover:border-blue-400 group"
-            >
-              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 md:space-y-3">
-                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-center break-words leading-tight" style={{ color: '#2563eb' }}>
-                  स्थानांतरित सर्वेक्षण
-                </div>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-24 md:h-24 lg:w-28 lg:h-28 xl:w-32 xl:h-32 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Moving truck */}
-                    <rect x="25" y="50" width="45" height="25" rx="3" fill="#2563eb" stroke="#1d4ed8" strokeWidth="2.5"/>
-                    {/* Truck cabin */}
-                    <rect x="25" y="40" width="20" height="15" rx="2" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="2.5"/>
-                    {/* Truck window */}
-                    <rect x="28" y="42" width="14" height="10" rx="1.5" fill="#dbeafe" opacity="0.8"/>
-                    {/* Truck cargo area lines */}
-                    <line x1="48" y1="50" x2="48" y2="75" stroke="#1d4ed8" strokeWidth="2"/>
-                    <line x1="52" y1="55" x2="65" y2="55" stroke="#1e40af" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="52" y1="62" x2="65" y2="62" stroke="#1e40af" strokeWidth="1.5" strokeLinecap="round"/>
-                    <line x1="52" y1="68" x2="62" y2="68" stroke="#1e40af" strokeWidth="1.5" strokeLinecap="round"/>
-                    {/* Wheels */}
-                    <circle cx="35" cy="78" r="6" fill="#1e293b" stroke="#0f172a" strokeWidth="2"/>
-                    <circle cx="35" cy="78" r="3.5" fill="#64748b"/>
-                    <circle cx="55" cy="78" r="6" fill="#1e293b" stroke="#0f172a" strokeWidth="2"/>
-                    <circle cx="55" cy="78" r="3.5" fill="#64748b"/>
-                    {/* House on truck */}
-                    <rect x="50" y="45" width="18" height="12" rx="1" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1.5"/>
-                    {/* House roof */}
-                    <path d="M50 45 L59 38 L68 45 Z" fill="#f59e0b" stroke="#d97706" strokeWidth="1.5"/>
-                    {/* House door */}
-                    <rect x="56" y="52" width="4" height="5" rx="0.5" fill="#78350f"/>
-                    {/* House window */}
-                    <rect x="52" y="50" width="3" height="3" rx="0.5" fill="#3b82f6" opacity="0.7"/>
-                    <rect x="61" y="50" width="3" height="3" rx="0.5" fill="#3b82f6" opacity="0.7"/>
-                    {/* Motion lines */}
-                    <line x1="15" y1="60" x2="22" y2="60" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-                    <line x1="15" y1="65" x2="22" y2="65" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-                    <line x1="15" y1="70" x2="22" y2="70" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
