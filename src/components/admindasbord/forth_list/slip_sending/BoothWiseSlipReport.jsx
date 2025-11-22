@@ -193,7 +193,8 @@ const BoothWiseSlipReport = ({ navigation }) => {
             return (
               <div
                 key={booth.id}
-                className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-4 lg:p-5 shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100"
+                className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-4 lg:p-5 shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100 cursor-pointer active:scale-[0.98]"
+                onClick={() => navigate('/booth-wise-slip-voters', { boothNo: booth.boothNo, part_no: booth.boothNo })}
               >
                 {/* Booth Number Title */}
                 <div className="text-center mb-1.5 sm:mb-2 md:mb-3">

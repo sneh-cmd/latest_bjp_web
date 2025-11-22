@@ -245,7 +245,8 @@ const PhonebookWiseSlipReport = ({ navigation }) => {
             {filteredData.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg sm:rounded-xl shadow-md w-full overflow-hidden relative cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                className="bg-white rounded-lg sm:rounded-xl shadow-md w-full overflow-hidden relative cursor-pointer hover:shadow-lg transition-shadow duration-200 active:scale-[0.98]"
+                onClick={() => navigate('/phonebook-wise-slip-voters', { userId: item.id, name: item.name })}
               >
                 {/* Left border indicator */}
                 <div className="absolute left-0 top-0 bottom-0 w-1.5 sm:w-2" style={{ backgroundColor: '#102463' }}></div>

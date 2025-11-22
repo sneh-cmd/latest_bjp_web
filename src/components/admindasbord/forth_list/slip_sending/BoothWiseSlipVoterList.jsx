@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import PageHeader from '../../common/PageHeader.jsx'
 import VoterCard from '../../common/VoterCard.jsx'
 import ValidationModal from '../../modals/ValidationModal.jsx'
-import { phonebook_wise_slip_sending } from '../../../../apidata.jsx'
+import { booth_wise_slip_sending } from '../../../../apidata.jsx'
 import localStorageManager from '../../../../utils/localStorage.js'
 
 const buildFullName = (voter) => {
@@ -14,8 +14,8 @@ const buildFullName = (voter) => {
   return voter.name || 'मतदाता'
 }
 
-const MyPhonebookSlipReport = ({ navigation }) => {
-  const { navigate } = navigation
+const BoothWiseSlipVoterList = ({ navigation }) => {
+  const { navigate, state } = navigation
   const containerRef = useRef(null)
   const [voters, setVoters] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -23,26 +23,23 @@ const MyPhonebookSlipReport = ({ navigation }) => {
   const [error, setError] = useState(null)
   const [showValidationModal, setShowValidationModal] = useState(false)
   const [validationMessage, setValidationMessage] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all') // 'all' | 'sent' | 'unavailable' | 'notSent'
+  const [statusFilter, setStatusFilter] = useState('all')
 
-  // Get user data
-  const userData = localStorageManager.getUserData()
-  const userId = userData?.admin?.adminId || userData?.admin?.id || userData?.admin_id || userData?.id || userData?.userId || 1
-  const userName = userData?.admin?.name || userData?.name || userData?.admin_name || 'User'
+  const boothNo = state?.boothNo || state?.part_no || state?.partNo || ''
+  const partNo = boothNo
 
   const fetchVoters = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      
+
+      if (!partNo) {
+        throw new Error('बूथ नंबर नहीं मिला')
+      }
+
       const panelApiUrl = localStorageManager.getApiUrl()
-      const response = await phonebook_wise_slip_sending(userId, panelApiUrl)
-      
-      console.log('Phonebook wise slip sending response:', response)
-      console.log('Response type:', typeof response)
-      console.log('Is array:', Array.isArray(response))
-      
-      // Normalize response
+      const response = await booth_wise_slip_sending(partNo, panelApiUrl)
+
       let records = []
       if (Array.isArray(response)) {
         records = response
@@ -51,20 +48,13 @@ const MyPhonebookSlipReport = ({ navigation }) => {
       } else if (response?.data && Array.isArray(response.data)) {
         records = response.data
       } else if (response && typeof response === 'object') {
-        // If response is an object but not array, try to extract data
-        console.log('Response is object, keys:', Object.keys(response))
-        // If it has Success and result, extract result
-        if (response.Success === "1" && response.result && Array.isArray(response.result)) {
+        if (response.Success === '1' && response.result && Array.isArray(response.result)) {
           records = response.result
-        } else if (response.Success === "1" && response.result && !Array.isArray(response.result)) {
-          // If result is a single object, wrap it in array
+        } else if (response.Success === '1' && response.result && !Array.isArray(response.result)) {
           records = [response.result]
         }
       }
-      
-      console.log('Normalized records:', records)
-      console.log('Records count:', records.length)
-      
+
       const normalizedRecords = records.map((item) => ({
         id: item.id || item.idcard_no || item.idCardNo,
         name: buildFullName(item),
@@ -81,8 +71,8 @@ const MyPhonebookSlipReport = ({ navigation }) => {
         contact_no: item.contact_no || '',
         idCardNo: item.idcard_no || item.id || '',
         idcard_no: item.idcard_no || item.id || '',
-        boothNo: item.part_no || item.booth_no || '-',
-        part_no: item.part_no || '',
+        boothNo: item.part_no || item.booth_no || boothNo || '-',
+        part_no: item.part_no || boothNo || '',
         houseNo: item.eng_house_no || item.house_no || '-',
         eng_house_no: item.eng_house_no || '',
         pollingStation: item.eng_polling_location || item.polling_station || '-',
@@ -94,16 +84,16 @@ const MyPhonebookSlipReport = ({ navigation }) => {
         slipCount: Number(item.slip_count) || 0,
         slip_count: Number(item.slip_count) || 0
       }))
-      
+
       setVoters(normalizedRecords)
     } catch (err) {
-      console.error('Error fetching phonebook slip voters:', err)
+      console.error('Error fetching booth wise slip voters:', err)
       setError(err.message || 'डेटा लोड करने में त्रुटि')
       setVoters([])
     } finally {
       setLoading(false)
     }
-  }, [userId])
+  }, [partNo])
 
   useEffect(() => {
     fetchVoters()
@@ -112,7 +102,6 @@ const MyPhonebookSlipReport = ({ navigation }) => {
   const filteredVoters = useMemo(() => {
     let filtered = voters
 
-    // Apply status filter
     if (statusFilter === 'sent') {
       filtered = filtered.filter(v => Number(v.slip_send) === 1)
     } else if (statusFilter === 'unavailable') {
@@ -120,9 +109,7 @@ const MyPhonebookSlipReport = ({ navigation }) => {
     } else if (statusFilter === 'notSent') {
       filtered = filtered.filter(v => Number(v.slip_send) === 0)
     }
-    // If statusFilter === 'all', no filtering needed
 
-    // Apply search query filter
     if (!searchQuery.trim()) return filtered
     const query = searchQuery.toLowerCase()
     return filtered.filter((voter) => {
@@ -133,7 +120,6 @@ const MyPhonebookSlipReport = ({ navigation }) => {
     })
   }, [voters, searchQuery, statusFilter])
 
-  // Calculate summary statistics (based on all voters, not filtered)
   const totalCount = voters.length
   const sentCount = voters.filter(v => Number(v.slip_send) === 1).length
   const unavailableCount = voters.filter(v => !v.mobile || v.mobile === '-' || v.mobile === '').length
@@ -190,7 +176,6 @@ const MyPhonebookSlipReport = ({ navigation }) => {
   }
 
   const handleEditMobile = (voter, newMobile) => {
-    // Update the mobile number in the local state
     setVoters(prevVoters => 
       prevVoters.map(v => 
         v.id === voter.id 
@@ -198,7 +183,6 @@ const MyPhonebookSlipReport = ({ navigation }) => {
           : v
       )
     )
-    // TODO: Add API call to update mobile number in backend
     console.log('Mobile updated for voter:', voter.id, 'New mobile:', newMobile)
   }
 
@@ -208,18 +192,16 @@ const MyPhonebookSlipReport = ({ navigation }) => {
       className="relative w-full h-screen overflow-y-auto overflow-x-hidden scroll-smooth"
       style={{ backgroundColor: '#e5e8ff' }}
     >
-      {/* Sticky Header */}
       <div className="sticky top-0 z-20">
         <PageHeader
-          title={userName}
+          title={boothNo ? `बूथ नं : ${boothNo}` : 'बूथ अनुसार पर्ची रिपोर्ट'}
           onBack={handleBack}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onSearchClear={() => setSearchQuery('')}
           uppercase={false}
         />
-        
-        {/* Summary Boxes */}
+
         <div className="px-3 sm:px-4 py-3 flex-shrink-0" style={{ backgroundColor: '#e5e8ff' }}>
         <div className="grid grid-cols-4 gap-1 sm:gap-2 mb-2 sm:mb-3">
           <button 
@@ -254,7 +236,6 @@ const MyPhonebookSlipReport = ({ navigation }) => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-4 pb-20 sm:pb-24 md:pb-28">
         {loading && (
           <div className="text-center py-12">
@@ -326,5 +307,4 @@ const MyPhonebookSlipReport = ({ navigation }) => {
   )
 }
 
-export default MyPhonebookSlipReport
-
+export default BoothWiseSlipVoterList

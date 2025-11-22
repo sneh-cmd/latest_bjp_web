@@ -155,6 +155,12 @@ const DateWiseSlipReport = ({ navigation }) => {
 
   const selectedMonth = monthNames[selectedMonthIndex]
 
+  const handleDateRowClick = (item) => {
+    navigate('/date-wise-slip-voters', {
+      date: item.date
+    })
+  }
+
   return (
     <div 
       ref={containerRef}
@@ -330,7 +336,8 @@ const DateWiseSlipReport = ({ navigation }) => {
                 {filteredData.map((item, index) => (
                   <div 
                     key={item.id} 
-                    className="grid grid-cols-2 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors"
+                    className="grid grid-cols-2 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => handleDateRowClick(item)}
                   >
                     <div className="px-3 py-2.5 text-sm font-semibold text-gray-900 text-center border-r border-gray-200">
                       {item.date}
@@ -356,7 +363,8 @@ const DateWiseSlipReport = ({ navigation }) => {
                         तारीख
                       </th>
                       {filteredData.map((item) => (
-                        <th key={item.id} className="text-center py-3 px-3 text-xs sm:text-sm font-bold text-gray-900 border-b-2 border-r border-gray-300 whitespace-nowrap min-w-[100px]">
+                        <th key={item.id} className="text-center py-3 px-3 text-xs sm:text-sm font-bold text-gray-900 border-b-2 border-r border-gray-300 whitespace-nowrap min-w-[100px] cursor-pointer"
+                        onClick={() => handleDateRowClick(item)}>
                           {item.date}
                         </th>
                       ))}
@@ -368,7 +376,8 @@ const DateWiseSlipReport = ({ navigation }) => {
                         Slip
                       </td>
                       {filteredData.map((item) => (
-                        <td key={item.id} className="text-center py-3 px-3 text-sm font-semibold text-gray-900 border-b border-r border-gray-200 hover:bg-blue-50 transition-colors whitespace-nowrap">
+                        <td key={item.id} className="text-center py-3 px-3 text-sm font-semibold text-gray-900 border-b border-r border-gray-200 hover:bg-blue-50 transition-colors whitespace-nowrap cursor-pointer"
+                        onClick={() => handleDateRowClick(item)}>
                           {item.slipCount}
                         </td>
                       ))}

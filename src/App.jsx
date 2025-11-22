@@ -58,9 +58,14 @@ import SlipPracharReport from './components/admindasbord/forth_list/slip_sending
 import BoothWiseSlipReport from './components/admindasbord/forth_list/slip_sending/BoothWiseSlipReport'
 import PollingStationWiseSlipReport from './components/admindasbord/forth_list/slip_sending/PollingStationWiseSlipReport'
 import DateWiseSlipReport from './components/admindasbord/forth_list/slip_sending/DateWiseSlipReport'
+import DateWiseSlipVoterList from './components/admindasbord/forth_list/slip_sending/DateWiseSlipVoterList'
 import PhonebookWiseSlipReport from './components/admindasbord/forth_list/slip_sending/PhonebookWiseSlipReport'
 import MyPhonebookSlipReport from './components/admindasbord/forth_list/slip_sending/MyPhonebookSlipReport'
 import WorkerWiseSlipReport from './components/admindasbord/forth_list/slip_sending/WorkerWiseSlipReport'
+import WorkerWiseSlipVoterList from './components/admindasbord/forth_list/slip_sending/WorkerWiseSlipVoterList'
+import BoothWiseSlipVoterList from './components/admindasbord/forth_list/slip_sending/BoothWiseSlipVoterList'
+import PhonebookWiseSlipVoterList from './components/admindasbord/forth_list/slip_sending/PhonebookWiseSlipVoterList'
+import PollingLocationWiseSlipVoterList from './components/admindasbord/forth_list/slip_sending/PollingLocationWiseSlipVoterList'
 import SlipMasterSearchResults from './components/admindasbord/forth_list/slip_sending/SlipMasterSearchResults'
 import BoothWisePhonebook from './components/admindasbord/third_list/BoothWisePhonebook'
 import BoothWisePhonebookMember from './components/admindasbord/third_list/BoothWisePhonebookMember'
@@ -562,6 +567,14 @@ function DateWiseSlipReportWrapper() {
   )
 }
 
+function DateWiseSlipVoterListWrapper() {
+  return (
+    <NavigationProvider>
+      <DateWiseSlipVoterList />
+    </NavigationProvider>
+  )
+}
+
 function PhonebookWiseSlipReportWrapper() {
   return (
     <NavigationProvider>
@@ -586,6 +599,14 @@ function WorkerWiseSlipReportWrapper() {
   )
 }
 
+function WorkerWiseSlipVoterListWrapper() {
+  return (
+    <NavigationProvider>
+      <WorkerWiseSlipVoterList />
+    </NavigationProvider>
+  )
+}
+
 function SlipMasterSearchResultsWrapper() {
   return (
     <NavigationProvider>
@@ -594,10 +615,34 @@ function SlipMasterSearchResultsWrapper() {
   )
 }
 
+function BoothWiseSlipVoterListWrapper() {
+  return (
+    <NavigationProvider>
+      <BoothWiseSlipVoterList />
+    </NavigationProvider>
+  )
+}
+
 function MatchRemainingWrapper() {
   return (
     <NavigationProvider>
       <MatchRemaining />
+    </NavigationProvider>
+  )
+}
+
+function PhonebookWiseSlipVoterListWrapper() {
+  return (
+    <NavigationProvider>
+      <PhonebookWiseSlipVoterList />
+    </NavigationProvider>
+  )
+}
+
+function PollingLocationWiseSlipVoterListWrapper() {
+  return (
+    <NavigationProvider>
+      <PollingLocationWiseSlipVoterList />
     </NavigationProvider>
   )
 }
@@ -751,9 +796,14 @@ function App() {
           <Route path="/booth-wise-slip-report" element={<BoothWiseSlipReportWrapper />} />
           <Route path="/polling-station-wise-slip-report" element={<PollingStationWiseSlipReportWrapper />} />
           <Route path="/date-wise-slip-report" element={<DateWiseSlipReportWrapper />} />
+          <Route path="/date-wise-slip-voters" element={<DateWiseSlipVoterListWrapper />} />
           <Route path="/phonebook-wise-slip-report" element={<PhonebookWiseSlipReportWrapper />} />
           <Route path="/my-phonebook-slip-report" element={<MyPhonebookSlipReportWrapper />} />
           <Route path="/worker-wise-slip-report" element={<WorkerWiseSlipReportWrapper />} />
+          <Route path="/worker-wise-slip-voters" element={<WorkerWiseSlipVoterListWrapper />} />
+          <Route path="/booth-wise-slip-voters" element={<BoothWiseSlipVoterListWrapper />} />
+          <Route path="/phonebook-wise-slip-voters" element={<PhonebookWiseSlipVoterListWrapper />} />
+          <Route path="/polling-location-slip-voters" element={<PollingLocationWiseSlipVoterListWrapper />} />
           <Route path="/slip-master-search-results" element={<SlipMasterSearchResultsWrapper />} />
           <Route path="/match-remaining" element={<MatchRemainingWrapper />} />
           <Route path="/booth-wise-phonebook" element={<BoothWisePhonebookWrapper />} />

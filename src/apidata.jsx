@@ -310,16 +310,22 @@ export const apiService = {
         resultTag = 'get_total_slip_distribution_countResult';
       } else if (soapAction === 'phonebook_wise_slip_sending') {
         resultTag = 'phonebook_wise_slip_sendingResult';
+      } else if (soapAction === 'booth_wise_slip_sending') {
+        resultTag = 'booth_wise_slip_sendingResult';
       } else if (soapAction === 'dis_booth_wise_slip_send_dash') {
         resultTag = 'dis_booth_wise_slip_send_dashResult';
       } else if (soapAction === 'dis_phonebook_wise_slip_send_dash') {
         resultTag = 'dis_phonebook_wise_slip_send_dashResult';
       } else if (soapAction === 'dis_polling_location_wise_slip_send_dash') {
         resultTag = 'dis_polling_location_wise_slip_send_dashResult';
+      } else if (soapAction === 'polling_location_wise_slip_sending_voter') {
+        resultTag = 'polling_location_wise_slip_sending_voterResult';
       } else if (soapAction === 'dis_user_wise_slip_distribution') {
         resultTag = 'dis_user_wise_slip_distributionResult';
       } else if (soapAction === 'dis_date_wise_slip_distribution') {
         resultTag = 'dis_date_wise_slip_distributionResult';
+      } else if (soapAction === 'date_wise_slip_sending_voter') {
+        resultTag = 'date_wise_slip_sending_voterResult';
       } else if (soapAction === 'master_search_for_slip_send') {
         resultTag = 'master_search_for_slip_sendResult';
       }
@@ -353,9 +359,42 @@ export const apiService = {
           // Otherwise return the parsed data as-is
           return parsedData;
         }
+
+        // Special handling for date_wise_slip_sending_voter (voter list for a specific date)
+        if (soapAction === 'date_wise_slip_sending_voter') {
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          if (parsedData.result && typeof parsedData.result === 'object') {
+            return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
+          }
+          return parsedData;
+        }
         
         // Special handling for phonebook_wise_slip_sending
         if (soapAction === 'phonebook_wise_slip_sending') {
+          // Check if response has Success and result structure
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            // Return the entire result array
+            return parsedData.result;
+          }
+          // If parsedData is already an array, return it
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          // If it's wrapped in a result property (non-array), return as array
+          if (parsedData.result && typeof parsedData.result === 'object') {
+            return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
+          }
+          // Otherwise return the parsed data as-is
+          return parsedData;
+        }
+
+        // Special handling for booth_wise_slip_sending
+        if (soapAction === 'booth_wise_slip_sending') {
           // Check if response has Success and result structure
           if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
             // Return the entire result array
@@ -427,6 +466,21 @@ export const apiService = {
             return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
           }
           // Otherwise return the parsed data as-is
+          return parsedData;
+        }
+
+        // Special handling for polling_location_wise_slip_sending_voter
+        if (soapAction === 'polling_location_wise_slip_sending_voter') {
+          // This endpoint returns voter list for a polling location
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          if (parsedData.result && typeof parsedData.result === 'object') {
+            return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
+          }
           return parsedData;
         }
         
@@ -2899,6 +2953,33 @@ export const phonebook_wise_slip_sending = async function(userId, panelApiUrl) {
   );
 };
 
+// Booth wise slip sending (voter list by part/booth)
+export const booth_wise_slip_sending = async function(partNo, panelApiUrl) {
+  // Validate partNo
+  if (!partNo && partNo !== 0) {
+    throw new Error('part_no is required')
+  }
+
+  const numericPartNo = Number(partNo)
+  if (!Number.isFinite(numericPartNo) || numericPartNo <= 0) {
+    throw new Error(`Invalid part_no: ${partNo}. Must be a positive number.`)
+  }
+
+  const soapBody = `<booth_wise_slip_sending xmlns="http://tempuri.org/">
+    <part_no>${numericPartNo}</part_no>
+  </booth_wise_slip_sending>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'booth_wise_slip_sending',
+    soapBody,
+    true
+  );
+};
+
 // Booth wise slip send dashboard
 export const dis_booth_wise_slip_send_dash = async function(panelApiUrl) {
   const soapBody = `<dis_booth_wise_slip_send_dash xmlns="http://tempuri.org/" />`;
@@ -2909,6 +2990,32 @@ export const dis_booth_wise_slip_send_dash = async function(panelApiUrl) {
     adminEndpoint,
     'POST',
     'dis_booth_wise_slip_send_dash',
+    soapBody,
+    true
+  );
+};
+
+// Polling location wise slip sending voter list
+export const polling_location_wise_slip_sending_voter = async function(pollingLocation, panelApiUrl) {
+  if (!pollingLocation || typeof pollingLocation !== 'string') {
+    throw new Error('polling_location is required')
+  }
+
+  const safeLocation = pollingLocation.trim()
+  if (!safeLocation) {
+    throw new Error('polling_location cannot be empty')
+  }
+
+  const soapBody = `<polling_location_wise_slip_sending_voter xmlns="http://tempuri.org/">
+    <polling_location>${safeLocation}</polling_location>
+  </polling_location_wise_slip_sending_voter>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'polling_location_wise_slip_sending_voter',
     soapBody,
     true
   );
@@ -3035,6 +3142,23 @@ export const dis_date_wise_slip_distribution = async function(month, panelApiUrl
     adminEndpoint,
     'POST',
     'dis_date_wise_slip_distribution',
+    soapBody,
+    true
+  );
+};
+
+// Date wise slip sending voter - detailed voter list for a specific date
+export const date_wise_slip_sending_voter = async function(date, panelApiUrl) {
+  const soapBody = `<date_wise_slip_sending_voter xmlns="http://tempuri.org/">
+    <date>${date}</date>
+  </date_wise_slip_sending_voter>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'date_wise_slip_sending_voter',
     soapBody,
     true
   );

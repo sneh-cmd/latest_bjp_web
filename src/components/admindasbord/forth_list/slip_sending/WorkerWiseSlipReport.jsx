@@ -135,10 +135,18 @@ const WorkerWiseSlipReport = ({ navigation }) => {
   }
 
   const renderCard = (item, index) => {
+    const handleCardClick = () => {
+      navigate('/worker-wise-slip-voters', {
+        adminId: item.adminId,
+        name: item.name
+      })
+    }
+
     return (
       <div
         key={`${item.id}-${index}`}
-        className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-gray-200 flex items-center justify-between hover:shadow-md transition-shadow"
+        className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-gray-200 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
+        onClick={handleCardClick}
       >
         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
           <div className="relative flex-shrink-0">

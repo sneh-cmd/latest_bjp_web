@@ -198,7 +198,8 @@ const PollingStationWiseSlipReport = ({ navigation }) => {
               return (
                 <div
                   key={station.id}
-                  className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-4 shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100"
+                  className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-4 shadow-md hover:shadow-lg transition-shadow duration-200 border border-gray-100 cursor-pointer active:scale-[0.98]"
+                  onClick={() => navigate('/polling-location-slip-voters', { pollingLocation: station.address })}
                 >
                   <div className="flex items-start gap-2 sm:gap-3 md:gap-4">
                     {/* Left Side: Circular Progress Indicator */}
