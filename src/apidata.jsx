@@ -318,6 +318,10 @@ export const apiService = {
         resultTag = 'dis_polling_location_wise_slip_send_dashResult';
       } else if (soapAction === 'dis_user_wise_slip_distribution') {
         resultTag = 'dis_user_wise_slip_distributionResult';
+      } else if (soapAction === 'dis_date_wise_slip_distribution') {
+        resultTag = 'dis_date_wise_slip_distributionResult';
+      } else if (soapAction === 'master_search_for_slip_send') {
+        resultTag = 'master_search_for_slip_sendResult';
       }
       
       const jsonMatch = xmlText.match(new RegExp(`<${resultTag}>(.*?)<\/${resultTag}>`, 's'));
@@ -526,6 +530,44 @@ export const apiService = {
         // Special handling for user wise slip distribution endpoint
         if (soapAction === 'dis_user_wise_slip_distribution') {
           return parsedData.result;
+        }
+        
+        // Special handling for dis_date_wise_slip_distribution
+        if (soapAction === 'dis_date_wise_slip_distribution') {
+          // Check if response has Success and result structure
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            // Return the entire result array
+            return parsedData.result;
+          }
+          // If parsedData is already an array, return it
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          // If it's wrapped in a result property (non-array), return as array
+          if (parsedData.result && typeof parsedData.result === 'object') {
+            return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
+          }
+          // Otherwise return the parsed data as-is
+          return parsedData;
+        }
+        
+        // Special handling for master_search_for_slip_send
+        if (soapAction === 'master_search_for_slip_send') {
+          // Check if response has Success and result structure
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            // Return the entire result array
+            return parsedData.result;
+          }
+          // If parsedData is already an array, return it
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          // If it's wrapped in a result property (non-array), return as array
+          if (parsedData.result && typeof parsedData.result === 'object') {
+            return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
+          }
+          // Otherwise return the parsed data as-is
+          return parsedData;
         }
         
         // Special handling for phonebook member endpoint
@@ -2976,6 +3018,47 @@ export const disUserWiseSlipDistribution = async function(panelApiUrl) {
     adminEndpoint,
     'POST',
     'dis_user_wise_slip_distribution',
+    soapBody,
+    true
+  );
+};
+
+// Date wise slip distribution
+export const dis_date_wise_slip_distribution = async function(month, panelApiUrl) {
+  const soapBody = `<dis_date_wise_slip_distribution xmlns="http://tempuri.org/">
+    <month>${month}</month>
+  </dis_date_wise_slip_distribution>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_date_wise_slip_distribution',
+    soapBody,
+    true
+  );
+};
+
+// Master search for slip send
+export const master_search_for_slip_send = async function(searchParams, panelApiUrl) {
+  const { f_name = '', m_name = '', surname = '', mobile_no = '', id_card_no = '', house_no = '' } = searchParams;
+  
+  const soapBody = `<master_search_for_slip_send xmlns="http://tempuri.org/">
+    <f_name>${f_name}</f_name>
+    <m_name>${m_name}</m_name>
+    <surname>${surname}</surname>
+    <mobile_no>${mobile_no}</mobile_no>
+    <id_card_no>${id_card_no}</id_card_no>
+    <house_no>${house_no}</house_no>
+  </master_search_for_slip_send>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'master_search_for_slip_send',
     soapBody,
     true
   );

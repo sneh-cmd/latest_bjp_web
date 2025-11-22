@@ -1,6 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import PageHeader from '../../common/PageHeader'
 import CalendarModal from '../../modals/CalendarModal'
+import { dis_date_wise_slip_distribution } from '../../../../apidata.jsx'
+import localStorageManager from '../../../../utils/localStorage.js'
+
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const DateWiseSlipReport = ({ navigation }) => {
   const { navigate } = navigation
@@ -11,20 +15,71 @@ const DateWiseSlipReport = ({ navigation }) => {
   const [showMonthYearPicker, setShowMonthYearPicker] = useState(false)
   const [tempMonthIndex, setTempMonthIndex] = useState(9)
   const [tempYear, setTempYear] = useState(2025)
+  
+  const [dateWiseData, setDateWiseData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  // Format month for API (YYYY-MM-DD format, first day of month)
+  const formatMonthForAPI = useCallback((monthIndex, year) => {
+    const month = String(monthIndex + 1).padStart(2, '0')
+    return `${year}-${month}-01`
+  }, [])
 
-  // Static data matching the image
-  const dateWiseData = [
-    { id: 1, day: '01', date: '01 Oct, 2025', slipCount: 12 },
-    { id: 2, day: '02', date: '02 Oct, 2025', slipCount: 0 },
-    { id: 3, day: '03', date: '03 Oct, 2025', slipCount: 2 },
-    { id: 4, day: '04', date: '04 Oct, 2025', slipCount: 0 },
-    { id: 5, day: '05', date: '05 Oct, 2025', slipCount: 2 },
-    { id: 6, day: '06', date: '06 Oct, 2025', slipCount: 0 },
-    { id: 7, day: '07', date: '07 Oct, 2025', slipCount: 0 },
-    { id: 8, day: '08', date: '08 Oct, 2025', slipCount: 0 },
-  ]
+  // Fetch date wise slip distribution data
+  const fetchDateWiseData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const panelApiUrl = localStorageManager.getApiUrl()
+      const monthParam = formatMonthForAPI(selectedMonthIndex, selectedYear)
+      console.log('Fetching date wise slip distribution for:', monthParam)
+      
+      const response = await dis_date_wise_slip_distribution(monthParam, panelApiUrl)
+      console.log('Date wise slip distribution response:', response)
+
+      if (Array.isArray(response) && response.length > 0) {
+        // Map API response to component data structure
+        const mappedData = response.map((item, index) => {
+          // Extract day from date string (e.g., "01 Oct, 2025" -> "01")
+          const dayMatch = item.date ? item.date.match(/^(\d+)/) : null
+          const day = dayMatch ? dayMatch[1] : String(index + 1).padStart(2, '0')
+          
+          return {
+            id: index + 1,
+            day: day,
+            date: item.date || `${day} ${monthNames[selectedMonthIndex]}, ${selectedYear}`,
+            slipCount: Number(item.total) || 0
+          }
+        })
+        
+        setDateWiseData(mappedData)
+      } else if (Array.isArray(response)) {
+        // Empty array - no data for this month
+        setDateWiseData([])
+      } else if (response && typeof response === 'object') {
+        // Single object response
+        const dayMatch = response.date ? response.date.match(/^(\d+)/) : null
+        const day = dayMatch ? dayMatch[1] : '01'
+        setDateWiseData([{
+          id: 1,
+          day: day,
+          date: response.date || `01 ${monthNames[selectedMonthIndex]}, ${selectedYear}`,
+          slipCount: Number(response.total) || 0
+        }])
+      } else {
+        // No data or unexpected format
+        setDateWiseData([])
+      }
+    } catch (err) {
+      console.error('Error fetching date wise slip distribution:', err)
+      setError(err.message || 'Failed to fetch data')
+      setDateWiseData([])
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedMonthIndex, selectedYear, formatMonthForAPI])
 
   const handleBack = () => {
     navigate(-1)
@@ -62,6 +117,11 @@ const DateWiseSlipReport = ({ navigation }) => {
     setShowMonthYearPicker(false)
   }
 
+  // Fetch data when component mounts or month/year changes
+  useEffect(() => {
+    fetchDateWiseData()
+  }, [fetchDateWiseData])
+
   // Smooth scroll to top on mount
   useEffect(() => {
     if (containerRef.current) {
@@ -80,11 +140,18 @@ const DateWiseSlipReport = ({ navigation }) => {
   })
 
   // Calculate max value for chart scaling
-  const maxValue = Math.max(...dateWiseData.map(item => item.slipCount), 12)
+  const maxValue = dateWiseData.length > 0 
+    ? Math.max(...dateWiseData.map(item => item.slipCount), 12) 
+    : 12
   const chartHeight = 200
   const chartPadding = 40
   const barWidth = 30
   const barGap = 20
+  
+  // Calculate dynamic chart width based on number of data points
+  const chartWidth = dateWiseData.length > 0 
+    ? Math.max(600, chartPadding * 2 + dateWiseData.length * (barWidth + barGap) + barGap)
+    : 600
 
   const selectedMonth = monthNames[selectedMonthIndex]
 
@@ -125,16 +192,36 @@ const DateWiseSlipReport = ({ navigation }) => {
 
       {/* Main Content Container */}
       <div className="w-full mx-auto px-2 sm:px-3 md:px-4 lg:px-6 py-3 sm:py-4 md:py-5 pb-6 sm:pb-8 md:pb-10">
+        {/* Loading State */}
+        {loading && (
+          <div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-8 shadow-md mb-3 sm:mb-4 md:mb-5">
+            <div className="flex items-center justify-center">
+              <div className="text-gray-600">Loading...</div>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-4 shadow-md mb-3 sm:mb-4 md:mb-5">
+            <div className="text-red-600 text-center">{error}</div>
+          </div>
+        )}
+
         {/* Bar Chart Card */}
-        <div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-md mb-3 sm:mb-4 md:mb-5">
+        {!loading && !error && dateWiseData.length > 0 && (
+          <div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-md mb-3 sm:mb-4 md:mb-5">
           <div className="mb-3 sm:mb-4">
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">तारीख अनुसार</h2>
           </div>
           
           {/* Chart Container */}
-          <div className="w-full overflow-x-auto">
-            <div className="relative" style={{ minWidth: '600px', height: `${chartHeight + chartPadding * 2}px` }}>
-              <svg width="100%" height={chartHeight + chartPadding * 2} className="w-full">
+          <div className="w-full overflow-x-auto scroll-smooth" style={{ 
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#cbd5e1 #1d2024'
+          }}>
+            <div className="relative mx-auto" style={{ width: `${chartWidth}px`, height: `${chartHeight + chartPadding * 2}px` }}>
+              <svg width={chartWidth} height={chartHeight + chartPadding * 2}>
                 {/* Grid Lines */}
                 {[0, 2, 4, 6, 8, 10, 12].map((value) => {
                   const y = chartHeight + chartPadding - (value / maxValue) * chartHeight
@@ -143,7 +230,7 @@ const DateWiseSlipReport = ({ navigation }) => {
                       <line
                         x1={chartPadding}
                         y1={y}
-                        x2="100%"
+                        x2={chartWidth - chartPadding}
                         y2={y}
                         stroke="#e5e7eb"
                         strokeWidth="1"
@@ -214,38 +301,84 @@ const DateWiseSlipReport = ({ navigation }) => {
             </div>
           </div>
         </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && dateWiseData.length === 0 && (
+          <div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-8 shadow-md mb-3 sm:mb-4 md:mb-5">
+            <div className="text-center text-gray-600">No data available for this month</div>
+          </div>
+        )}
 
         {/* Data Table Card */}
-        <div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-md">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr>
-                  <th className="text-center py-2 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm md:text-base font-bold text-gray-900 border-b-2 border-gray-200">
+        {!loading && !error && dateWiseData.length > 0 && (
+          <div className="bg-white rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-5 shadow-md">
+            {/* Vertical Layout for screens ≤ 425px */}
+            <div className="max-[426px]:block hidden">
+              <div className="border border-gray-300 rounded-lg overflow-hidden">
+                {/* Header Row */}
+                <div className="grid grid-cols-2 bg-gray-50">
+                  <div className="px-3 py-2.5 text-sm font-bold text-gray-900 text-center border-r border-b-2 border-gray-300">
                     तारीख
-                  </th>
-                  {filteredData.map((item) => (
-                    <th key={item.id} className="text-center py-2 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm md:text-base font-bold text-gray-900 border-b-2 border-gray-200">
-                      {item.day}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="text-center py-2 sm:py-2.5 px-2 sm:px-3 text-xs sm:text-sm md:text-base font-bold text-gray-900 border-r-2 border-gray-200">
+                  </div>
+                  <div className="px-3 py-2.5 text-sm font-bold text-gray-900 text-center border-b-2 border-gray-300">
                     Slip
-                  </td>
-                  {filteredData.map((item) => (
-                    <td key={item.id} className="text-center py-2 sm:py-2.5 px-2 sm:px-3 text-xs sm:text-sm md:text-base font-semibold text-gray-900 hover:bg-gray-50 transition-colors">
+                  </div>
+                </div>
+                
+                {/* Data Rows */}
+                {filteredData.map((item, index) => (
+                  <div 
+                    key={item.id} 
+                    className="grid grid-cols-2 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="px-3 py-2.5 text-sm font-semibold text-gray-900 text-center border-r border-gray-200">
+                      {item.date}
+                    </div>
+                    <div className="px-3 py-2.5 text-sm font-semibold text-gray-900 text-center">
                       {item.slipCount}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Horizontal Table for screens > 425px */}
+            <div className="min-[426px]:block hidden">
+              <div className="overflow-x-auto scroll-smooth" style={{ 
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#cbd5e1 #f1f5f9'
+              }}>
+                <table className="min-w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="sticky left-0 z-10 bg-gray-50 text-center py-3 px-4 text-sm font-bold text-gray-900 border-b-2 border-r-2 border-gray-300 whitespace-nowrap">
+                        तारीख
+                      </th>
+                      {filteredData.map((item) => (
+                        <th key={item.id} className="text-center py-3 px-3 text-xs sm:text-sm font-bold text-gray-900 border-b-2 border-r border-gray-300 whitespace-nowrap min-w-[100px]">
+                          {item.date}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="sticky left-0 z-10 bg-white text-center py-3 px-4 text-sm font-bold text-gray-900 border-b border-r-2 border-gray-300 whitespace-nowrap">
+                        Slip
+                      </td>
+                      {filteredData.map((item) => (
+                        <td key={item.id} className="text-center py-3 px-3 text-sm font-semibold text-gray-900 border-b border-r border-gray-200 hover:bg-blue-50 transition-colors whitespace-nowrap">
+                          {item.slipCount}
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Calendar Modal */}

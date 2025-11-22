@@ -9,6 +9,7 @@ const BoothWiseSlipReport = ({ navigation }) => {
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [boothData, setBoothData] = useState([])
+  const [filteredBoothData, setFilteredBoothData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -66,6 +67,7 @@ const BoothWiseSlipReport = ({ navigation }) => {
       console.log('Mapped data:', mappedData)
       
       setBoothData(mappedData)
+      setFilteredBoothData(mappedData)
     } catch (err) {
       console.error('Error fetching booth wise slip data:', err)
       setError(err.message || 'डेटा लोड करने में त्रुटि')
@@ -87,10 +89,19 @@ const BoothWiseSlipReport = ({ navigation }) => {
 
   const handleSearchChange = (value) => {
     setSearchQuery(value)
+    if (value.trim() === '') {
+      setFilteredBoothData(boothData)
+    } else {
+      const filtered = boothData.filter(booth => 
+        booth.boothNo.toString().includes(value.trim())
+      )
+      setFilteredBoothData(filtered)
+    }
   }
 
   const handleSearchClear = () => {
     setSearchQuery('')
+    setFilteredBoothData(boothData)
   }
 
   const scrollToTop = () => {
@@ -161,15 +172,21 @@ const BoothWiseSlipReport = ({ navigation }) => {
           </div>
         )}
 
-        {!loading && !error && boothData.length === 0 && (
+        {!loading && !error && filteredBoothData.length === 0 && searchQuery && (
+          <div className="bg-white rounded-2xl p-6 text-center shadow border border-gray-100 col-span-full">
+            <p className="text-gray-600 text-sm">'{searchQuery}' से मेल खाता कोई बूथ नहीं मिला</p>
+          </div>
+        )}
+
+        {!loading && !error && filteredBoothData.length === 0 && !searchQuery && (
           <div className="bg-white rounded-2xl p-6 text-center shadow border border-gray-100">
             <p className="text-gray-600 text-sm">कोई डेटा नहीं मिला</p>
           </div>
         )}
 
-        {!loading && !error && boothData.length > 0 && (
+        {!loading && !error && filteredBoothData.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
-            {boothData.map((booth) => {
+            {filteredBoothData.map((booth) => {
             const percentage = calculatePercentage(booth.sent, booth.total)
             const percentageValue = parseFloat(percentage)
             

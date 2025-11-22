@@ -61,6 +61,7 @@ import DateWiseSlipReport from './components/admindasbord/forth_list/slip_sendin
 import PhonebookWiseSlipReport from './components/admindasbord/forth_list/slip_sending/PhonebookWiseSlipReport'
 import MyPhonebookSlipReport from './components/admindasbord/forth_list/slip_sending/MyPhonebookSlipReport'
 import WorkerWiseSlipReport from './components/admindasbord/forth_list/slip_sending/WorkerWiseSlipReport'
+import SlipMasterSearchResults from './components/admindasbord/forth_list/slip_sending/SlipMasterSearchResults'
 import BoothWisePhonebook from './components/admindasbord/third_list/BoothWisePhonebook'
 import BoothWisePhonebookMember from './components/admindasbord/third_list/BoothWisePhonebookMember'
 import SurnameGroupPhonebook from './components/admindasbord/third_list/SurnameGroupPhonebook'
@@ -585,6 +586,14 @@ function WorkerWiseSlipReportWrapper() {
   )
 }
 
+function SlipMasterSearchResultsWrapper() {
+  return (
+    <NavigationProvider>
+      <SlipMasterSearchResults />
+    </NavigationProvider>
+  )
+}
+
 function MatchRemainingWrapper() {
   return (
     <NavigationProvider>
@@ -745,6 +754,7 @@ function App() {
           <Route path="/phonebook-wise-slip-report" element={<PhonebookWiseSlipReportWrapper />} />
           <Route path="/my-phonebook-slip-report" element={<MyPhonebookSlipReportWrapper />} />
           <Route path="/worker-wise-slip-report" element={<WorkerWiseSlipReportWrapper />} />
+          <Route path="/slip-master-search-results" element={<SlipMasterSearchResultsWrapper />} />
           <Route path="/match-remaining" element={<MatchRemainingWrapper />} />
           <Route path="/booth-wise-phonebook" element={<BoothWisePhonebookWrapper />} />
           <Route path="/booth-wise-phonebook-member" element={<BoothWisePhonebookMemberWrapper />} />

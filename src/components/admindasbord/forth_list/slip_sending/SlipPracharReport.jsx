@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { get_total_slip_distribution_count } from '../../../../apidata'
 import apiService from '../../../../apidata'
 import localStorageManager from '../../../../utils/localStorage'
+import SlipMasterSearchModal from '../../modals/SlipMasterSearchModal'
 
 const getPanelVoterValue = (panel) => {
   if (!panel) return 0
@@ -43,6 +44,7 @@ const SlipPracharReport = ({ navigation }) => {
     const userData = localStorageManager.getUserData()
     return getPanelVoterValue(userData?.panel) || 45132
   })
+  const [isMasterSearchModalOpen, setIsMasterSearchModalOpen] = useState(false)
 
   // Get user data and fetch total voters if not available
   useEffect(() => {
@@ -317,7 +319,7 @@ const SlipPracharReport = ({ navigation }) => {
           <circle cx="45" cy="45" r="12" fill="none" stroke="#102463" strokeWidth="2" opacity="0.3"/>
         </svg>
       ),
-      onClick: () => console.log('Master Search')
+      onClick: () => setIsMasterSearchModalOpen(true)
     }
   ]
 
@@ -491,6 +493,12 @@ const SlipPracharReport = ({ navigation }) => {
           </svg>
         </button>
       )}
+
+      {/* Master Search Modal */}
+      <SlipMasterSearchModal
+        isOpen={isMasterSearchModalOpen}
+        onClose={() => setIsMasterSearchModalOpen(false)}
+      />
     </div>
   )
 }
