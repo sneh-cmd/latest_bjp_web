@@ -242,6 +242,8 @@ export const apiService = {
         resultTag = 'dis_booth_pramukh_wise_voterResult';
       } else if (soapAction === 'dis_admin_survey_dashboard') {
         resultTag = 'dis_admin_survey_dashboardResult';
+      } else if (soapAction === 'dis_admin_call_center_survey_dashboard') {
+        resultTag = 'dis_admin_call_center_survey_dashboardResult';
       } else if (soapAction === 'dis_type_wise_user_list_from_survey') {
         resultTag = 'dis_type_wise_user_list_from_surveyResult';
       } else if (soapAction === 'no_survey_user_by_type') {
@@ -268,12 +270,22 @@ export const apiService = {
         resultTag = 'dis_scheme_wise_survey_voterResult';
       } else if (soapAction === 'dis_booth_wise_survey_dash') {
         resultTag = 'dis_booth_wise_survey_dashResult';
+      } else if (soapAction === 'dis_booth_wise_call_center_survey_dash') {
+        resultTag = 'dis_booth_wise_call_center_survey_dashResult';
       } else if (soapAction === 'dis_booth_wise_survey_voter') {
         resultTag = 'dis_booth_wise_survey_voterResult';
+      } else if (soapAction === 'dis_booth_wise_call_center_survey_voter') {
+        resultTag = 'dis_booth_wise_call_center_survey_voterResult';
+      } else if (soapAction === 'dis_date_wise_call_center_survey_dash') {
+        resultTag = 'dis_date_wise_call_center_survey_dashResult';
       } else if (soapAction === 'dis_date_wise_survey_dash') {
         resultTag = 'dis_date_wise_survey_dashResult';
       } else if (soapAction === 'dis_date_wise_survey_voter') {
         resultTag = 'dis_date_wise_survey_voterResult';
+      } else if (soapAction === 'dis_date_wise_call_center_survey_voter') {
+        resultTag = 'dis_date_wise_call_center_survey_voterResult';
+      } else if (soapAction === 'dis_user_wise_call_center_survey_voter') {
+        resultTag = 'dis_user_wise_call_center_survey_voterResult';
       } else if (soapAction === 'dis_user_wise_survey_voter') {
         resultTag = 'dis_user_wise_survey_voterResult';
       } else if (soapAction === 'display_voter_survey_log') {
@@ -288,6 +300,8 @@ export const apiService = {
         resultTag = 'dis_death_voterResult';
       } else if (soapAction === 'dis_shifted_out_voter') {
         resultTag = 'dis_shifted_out_voterResult';
+      } else if (soapAction === 'dis_user_wise_call_center_survey_dash') {
+        resultTag = 'dis_user_wise_call_center_survey_dashResult';
       } else if (soapAction === 'display_all_phonebook_match_admin') {
         resultTag = 'display_all_phonebook_match_adminResult';
       } else if (soapAction === 'display_phonebook_member') {
@@ -372,6 +386,124 @@ export const apiService = {
             return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
           }
           return parsedData;
+        }
+
+        // Special handling for dis_booth_wise_call_center_survey_voter
+        if (soapAction === 'dis_booth_wise_call_center_survey_voter') {
+          // API uses Success flag: "1" = data, "0" = no data
+          if (parsedData.Success === "1" && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          if (parsedData.Success === "0") {
+            // Treat as "no records" instead of error
+            return [];
+          }
+          return parsedData.result || [];
+        }
+
+        // Special handling for dis_user_wise_call_center_survey_voter
+        if (soapAction === 'dis_user_wise_call_center_survey_voter') {
+          if (parsedData.Success === "1" && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          if (parsedData.Success === "0") {
+            return [];
+          }
+          if (parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData)) {
+            if (Array.isArray(parsedData.result)) {
+              return parsedData.result;
+            }
+            return [parsedData];
+          }
+          return parsedData.result || [];
+        }
+
+        // Special handling for dis_date_wise_call_center_survey_voter
+        if (soapAction === 'dis_date_wise_call_center_survey_voter') {
+          if (parsedData.Success === "1" && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          if (parsedData.Success === "0") {
+            return [];
+          }
+          return parsedData.result || [];
+        }
+
+        // Special handling for dis_user_wise_call_center_survey_dash
+        if (soapAction === 'dis_user_wise_call_center_survey_dash') {
+          // If wrapped in Success/result
+          if (parsedData.Success === "1" && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          if (parsedData.Success === "0") {
+            return [];
+          }
+          // If it's a single object (no array), normalize to array
+          if (parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData)) {
+            if (Array.isArray(parsedData.result)) {
+              return parsedData.result;
+            }
+            return [parsedData];
+          }
+          return parsedData.result || [];
+        }
+
+        // Special handling for dis_date_wise_call_center_survey_dash
+        if (soapAction === 'dis_date_wise_call_center_survey_dash') {
+          // Expecting day-wise summary like: { date, nr, wm, p, n, c, d, total }
+          if (parsedData.Success === "1" && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          if (parsedData.Success === "0") {
+            // No data for this month
+            return [];
+          }
+          if (parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData)) {
+            if (Array.isArray(parsedData.result)) {
+              return parsedData.result;
+            }
+            // Single object -> normalize to array so DateWiseCallReport can map over it
+            return [parsedData];
+          }
+          return parsedData.result || [];
+        }
+
+        // Special handling for dis_booth_wise_call_center_survey_dash
+        if (soapAction === 'dis_booth_wise_call_center_survey_dash') {
+          // Expecting booth-wise summary like: { booth_no, nr, wm, p, n, c, d, total }
+          if (parsedData.Success === "1" && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          if (parsedData.Success === "0") {
+            // No booth data
+            return [];
+          }
+          if (parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData)) {
+            if (Array.isArray(parsedData.result)) {
+              return parsedData.result;
+            }
+            // Single booth object -> normalize to array so BoothWiseCallReport can map over it
+            return [parsedData];
+          }
+          return parsedData.result || [];
         }
         
         // Special handling for phonebook_wise_slip_sending
@@ -481,6 +613,13 @@ export const apiService = {
           if (parsedData.result && typeof parsedData.result === 'object') {
             return Array.isArray(parsedData.result) ? parsedData.result : [parsedData.result];
           }
+          return parsedData;
+        }
+
+        // Special handling for dis_admin_call_center_survey_dashboard
+        // This API returns an object with both result (total survey) and result2 (today's survey)
+        // We must keep the full object so the caller can access both.
+        if (soapAction === 'dis_admin_call_center_survey_dashboard') {
           return parsedData;
         }
         
@@ -2623,7 +2762,7 @@ export const displayBuildingPramukh = async function(panelApiUrl) {
 
   // Use helper function to get admin endpoint
   const adminEndpoint = getAdminEndpoint(panelApiUrl);
-
+  
   return apiService.makeRequest(
     adminEndpoint,
     'POST',
@@ -3239,6 +3378,22 @@ export const displayBoothWiseSurveyDash = async function(panelApiUrl) {
   );
 };
 
+// Booth wise call center survey dashboard - new function
+export const displayBoothWiseCallCenterSurveyDash = async function(panelApiUrl) {
+  const soapBody = `<dis_booth_wise_call_center_survey_dash xmlns="http://tempuri.org/" />`;
+
+  // Use helper function to get admin endpoint
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_booth_wise_call_center_survey_dash',
+    soapBody,
+    true // use admin auth header
+  );
+};
+
 // Booth wise survey voter - new function
 export const displayBoothWiseSurveyVoter = async function(id, panelApiUrl) {
   const soapBody = `<dis_booth_wise_survey_voter xmlns="http://tempuri.org/">
@@ -3254,6 +3409,40 @@ export const displayBoothWiseSurveyVoter = async function(id, panelApiUrl) {
     'dis_booth_wise_survey_voter',
     soapBody,
     true // use admin auth header
+  );
+};
+
+// Booth wise call center survey voter - new function
+export const displayBoothWiseCallCenterSurveyVoter = async function(boothNo, panelApiUrl) {
+  const soapBody = `<dis_booth_wise_call_center_survey_voter xmlns="http://tempuri.org/">
+    <booth_no>${boothNo}</booth_no>
+  </dis_booth_wise_call_center_survey_voter>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_booth_wise_call_center_survey_voter',
+    soapBody,
+    true
+  );
+};
+
+// User wise call center survey voter - fetch voters for a specific user (call center)
+export const displayUserWiseCallCenterSurveyVoter = async function(userId, panelApiUrl) {
+  const soapBody = `<dis_user_wise_call_center_survey_voter xmlns="http://tempuri.org/">
+    <user_id>${userId}</user_id>
+  </dis_user_wise_call_center_survey_voter>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_user_wise_call_center_survey_voter',
+    soapBody,
+    true
   );
 };
 
@@ -3308,6 +3497,40 @@ export const displayDateWiseSurveyVoter = async function(date, panelApiUrl) {
     'dis_date_wise_survey_voter',
     soapBody,
     true // use admin auth header
+  );
+};
+
+// Date wise call center survey voter - fetch call center voters by date
+export const displayDateWiseCallCenterSurveyVoter = async function(date, panelApiUrl) {
+  const soapBody = `<dis_date_wise_call_center_survey_voter xmlns="http://tempuri.org/">
+    <date>${date}</date>
+  </dis_date_wise_call_center_survey_voter>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_date_wise_call_center_survey_voter',
+    soapBody,
+    true
+  );
+};
+
+// Date wise call center survey dashboard - fetch call center survey data by month
+export const displayDateWiseCallCenterSurveyDash = async function(month, panelApiUrl) {
+  const soapBody = `<dis_date_wise_call_center_survey_dash xmlns="http://tempuri.org/">
+    <month>${month}</month>
+  </dis_date_wise_call_center_survey_dash>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_date_wise_call_center_survey_dash',
+    soapBody,
+    true
   );
 };
 
@@ -3412,6 +3635,40 @@ export const displayShiftedOutVoter = async function(panelApiUrl) {
     'dis_shifted_out_voter',
     soapBody,
     true // use admin auth header
+  );
+};
+
+// Call center survey dashboard - admin level
+export const disAdminCallCenterSurveyDashboard = async function(panelApiUrl) {
+  const soapBody = `<dis_admin_call_center_survey_dashboard xmlns="http://tempuri.org/">
+  </dis_admin_call_center_survey_dashboard>`;
+
+  // Use helper function to get admin endpoint
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_admin_call_center_survey_dashboard',
+    soapBody,
+    true // use admin auth header
+  );
+};
+
+// User wise call center survey dashboard - fetch per-user call center stats, optional date filter
+export const displayUserWiseCallCenterSurveyDash = async function(date = '', panelApiUrl) {
+  const soapBody = `<dis_user_wise_call_center_survey_dash xmlns="http://tempuri.org/">
+    <date>${date}</date>
+  </dis_user_wise_call_center_survey_dash>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_user_wise_call_center_survey_dash',
+    soapBody,
+    true
   );
 };
 

@@ -67,6 +67,13 @@ import BoothWiseSlipVoterList from './components/admindasbord/forth_list/slip_se
 import PhonebookWiseSlipVoterList from './components/admindasbord/forth_list/slip_sending/PhonebookWiseSlipVoterList'
 import PollingLocationWiseSlipVoterList from './components/admindasbord/forth_list/slip_sending/PollingLocationWiseSlipVoterList'
 import SlipMasterSearchResults from './components/admindasbord/forth_list/slip_sending/SlipMasterSearchResults'
+import CallCenterReport from './components/admindasbord/forth_list/call_center/CallCenterReport'
+import BoothWiseCallReport from './components/admindasbord/forth_list/call_center/BoothWiseCallReport'
+import CallCenterBoothVoterList from './components/admindasbord/forth_list/call_center/CallCenterBoothVoterList'
+import DateWiseCallReport from './components/admindasbord/forth_list/call_center/DateWiseCallReport'
+import DateWiseCallVoterList from './components/admindasbord/forth_list/call_center/DateWiseCallVoterList'
+import CallWiseCallReport from './components/admindasbord/forth_list/call_center/CallWiseCallReport'
+import UserWiseCallCenterVoterList from './components/admindasbord/forth_list/call_center/UserWiseCallCenterVoterList'
 import BoothWisePhonebook from './components/admindasbord/third_list/BoothWisePhonebook'
 import BoothWisePhonebookMember from './components/admindasbord/third_list/BoothWisePhonebookMember'
 import SurnameGroupPhonebook from './components/admindasbord/third_list/SurnameGroupPhonebook'
@@ -119,6 +126,14 @@ function SplashScreenWrapper() {
   return (
     <NavigationProvider>
       <BJPSplashScreen />
+    </NavigationProvider>
+  )
+}
+
+function UserWiseCallCenterVoterListWrapper() {
+  return (
+    <NavigationProvider>
+      <UserWiseCallCenterVoterList />
     </NavigationProvider>
   )
 }
@@ -615,6 +630,54 @@ function SlipMasterSearchResultsWrapper() {
   )
 }
 
+function CallCenterWrapper() {
+  return (
+    <NavigationProvider>
+      <CallCenterReport />
+    </NavigationProvider>
+  )
+}
+
+function BoothWiseCallReportWrapper() {
+  return (
+    <NavigationProvider>
+      <BoothWiseCallReport />
+    </NavigationProvider>
+  )
+}
+
+function CallCenterBoothVoterListWrapper() {
+  return (
+    <NavigationProvider>
+      <CallCenterBoothVoterList />
+    </NavigationProvider>
+  )
+}
+
+function DateWiseCallReportWrapper() {
+  return (
+    <NavigationProvider>
+      <DateWiseCallReport />
+    </NavigationProvider>
+  )
+}
+
+function DateWiseCallVoterListWrapper() {
+  return (
+    <NavigationProvider>
+      <DateWiseCallVoterList />
+    </NavigationProvider>
+  )
+}
+
+function CallWiseCallReportWrapper() {
+  return (
+    <NavigationProvider>
+      <CallWiseCallReport />
+    </NavigationProvider>
+  )
+}
+
 function BoothWiseSlipVoterListWrapper() {
   return (
     <NavigationProvider>
@@ -810,6 +873,13 @@ function App() {
           <Route path="/booth-wise-phonebook-member" element={<BoothWisePhonebookMemberWrapper />} />
           <Route path="/surname-group-phonebook" element={<SurnameGroupPhonebookWrapper />} />
           <Route path="/surname-group-member-list" element={<SurnameGroupMemberListWrapper />} />
+          <Route path="/call-center-survey-report" element={<CallCenterWrapper />} />
+          <Route path="/booth-wise-call-report" element={<BoothWiseCallReportWrapper />} />
+          <Route path="/date-wise-call-report" element={<DateWiseCallReportWrapper />} />
+          <Route path="/date-wise-call-voters" element={<DateWiseCallVoterListWrapper />} />
+          <Route path="/call-wise-call-report" element={<CallWiseCallReportWrapper />} />
+          <Route path="/user-wise-call-center-voters" element={<UserWiseCallCenterVoterListWrapper />} />
+          <Route path="/call-center-booth-voters" element={<CallCenterBoothVoterListWrapper />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
