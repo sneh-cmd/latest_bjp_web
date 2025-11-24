@@ -158,7 +158,12 @@ const DateWiseCallVoterList = ({ navigation }) => {
   }
 
   const handleCall = (contact) => {
-    if (!contact || contact === '-') return
+    if (!contact || contact === '-') {
+      setValidationMessage('मोबाइल नंबर उपलब्ध नहीं है।')
+      setValidationOpen(true)
+      return
+    }
+
     window.location.href = `tel:${contact}`
   }
 

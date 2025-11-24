@@ -192,7 +192,7 @@ const BoothWiseSlipVoterList = ({ navigation }) => {
       className="relative w-full h-screen overflow-y-auto overflow-x-hidden scroll-smooth"
       style={{ backgroundColor: '#e5e8ff' }}
     >
-      <div className="sticky top-0 z-20">
+      <div className="sticky top-0 z-200">
         <PageHeader
           title={boothNo ? `बूथ नं : ${boothNo}` : 'बूथ अनुसार पर्ची रिपोर्ट'}
           onBack={handleBack}

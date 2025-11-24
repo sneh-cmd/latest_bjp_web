@@ -104,10 +104,13 @@ const VolunteerSlipVoters = ({ navigation }) => {
     navigate(-1)
   }
 
-  const handleCall = (contact) => {
+ const handleCall = (contact) => {
     if (!contact || contact === '-') {
+      setValidationMessage('मोबाइल नंबर उपलब्ध नहीं है।')
+      setShowValidationModal(true)
       return
     }
+
     window.location.href = `tel:${contact}`
   }
 

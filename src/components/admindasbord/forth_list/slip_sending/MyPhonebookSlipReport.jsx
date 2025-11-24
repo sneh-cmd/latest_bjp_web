@@ -209,7 +209,7 @@ const MyPhonebookSlipReport = ({ navigation }) => {
       style={{ backgroundColor: '#e5e8ff' }}
     >
       {/* Sticky Header */}
-      <div className="sticky top-0 z-20">
+      <div className="sticky top-0 z-200">
         <PageHeader
           title={userName}
           onBack={handleBack}

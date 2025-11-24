@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import localStorageManager from '../../../../utils/localStorage'
 import { disAdminCallCenterSurveyDashboard } from '../../../../apidata'
+import { Chart } from 'react-google-charts'
 
 const StatItem = ({ value, label, color }) => (
   <div className="text-center py-3">
@@ -8,6 +9,8 @@ const StatItem = ({ value, label, color }) => (
     <div className="text-sm text-gray-700 mt-1">{label}</div>
   </div>
 )
+
+// We'll use react-google-charts PieChart for a simple pie visualization
 
 const CallCenterReport = ({ navigation }) => {
   const { navigate } = navigation || {}
@@ -96,7 +99,7 @@ const CallCenterReport = ({ navigation }) => {
   ]
 
   return (
-    <div ref={containerRef} className="relative w-full h-screen overflow-y-auto bg-gray-100">
+    <div ref={containerRef} className="relative w-full h-screen overflow-y-auto bg-gray-100" style={{ backgroundColor: '#e5e8ff' }}>
       {/* Header */}
       <div className="sticky top-0 z-20 w-full px-4 py-3 flex items-center justify-between" style={{ backgroundColor: '#102463' }}>
          <button
@@ -111,7 +114,7 @@ const CallCenterReport = ({ navigation }) => {
         <div className="w-9 h-9" />
       </div>
 
-      <div className="max-w-4xl mx-auto p-4">
+      <div className="max-w-4xl mx-auto p-4" style={{ backgroundColor: '#e5e8ff' }}>
         {/* Tabs */}
         <div className="bg-white rounded-t-2xl overflow-hidden">
           <div className="flex">
@@ -127,18 +130,52 @@ const CallCenterReport = ({ navigation }) => {
             </button>
           </div>
 
-          {/* Donut placeholder and legend */}
-          <div className="px-6 py-6 text-center bg-gray-100">
-            <div className="mx-auto" style={{ width: 260, height: 260, borderRadius: '50%', background: '#fff' }} />
+          {/* Pie chart (react-google-charts) */}
+          <div className="px-6 py-6 text-center">
+            {(() => {
+              const counts = activeTab === 'total' ? totalCounts : todayCounts
+              const data = [
+                ['Status', 'Count'],
+                ['रिसीव नहीं हुई', Number(counts.received_not || 0)],
+                ['ग़लत मोबाइल', Number(counts.wrong_mobile || 0)],
+                ['पॉजिटिव', Number(counts.positive || 0)],
+                ['नेगेटिव', Number(counts.negative || 0)],
+                ['डाउटफुल', Number(counts.doubtful || 0)],
+                ['कुछ नहीं', Number(counts.none || 0)]
+              ]
 
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-              <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block bg-sky-500"/>रिसीव नहीं हुई</div>
-              <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block bg-pink-500"/>ग़लत मोबाइल</div>
-              <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block bg-green-700"/>पॉजिटिव</div>
-              <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block bg-red-600"/>नेगेटिव</div>
-              <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block bg-yellow-500"/>डाउटफुल</div>
-              <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block bg-blue-800"/>कुछ नहीं</div>
-            </div>
+              const options = {
+                pieHole: 0, // simple pie (no donut)
+                legend: 'none', // disable built-in legend so we render a custom one below
+                pieSliceText: 'percentage',
+                slices: {
+                  0: { color: '#38bdf8' },
+                  1: { color: '#f472b6' },
+                  2: { color: '#16a34a' },
+                  3: { color: '#ef4444' },
+                  4: { color: '#f59e0b' },
+                  5: { color: '#1e40af' }
+                }
+              }
+
+              return (
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center justify-center">
+                    <Chart chartType="PieChart" data={data} options={options} width="320px" height="260px" />
+                  </div>
+
+                  {/* Custom legend - keep unchanged from original design */}
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-sm">
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block rounded-sm" style={{ background: '#38bdf8' }} />रिसीव नहीं हुई</div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block rounded-sm" style={{ background: '#f472b6' }} />ग़लत मोबाइल</div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block rounded-sm" style={{ background: '#16a34a' }} />पॉजिटिव</div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block rounded-sm" style={{ background: '#ef4444' }} />नेगेटिव</div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block rounded-sm" style={{ background: '#f59e0b' }} />डाउटफुल</div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 inline-block rounded-sm" style={{ background: '#1e40af' }} />कुछ नहीं</div>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
 
           {/* Stats Card */}
@@ -149,47 +186,56 @@ const CallCenterReport = ({ navigation }) => {
               const counts = activeTab === 'total' ? totalCounts : todayCounts
 
               return (
-                <div className="grid grid-cols-3 gap-2 border rounded-lg overflow-hidden">
-                  <div className="border-r border-b p-4">
-                    <div className="text-2xl font-bold text-gray-900">{counts.total}</div>
-                    <div className="text-sm text-blue-700 mt-1">कुल कॉल</div>
-                  </div>
-                  <div className="border-r border-b p-4">
-                    <div className="text-2xl font-bold text-sky-500">{counts.received_not}</div>
-                    <div className="text-sm text-gray-700 mt-1">रिसीव नहीं हुई</div>
-                  </div>
-                  <div className="border-b p-4">
-                    <div className="text-2xl font-bold text-pink-500">{counts.wrong_mobile}</div>
-                    <div className="text-sm text-gray-700 mt-1">ग़लत मोबाइल</div>
-                  </div>
+                <>
+                  <div className="grid grid-cols-3 gap-0 border border-gray-200 rounded-t">
+      <div className="p-2 sm:p-4 border-r text-center">
+        <div className="text-lg sm:text-2xl font-bold">{counts.total}</div>
+        <div className="text-xs sm:text-sm text-blue-700 mt-1">कुल कॉल</div>
+      </div>
+      <div className="p-2 sm:p-4 border-r text-center">
+        <div className="text-lg sm:text-2xl font-bold">{counts.received_not}</div>
+        <div className="text-xs sm:text-sm text-gray-700 mt-1">रिसीव नहीं हुई</div>
+      </div>
+      <div className="p-2 sm:p-4 text-center">
+        <div className="text-lg sm:text-2xl font-bold">{counts.wrong_mobile}</div>
+        <div className="text-xs sm:text-sm text-gray-700 mt-1">ग़लत मोबाइल</div>
+      </div>
+    </div>
 
-                  <div className="border-r p-4">
-                    <div className="text-2xl font-bold text-green-700">{counts.positive}</div>
-                    <div className="text-sm text-gray-700 mt-1">पॉजिटिव</div>
-                  </div>
-                  <div className="border-r p-4">
-                    <div className="text-2xl font-bold text-red-600">{counts.negative}</div>
-                    <div className="text-sm text-gray-700 mt-1">नेगेटिव</div>
-                  </div>
-                  <div className="p-4">
-                    <div className="text-2xl font-bold text-yellow-500">{counts.doubtful}</div>
-                    <div className="text-sm text-gray-700 mt-1">डाउटफुल</div>
-                  </div>
-                </div>
+    <div className="grid grid-cols-4 gap-0 border border-t-0 border-gray-200 rounded-b">
+      <div className="p-2 sm:p-3 text-center border-r">
+        <div className="text-base sm:text-xl font-bold text-green-700">{counts.positive}</div>
+        <div className="text-xs sm:text-sm text-gray-700 mt-1">पॉजिटिव</div>
+      </div>
+      <div className="p-2 sm:p-3 text-center border-r">
+        <div className="text-base sm:text-xl font-bold text-red-600">{counts.negative}</div>
+        <div className="text-xs sm:text-sm text-gray-700 mt-1">नेगेटिव</div>
+      </div>
+      <div className="p-2 sm:p-3 text-center border-r sm:border-r">
+        <div className="text-base sm:text-xl font-bold text-yellow-500">{counts.doubtful}</div>
+        <div className="text-xs sm:text-sm text-gray-700 mt-1">डाउटफुल</div>
+      </div>
+      <div className="p-2 sm:p-3 text-center">
+        <div className="text-base sm:text-xl font-bold text-blue-800">{counts.none}</div>
+        <div className="text-xs sm:text-sm text-gray-700 mt-1">कुछ नहीं</div>
+      </div>
+    </div>
+                </>
               )
             })()}
 
-            <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
               {navCards.map((card) => (
                 <button
                   key={card.id}
                   onClick={() => navigate && navigate(card.path)}
-                  className="bg-white rounded-lg shadow p-4 flex items-center gap-3"
+                  className="bg-white rounded-lg shadow p-3 sm:p-4 flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-3 hover:shadow-lg border border-gray-300 hover:border-blue-300"
                 >
-                  <div className="flex-1 text-left">
-                    <div className="text-lg font-semibold text-red-500">{card.label}</div>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-md flex items-center justify-center text-sm sm:text-base">{card.icon}</div>
+                  <div className="flex-1 text-center sm:text-left">
+                    <div className="text-sm sm:text-lg font-semibold text-red-500 truncate">{card.label}</div>
                   </div>
-                  <div className="w-12 h-12 bg-blue-50 rounded-md flex items-center justify-center">{card.icon}</div>
+                  
                 </button>
               ))}
             </div>

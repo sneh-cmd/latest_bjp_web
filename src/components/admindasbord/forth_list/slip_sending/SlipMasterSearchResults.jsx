@@ -183,6 +183,7 @@ const SlipMasterSearchResults = () => {
                   pollingStation: voter.pollingStation || voter.eng_polling_location || '-',
                   eng_polling_location: voter.pollingStation || voter.eng_polling_location || '-'
                 }
+                const slipCount = Number(voter.slipCount || voter.slip_count || voter.slip_count || 0)
                 
                 return (
                   <VoterCard
@@ -193,6 +194,16 @@ const SlipMasterSearchResults = () => {
                     onFamily={handleFamily}
                     onCheckModal={() => setShowModal(true)}
                     onEditMobile={handleMobileEdit}
+                    topBadge={
+                      slipCount > 0 ? (
+                        <div
+                          className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold shadow-md whitespace-nowrap"
+                          style={{ backgroundColor: '#ffa500', color: '#ffffff' }}
+                        >
+                          {slipCount} बार स्लिप भेजी
+                        </div>
+                      ) : null
+                    }
                     showLocationButton={false}
                     showEditButton={false}
                     showOtherAddress={false}
