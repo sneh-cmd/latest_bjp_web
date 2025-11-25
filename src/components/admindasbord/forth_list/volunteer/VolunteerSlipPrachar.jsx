@@ -61,6 +61,28 @@ const VolunteerSlipPrachar = ({ navigation }) => {
     fetchSlipData()
   }, [fetchSlipData])
 
+  // Reusable Avatar helper: prefers image but falls back to initials on error
+  const Avatar = ({ src, alt, sizeClass = 'w-12 h-12', initials = 'A' }) => {
+    const [errored, setErrored] = useState(false)
+
+    if (!src || errored) {
+      return (
+        <div className={`${sizeClass} rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200`}>
+          <span className="text-white text-sm font-bold">{initials}</span>
+        </div>
+      )
+    }
+
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={`${sizeClass} rounded-full object-cover border-2 border-gray-200`}
+        onError={() => setErrored(true)}
+      />
+    )
+  }
+
   const typeOptions = useMemo(() => {
     const uniqueTypes = new Set(slipData.map((item) => item.type).filter(Boolean))
     return ['all', ...uniqueTypes]
@@ -115,30 +137,34 @@ const VolunteerSlipPrachar = ({ navigation }) => {
   }
 
   const renderProfileImage = (item, size = 'w-12 h-12') => {
-    if (item.photo) {
-      return (
-        <img
-          src={item.photo}
-          alt={item.name}
-          className={`${size} rounded-full object-cover border-2 border-gray-200`}
-        />
-      )
+    // prefer multiple photo fields and validate
+    const photoCandidates = [item.photo, item.photo_path, item.photoUrl, item.photo_url, item.image]
+    const rawPhoto = photoCandidates.find((p) => p !== undefined && p !== null) || ''
+    const photo = String(rawPhoto || '').trim()
+
+    // Build initials: up to 3 chars similar to other components
+    const nameParts = String(item.name || 'A').trim().split(/\s+/).filter(Boolean)
+    let initials = ''
+    if (nameParts.length >= 3) {
+      initials = nameParts.slice(0, 3).map((w) => w[0] || '').join('')
+    } else if (nameParts.length === 2) {
+      initials = nameParts.map((w) => w[0] || '').join('')
+    } else if (nameParts.length === 1) {
+      initials = (nameParts[0].slice(0, 2) || nameParts[0].slice(0, 1))
+    } else {
+      initials = 'A'
+    }
+    initials = initials.toUpperCase()
+
+    const isLikelyValidUrl = (url) => {
+      if (!url) return false
+      const lowered = url.toLowerCase()
+      if (lowered === 'null' || lowered === 'na' || lowered === 'n/a' || lowered === '-') return false
+      return /^(https?:\/\/|data:|\/)\S+/i.test(url)
     }
 
-    const initials = (item.name || 'A')
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-
     return (
-      <div
-        className={`${size} rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200`}
-      >
-        <span className="text-white text-sm font-bold">{initials || 'A'}</span>
-      </div>
+      <Avatar src={isLikelyValidUrl(photo) ? photo : ''} alt={item.name || initials || 'A'} sizeClass={size} initials={initials} />
     )
   }
 

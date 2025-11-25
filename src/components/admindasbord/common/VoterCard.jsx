@@ -200,12 +200,12 @@ const VoterCard = ({
         )}
 
         {/* Check Button */}
-        {onCheckModal && (
+     {/*    {onCheckModal && (
           <CheckButton
             voter={voter}
             onShowModal={onCheckModal}
           />
-        )}
+        )} */}
 
         {/* Family Button */}
         {onFamily && (

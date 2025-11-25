@@ -1256,6 +1256,32 @@ const AdminDashboard = ({ navigation }) => {
               <span className="text-base font-medium">कॉल सर्वे यूज़र</span>
             </button>
 
+            {/* Ladki Baheno (new menu) */}
+            <button
+              onClick={() => navigation?.navigate ? navigation.navigate('/ladki-baheno') : null}
+              className="w-full px-6 py-4 flex items-center space-x-3 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+            >
+              <div className="w-6 h-6 flex items-center justify-center text-gray-600">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM8 11c1.657 0 3-1.343 3-3S9.657 5 8 5 5 6.343 5 8s1.343 3 3 3zM2 20c0-2.761 2.686-5 6-5s6 2.239 6 5v1H2v-1zM14 20c0-2.761 2.686-5 6-5s6 2.239 6 5v1h-12v-1z" />
+                </svg>
+              </div>
+              <span className="text-base font-medium">लाड़की बहनो</span>
+            </button>
+
+            {/* Star Karyakarta */}
+            <button
+              onClick={() => navigation?.navigate ? navigation.navigate('/star-karyakarta') : null}
+              className="w-full px-6 py-4 flex items-center space-x-3 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+            >
+              <div className="w-6 h-6 flex items-center justify-center text-gray-600">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z" />
+                </svg>
+              </div>
+              <span className="text-base font-medium">स्टार कार्यकर्ता</span>
+            </button>
+
             {/* Logout */}
             <div className="border-t border-gray-200 mt-2 pt-2">
               <button

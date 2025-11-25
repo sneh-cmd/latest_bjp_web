@@ -49,6 +49,56 @@ const collectMobilesFromBoothList = (boothList = []) => {
   return Array.from(numbers)
 }
 
+// Avatar helpers: validate URLs, compute initials, render image with onError fallback
+const isLikelyValidUrl = (v) => {
+  if (!v) return false
+  const s = String(v).trim()
+  if (!s) return false
+  const lower = s.toLowerCase()
+  if (lower === 'null' || lower === 'n/a' || lower === '-') return false
+  return /^(https?:\/\/|data:|\/)\S+/i.test(s)
+}
+
+const getInitials = (name) => {
+  if (!name) return ''
+  const parts = String(name).trim().split(/\s+/).filter(Boolean)
+  if (parts.length >= 3) return (parts[0][0] + parts[1][0] + parts[2][0]).toUpperCase()
+  if (parts.length === 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+  return String(name).slice(0, 2).toUpperCase()
+}
+
+const renderProfileImage = (person = {}, sizeClass = 'w-8 h-8') => {
+  const candidates = [person.profileImage, person.photoPath, person.photo, person.image]
+  const src = candidates.find(isLikelyValidUrl)
+  const initials = getInitials(person.name || person.fullName || person.title || '')
+
+  return (
+    <div className={`${sizeClass} rounded-full flex items-center justify-center overflow-hidden`}>
+      {src ? (
+        <>
+          <img
+            src={src}
+            alt={person.name || 'profile'}
+            className="w-full h-full object-cover rounded-full"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+              const sib = e.currentTarget.nextSibling
+              if (sib) sib.style.display = 'flex'
+            }}
+          />
+          <div style={{ display: 'none' }} className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+            <span className="text-white text-sm font-bold">{initials}</span>
+          </div>
+        </>
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center rounded-full">
+          <span className="text-white text-sm font-bold">{initials}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
   const { navigate, state } = navigation
   const [isVisible, setIsVisible] = useState(false)
@@ -907,19 +957,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                           <div key={person.id} className="flex items-center justify-between bg-white rounded-lg p-2 sm:p-3 shadow-sm">
                             <div className="flex items-center space-x-2 sm:space-x-3">
                               {/* Profile Image */}
-                              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                                {person.profileImage ? (
-                                  <img
-                                    src={person.profileImage}
-                                    alt={person.name}
-                                    className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                  </svg>
-                                )}
-                              </div>
+                              {renderProfileImage(person, 'w-8 h-8 sm:w-12 sm:h-12')}
                               
                               <div className="min-w-0 flex-1">
                                 <h3 className="font-semibold text-gray-800 text-xs sm:text-base truncate">{person.name}</h3>
@@ -1012,19 +1050,7 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                           {filteredCoInchargeData.map((person) => (
                           <div key={person.id} className="flex items-center justify-between bg-white rounded-lg p-2 sm:p-3 shadow-sm">
                             <div className="flex items-center space-x-2 sm:space-x-3">
-                              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                                {person.profileImage ? (
-                                  <img
-                                    src={person.profileImage}
-                                    alt={person.name}
-                                    className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover"
-                                  />
-                                ) : (
-                                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                  </svg>
-                                )}
-                              </div>
+                              {renderProfileImage(person, 'w-8 h-8 sm:w-12 sm:h-12')}
                               
                               <div className="min-w-0 flex-1">
                                 <h3 className="font-semibold text-gray-800 text-xs sm:text-base truncate">{person.name}</h3>
@@ -1246,10 +1272,10 @@ const BoothDetailSlide = ({ navigation, boothData, boothId }) => {
                           <span className="text-[10px] sm:text-xs text-gray-600">Call</span>
                         </button>
 
-                        <CheckButton
+                        {/* <CheckButton
                           voter={voter}
                           onShowModal={() => setShowModal(true)}
-                        />
+                        /> */}
 
                         <button
                           onClick={() => handleVoterFamily(voter)}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { apiService } from '../../../apidata.jsx'
+import { apiService, displayBoothWiseAddress } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
 import RemovePhotoConfirmModal from './RemovePhotoConfirmModal.jsx'
 import DuplicateMobileModal from './DuplicateMobileModal.jsx'
@@ -9,7 +9,8 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    photo: null
+    photo: null,
+    boothNumber: ''
   })
   const isEditMode = !!building
 
@@ -20,6 +21,9 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
   const [addressOptions, setAddressOptions] = useState([])
   const [addressLoading, setAddressLoading] = useState(false)
   const [addressError, setAddressError] = useState(null)
+  const [boothOptions, setBoothOptions] = useState([])
+  const [boothAddressMap, setBoothAddressMap] = useState({})
+  const [boothLoading, setBoothLoading] = useState(false)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [existingPhotoUrl, setExistingPhotoUrl] = useState(null)
   const [existingPhotoName, setExistingPhotoName] = useState('')
@@ -33,7 +37,8 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
       setFormData({
         name: building.name || '',
         phone: building.phoneNumber || building.mobileNo || building.phone || '',
-        photo: null
+        photo: null,
+        boothNumber: building.booth_no || building.boothNo || building.boothNumber || ''
       })
       setSelectedAddresses(building.addresses || [])
       const existingPhoto = building.photo_path || building.photoPath || building.profileImage || building.photo
@@ -63,7 +68,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
       setPhotoRemoved(false)
       setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     } else if (isOpen && !building) {
-      setFormData({ name: '', phone: '', photo: null })
+      setFormData({ name: '', phone: '', photo: null, boothNumber: '' })
       setSelectedAddresses([])
       setPhotoPreview(null)
       setExistingPhotoUrl(null)
@@ -72,6 +77,40 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
       setDuplicateModal({ isOpen: false, mobile: '', message: '' })
     }
   }, [isOpen, building, isEditMode])
+
+  // Fetch booth-wise addresses when modal opens
+  const fetchBoothAddresses = async () => {
+    setBoothLoading(true)
+    try {
+      const userData = localStorageManager.getUserData()
+      const panelApiUrl = userData?.panel?.apiUrl || 'http://ntmc2.mhbjplok.com'
+      const response = await displayBoothWiseAddress(panelApiUrl)
+      if (response && Array.isArray(response)) {
+        const map = {}
+        response.forEach(item => {
+          const part = String(item.part_no || item.partNo || item.booth_no || item.part || '').trim()
+          if (!part) return
+          const eng = item.eng_localityid || item.address || ''
+          if (!map[part]) map[part] = []
+          if (eng && !map[part].includes(eng)) map[part].push(eng)
+        })
+        setBoothAddressMap(map)
+        const booths = Object.keys(map)
+        // sort numerically when possible
+        booths.sort((a, b) => (Number(a) || 0) - (Number(b) || 0))
+        // Add 'all' option at the beginning to allow selecting all booths
+        if (!booths.includes('all')) booths.unshift('all')
+        setBoothOptions(booths)
+        if (formData.boothNumber) {
+          setAddressOptions(map[formData.boothNumber] || [])
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching booth-wise addresses:', error)
+    } finally {
+      setBoothLoading(false)
+    }
+  }
 
   // Cleanup photo preview URL when component unmounts or photo changes
   useEffect(() => {
@@ -87,7 +126,34 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
     if (isOpen && addressOptions.length === 0 && !addressLoading) {
       fetchAddresses()
     }
+    if (isOpen && boothOptions.length === 0 && !boothLoading) {
+      fetchBoothAddresses()
+    }
   }, [isOpen])
+
+  // When booth selection changes, update addressOptions to booth-specific addresses
+  useEffect(() => {
+    if (formData.boothNumber) {
+      if (formData.boothNumber === 'all') {
+        // flatten and dedupe all booth addresses
+        const all = Object.values(boothAddressMap).flat().filter(Boolean)
+        const unique = Array.from(new Set(all))
+        setAddressOptions(unique)
+      } else {
+        const list = boothAddressMap[formData.boothNumber]
+        if (list && Array.isArray(list) && list.length > 0) {
+          setAddressOptions(list)
+        } else {
+          setAddressOptions([])
+        }
+      }
+    } else {
+      // If boothNumber cleared, re-fetch all addresses if none loaded
+      if (!addressOptions || addressOptions.length === 0) {
+        fetchAddresses()
+      }
+    }
+  }, [formData.boothNumber, boothAddressMap])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -323,7 +389,8 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           sub_type: 'AP',
           name: formData.name.trim(),
           mobile_no: formData.phone.trim(),
-          photo: photoRemoved ? '' : (photoName || existingPhotoName || building.photo_path || building.photoPath || building.profileImage || building.photo || ''),
+            photo: photoRemoved ? '' : (photoName || existingPhotoName || building.photo_path || building.photoPath || building.profileImage || building.photo || ''),
+            booth_no: formData.boothNumber || '',
           base64: photoBase64 || '',
           idcard_no: '',
           booth_javabdari: '0',
@@ -352,6 +419,7 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
           main_admin_id: '0',
           name: formData.name.trim(),
           mobile_no: formData.phone.trim(),
+          booth_no: formData.boothNumber || '',
           photo: photoName || '',
           base64: photoBase64 || '',
           idcard_no: '',
@@ -438,92 +506,121 @@ const AddBuildingPramukhModal = ({ isOpen, onClose, onSave, building = null, onS
         </div>
 
         <form onSubmit={handleSubmit} className="p-2.5 sm:p-5 space-y-2 sm:space-y-4" style={{backgroundColor:'#f4f6ff'}} noValidate>
-          <div className="relative address-picker-container">
-            <label className="block text-[10px] sm:text-sm font-semibold mb-1 sm:mb-2" style={{color: '#103a94'}}>पता</label>
-            <button
-              type="button"
-              onClick={() => setShowAddressPicker(!showAddressPicker)}
-              className="flex w-full items-center justify-between rounded-lg border px-2 sm:px-4 py-1.5 sm:py-2.5 text-left transition-all text-xs sm:text-base"
-              style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
-              onMouseEnter={(e) => e.target.style.borderColor = '#0d2f7a'}
-              onMouseLeave={(e) => e.target.style.borderColor = '#103a94'}
-            >
-              <span className="text-gray-800">
-                {selectedAddresses.length > 0 ? `${selectedAddresses.length} पता` : 'चुनें'}
-              </span>
-              <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-3">
+            {/* Left: Booth Number selector */}
+            <div className="w-full sm:w-1/4">
+              <label className="block text-[10px] sm:text-sm font-semibold mb-1 sm:mb-2" style={{color: '#103a94'}}>बूथ नं.</label>
+              <select
+                name="boothNumber"
+                value={formData.boothNumber}
+                onChange={handleChange}
+                className="flex w-full items-center justify-between rounded-lg border px-2 sm:px-4 py-1.5 sm:py-3.5 text-left transition-all text-xs sm:text-base"
+                style={{borderColor: '#103a94'}}
+              >
+                <option value="">चुनें</option>
+                {boothOptions && boothOptions.length > 0 ? (
+                  boothOptions.map(b => (
+                    <option key={`booth-${b}`} value={b}>{b === 'all' ? 'All' : b}</option>
+                  ))
+                ) : (
+                  // fallback static options
+                  <>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                  </>
+                )}
+              </select>
+            </div>
 
-            {showAddressPicker && (
-              <div className="absolute left-0 right-0 z-[200] mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
-                <div className="p-1.5 sm:p-2 border-b">
-                  <input
-                    type="text"
-                    value={addressSearch}
-                    onChange={(e) => setAddressSearch(e.target.value)}
-                    placeholder="सर्च दर्ज करें"
-                    className="w-full rounded-md border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base"
-                    disabled={addressLoading}
-                  />
-                </div>
-                <div className="max-h-60 sm:max-h-72 overflow-y-auto">
-                  {addressLoading ? (
-                    <div className="flex items-center justify-center py-6 sm:py-8">
-                      <div className="text-xs sm:text-sm text-gray-600">पते लोड हो रहे हैं...</div>
-                    </div>
-                  ) : addressError ? (
-                    <div className="flex items-center justify-center py-6 sm:py-8">
-                      <div className="text-xs sm:text-sm text-red-600">{addressError}</div>
-                    </div>
-                  ) : filteredAddresses.length === 0 ? (
-                    <div className="flex items-center justify-center py-6 sm:py-8">
-                      <div className="text-xs sm:text-sm text-gray-600">कोई पता नहीं मिला</div>
-                    </div>
-                  ) : (
-                    filteredAddresses.map((addr, idx) => {
-                      const checked = selectedAddresses.includes(addr)
-                      return (
-                        <label key={`${addr}-${idx}`} className="flex cursor-pointer items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-1.5 sm:py-2 border-b last:border-b-0 hover:bg-gray-50">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleAddress(addr)}
-                            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                          />
-                          <span className="text-xs sm:text-sm text-gray-800">{addr}</span>
-                        </label>
-                      )
-                    })
-                  )}
-                </div>
-                <div className="p-1.5 sm:p-2" style={{ backgroundColor: '#103a94' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddressPicker(false)}
-                    className="w-full rounded-md py-1.5 sm:py-2 text-center text-white font-semibold text-xs sm:text-base"
-                  >
-                    ठीक है
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Right: Address picker (existing) */}
+            <div className="relative address-picker-container mt-2 sm:mt-0 flex-1">
+              <label className="block text-[10px] sm:text-sm font-semibold mb-1 sm:mb-2" style={{color: '#103a94'}}>पता</label>
+              <button
+                type="button"
+                onClick={() => setShowAddressPicker(!showAddressPicker)}
+                className="flex w-full items-center justify-between rounded-lg border px-2 sm:px-4 py-1.5 sm:py-3 text-left transition-all text-xs sm:text-base"
+                style={{backgroundColor: '#f0f4ff', borderColor: '#103a94'}}
+                onMouseEnter={(e) => e.target.style.borderColor = '#0d2f7a'}
+                onMouseLeave={(e) => e.target.style.borderColor = '#103a94'}
+              >
+                <span className="text-gray-800">
+                  {selectedAddresses.length > 0 ? `${selectedAddresses.length} पता` : 'चुनें'}
+                </span>
+                <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
 
-            {selectedAddresses.length > 0 && (
-              <div className="mt-1.5 sm:mt-2 max-h-48 sm:max-h-60 overflow-y-auto divide-y divide-gray-200 rounded-lg border border-gray-200">
-                {selectedAddresses.map((addr, i) => (
-                  <div key={`${addr}-${i}`} className="flex items-start justify-between p-2 sm:p-3">
-                    <div className="pr-2 sm:pr-3 text-xs sm:text-sm text-gray-800 break-words flex-1">{addr}</div>
-                    <button type="button" onClick={() => removeAddress(addr)} className="text-gray-500 hover:text-gray-700 flex-shrink-0">
-                      <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+              {showAddressPicker && (
+                <div className="absolute left-0 right-0 z-[200] mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
+                  <div className="p-1.5 sm:p-2 border-b">
+                    <input
+                      type="text"
+                      value={addressSearch}
+                      onChange={(e) => setAddressSearch(e.target.value)}
+                      placeholder="सर्च दर्ज करें"
+                      className="w-full rounded-md border border-gray-300 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-base"
+                      disabled={addressLoading}
+                    />
+                  </div>
+                  <div className="max-h-60 sm:max-h-72 overflow-y-auto">
+                    {addressLoading ? (
+                      <div className="flex items-center justify-center py-6 sm:py-8">
+                        <div className="text-xs sm:text-sm text-gray-600">पते लोड हो रहे हैं...</div>
+                      </div>
+                    ) : addressError ? (
+                      <div className="flex items-center justify-center py-6 sm:py-8">
+                        <div className="text-xs sm:text-sm text-red-600">{addressError}</div>
+                      </div>
+                    ) : filteredAddresses.length === 0 ? (
+                      <div className="flex items-center justify-center py-6 sm:py-8">
+                        <div className="text-xs sm:text-sm text-gray-600">कोई पता नहीं मिला</div>
+                      </div>
+                    ) : (
+                      filteredAddresses.map((addr, idx) => {
+                        const checked = selectedAddresses.includes(addr)
+                        return (
+                          <label key={`${addr}-${idx}`} className="flex cursor-pointer items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-1.5 sm:py-2 border-b last:border-b-0 hover:bg-gray-50">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleAddress(addr)}
+                              className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                            />
+                            <span className="text-xs sm:text-sm text-gray-800">{addr}</span>
+                          </label>
+                        )
+                      })
+                    )}
+                  </div>
+                  <div className="p-1.5 sm:p-2" style={{ backgroundColor: '#103a94' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddressPicker(false)}
+                      className="w-full rounded-md py-1.5 sm:py-2 text-center text-white font-semibold text-xs sm:text-base"
+                    >
+                      ठीक है
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              )}
+
+              {selectedAddresses.length > 0 && (
+                <div className="mt-1.5 sm:mt-2 max-h-48 sm:max-h-60 overflow-y-auto divide-y divide-gray-200 rounded-lg border border-gray-200">
+                  {selectedAddresses.map((addr, i) => (
+                    <div key={`${addr}-${i}`} className="flex items-start justify-between p-2 sm:p-3">
+                      <div className="pr-2 sm:pr-3 text-xs sm:text-sm text-gray-800 break-words flex-1">{addr}</div>
+                      <button type="button" onClick={() => removeAddress(addr)} className="text-gray-500 hover:text-gray-700 flex-shrink-0">
+                        <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div>

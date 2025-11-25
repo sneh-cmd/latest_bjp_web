@@ -116,7 +116,7 @@ const BoothList = ({ navigation }) => {
         }}
       >
         <div className="min-h-full">
-          <div className="max-w-4xl mx-auto">
+          <div className="w-full mx-auto">
             {error ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
@@ -142,7 +142,7 @@ const BoothList = ({ navigation }) => {
             ) : (
               <>
                 {/* Booth Grid - 2 Column Layout */}
-                <div className="grid grid-cols-2 gap-4 pb-8">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 pb-8">
                   {filteredBooths.map((booth) => (
                     <div
                       key={booth.id}

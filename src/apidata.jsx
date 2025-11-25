@@ -270,6 +270,8 @@ export const apiService = {
         resultTag = 'dis_scheme_wise_survey_voterResult';
       } else if (soapAction === 'dis_booth_wise_survey_dash') {
         resultTag = 'dis_booth_wise_survey_dashResult';
+      } else if (soapAction === 'dis_booth_wise_address') {
+        resultTag = 'dis_booth_wise_addressResult';
       } else if (soapAction === 'dis_booth_wise_call_center_survey_dash') {
         resultTag = 'dis_booth_wise_call_center_survey_dashResult';
       } else if (soapAction === 'dis_booth_wise_survey_voter') {
@@ -342,6 +344,12 @@ export const apiService = {
         resultTag = 'date_wise_slip_sending_voterResult';
       } else if (soapAction === 'master_search_for_slip_send') {
         resultTag = 'master_search_for_slip_sendResult';
+      } else if (soapAction === 'dis_ladki_baheno_booth_wise_dash') {
+        resultTag = 'dis_ladki_baheno_booth_wise_dashResult';
+      } else if (soapAction === 'dis_match_ladki_behno_sp') {
+        resultTag = 'dis_match_ladki_behno_spResult';
+      } else if (soapAction === 'display_star_karykarta') {
+        resultTag = 'display_star_karykartaResult';
       }
       
       const jsonMatch = xmlText.match(new RegExp(`<${resultTag}>(.*?)<\/${resultTag}>`, 's'));
@@ -763,6 +771,130 @@ export const apiService = {
           return parsedData;
         }
         
+        // Special handling for dis_ladki_baheno_booth_wise_dash
+        if (soapAction === 'dis_ladki_baheno_booth_wise_dash') {
+          // API returns: { part_no, total_voter, total_match }
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            return parsedData.result.map((item, index) => ({
+              id: item.id || item.part_no || index + 1,
+              boothNumber: item.part_no || item.boothNumber || item.booth_no,
+              matchVoters: Number(item.total_match || item.matchVoters || 0),
+              totalVoters: Number(item.total_voter || item.totalVoters || item.total_voters || 0)
+            }));
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData.map((item, index) => ({
+              id: item.id || item.part_no || index + 1,
+              boothNumber: item.part_no || item.boothNumber || item.booth_no,
+              matchVoters: Number(item.total_match || item.matchVoters || 0),
+              totalVoters: Number(item.total_voter || item.totalVoters || item.total_voters || 0)
+            }));
+          }
+          if (parsedData.result && Array.isArray(parsedData.result)) {
+            return parsedData.result.map((item, index) => ({
+              id: item.id || item.part_no || index + 1,
+              boothNumber: item.part_no || item.boothNumber || item.booth_no,
+              matchVoters: Number(item.total_match || item.matchVoters || 0),
+              totalVoters: Number(item.total_voter || item.totalVoters || item.total_voters || 0)
+            }));
+          }
+          return parsedData.result || [];
+        }
+        
+        // Special handling for dis_match_ladki_behno_sp
+        if (soapAction === 'dis_match_ladki_behno_sp') {
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData;
+          }
+          if (parsedData.result && Array.isArray(parsedData.result)) {
+            return parsedData.result;
+          }
+          return parsedData.result || [];
+        }
+        
+        // Special handling for display_star_karykarta
+        if (soapAction === 'display_star_karykarta') {
+          if (parsedData.Success === "1" && parsedData.result && Array.isArray(parsedData.result)) {
+            return parsedData.result.map((item, index) => ({
+              id: item.admin_id || item.id || index + 1,
+              admin_id: item.admin_id,
+              name: item.name || '',
+              mobile_no: item.mobile_no || item.mobile || '',
+              image: item.image || '',
+              type: item.type || '',
+              sub_type: item.sub_type || '',
+              designation: item.designation || '',
+              c: Number(item.c || 0),
+              s: Number(item.s || 0),
+              w: Number(item.w || 0),
+              sr: Number(item.sr || 0),
+              ap: Number(item.ap || 0),
+              tp: Number(item.tp || 0),
+              vp: Number(item.vp || 0),
+              ip: Number(item.ip || 0),
+              shr: Number(item.shr || 0),
+              sp: Number(item.sp || 0),
+              ps: Number(item.ps || 0),
+              mbc: Number(item.mbc || 0),
+              total_point: Number(item.total_point || 0)
+            }));
+          }
+          if (Array.isArray(parsedData)) {
+            return parsedData.map((item, index) => ({
+              id: item.admin_id || item.id || index + 1,
+              admin_id: item.admin_id,
+              name: item.name || '',
+              mobile_no: item.mobile_no || item.mobile || '',
+              image: item.image || '',
+              type: item.type || '',
+              sub_type: item.sub_type || '',
+              designation: item.designation || '',
+              c: Number(item.c || 0),
+              s: Number(item.s || 0),
+              w: Number(item.w || 0),
+              sr: Number(item.sr || 0),
+              ap: Number(item.ap || 0),
+              tp: Number(item.tp || 0),
+              vp: Number(item.vp || 0),
+              ip: Number(item.ip || 0),
+              shr: Number(item.shr || 0),
+              sp: Number(item.sp || 0),
+              ps: Number(item.ps || 0),
+              mbc: Number(item.mbc || 0),
+              total_point: Number(item.total_point || 0)
+            }));
+          }
+          if (parsedData.result && Array.isArray(parsedData.result)) {
+            return parsedData.result.map((item, index) => ({
+              id: item.admin_id || item.id || index + 1,
+              admin_id: item.admin_id,
+              name: item.name || '',
+              mobile_no: item.mobile_no || item.mobile || '',
+              image: item.image || '',
+              type: item.type || '',
+              sub_type: item.sub_type || '',
+              designation: item.designation || '',
+              c: Number(item.c || 0),
+              s: Number(item.s || 0),
+              w: Number(item.w || 0),
+              sr: Number(item.sr || 0),
+              ap: Number(item.ap || 0),
+              tp: Number(item.tp || 0),
+              vp: Number(item.vp || 0),
+              ip: Number(item.ip || 0),
+              shr: Number(item.shr || 0),
+              sp: Number(item.sp || 0),
+              ps: Number(item.ps || 0),
+              mbc: Number(item.mbc || 0),
+              total_point: Number(item.total_point || 0)
+            }));
+          }
+          return parsedData.result || [];
+        }
+        
         // Special handling for phonebook member endpoint
         if (soapAction === 'display_phonebook_member') {
           return parsedData.result;
@@ -1111,6 +1243,19 @@ export const apiService = {
           }
           
           console.warn('parsedData.result is not an array:', parsedData.result)
+          return parsedData.result || [];
+        }
+
+        // Special handling for booth wise address endpoint
+        if (soapAction === 'dis_booth_wise_address') {
+          // Expecting array of items like: { part_no, eng_localityid, total_voter }
+          if (Array.isArray(parsedData.result)) {
+            return parsedData.result.map(item => ({
+              part_no: item.part_no || item.partNo || item.booth_no || item.booth || item.part || null,
+              eng_localityid: item.eng_localityid || item.address || item.locality || '',
+              total_voter: Number(item.total_voter || item.totalVoter || item.total_voters || 0)
+            }));
+          }
           return parsedData.result || [];
         }
         
@@ -3378,6 +3523,22 @@ export const displayBoothWiseSurveyDash = async function(panelApiUrl) {
   );
 };
 
+// Booth wise address - returns array of { part_no, eng_localityid, total_voter }
+export const displayBoothWiseAddress = async function(panelApiUrl) {
+  const soapBody = `<dis_booth_wise_address xmlns="http://tempuri.org/" />`;
+
+  // Use helper function to get admin endpoint
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_booth_wise_address',
+    soapBody,
+    true // use admin auth header
+  );
+};
+
 // Booth wise call center survey dashboard - new function
 export const displayBoothWiseCallCenterSurveyDash = async function(panelApiUrl) {
   const soapBody = `<dis_booth_wise_call_center_survey_dash xmlns="http://tempuri.org/" />`;
@@ -3669,6 +3830,53 @@ export const displayUserWiseCallCenterSurveyDash = async function(date = '', pan
     'dis_user_wise_call_center_survey_dash',
     soapBody,
     true
+  );
+};
+
+// Ladki Baheno booth wise dashboard - fetch booth-wise Ladki Baheno data
+export const displayLadkiBahenoBoothWiseDash = async function(panelApiUrl) {
+  const soapBody = `<dis_ladki_baheno_booth_wise_dash xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_ladki_baheno_booth_wise_dash',
+    soapBody,
+    true // use admin auth header
+  );
+};
+
+// Match Ladki Behno SP - fetch matched voters for a specific booth
+export const displayMatchLadkiBehnoSp = async function(boothNo, panelApiUrl) {
+  const soapBody = `<dis_match_ladki_behno_sp xmlns="http://tempuri.org/">
+    <booth_no>${boothNo}</booth_no>
+  </dis_match_ladki_behno_sp>`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'dis_match_ladki_behno_sp',
+    soapBody,
+    true // use admin auth header
+  );
+};
+
+// Display Star Karyakarta - fetch star workers with points
+export const displayStarKarykarta = async function(panelApiUrl) {
+  const soapBody = `<display_star_karykarta xmlns="http://tempuri.org/" />`;
+
+  const adminEndpoint = getAdminEndpoint(panelApiUrl);
+
+  return apiService.makeRequest(
+    adminEndpoint,
+    'POST',
+    'display_star_karykarta',
+    soapBody,
+    true // use admin auth header
   );
 };
 

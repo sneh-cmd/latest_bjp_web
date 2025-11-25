@@ -22,6 +22,60 @@ const resolveRoleLabel = (person) => {
   return designation || 'Shakti Kendra Pramukh'
 }
 
+// Avatar helpers: validate URL, compute initials, and render image+initials fallback
+const isLikelyValidUrl = (val) => {
+  if (!val) return false
+  const s = ('' + val).trim()
+  if (!s) return false
+  const low = s.toLowerCase()
+  if (['null', 'n/a', '-'].includes(low)) return false
+  return /^(https?:\/\/|data:|\/)\S+/i.test(s)
+}
+
+const getInitials = (name) => {
+  if (!name) return ''
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  if (parts.length === 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+  return (parts[0][0] + parts[1][0] + parts[2][0]).toUpperCase()
+}
+
+const renderProfileImage = (person = {}, imgClass = 'w-8 h-8 rounded-full object-cover') => {
+  const candidates = [person.profileImage, person.photoPath, person.photo, person.image, person.photoUrl, person.photo_url]
+  const src = candidates.find(isLikelyValidUrl) || null
+  const name = person.name || person.fullName || ''
+  const initials = getInitials(name)
+
+  return (
+    <>
+      {src ? (
+        <>
+          <img
+            src={src}
+            alt={name || 'Profile'}
+            className={`${imgClass} rounded-full object-cover`}
+            onError={(e) => {
+              try {
+                e.target.style.display = 'none'
+                if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'
+              } catch (err) {
+                // ignore
+              }
+            }}
+          />
+          <div className={`${imgClass} rounded-full flex items-center justify-center bg-gray-200 hidden`}>
+            <span className="text-sm font-bold text-gray-600">{initials || 'U'}</span>
+          </div>
+        </>
+      ) : (
+        <div className={`${imgClass} rounded-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600`}>
+          <span className="text-sm font-bold text-white">{initials || 'U'}</span>
+        </div>
+      )}
+    </>
+  )
+}
+
 const ShaktiKendraDetailSlide = ({ 
   isVisible, 
   onClose, 
@@ -615,7 +669,6 @@ const ShaktiKendraDetailSlide = ({
     <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5 pb-6">
       {filteredBooths.map((booth) => {
         const boothNumber = booth.number || booth.id
-        const isPhoto = Boolean(booth.photoPath && booth.photoPath.trim() !== '')
         
         return (
           <div key={booth.id} className="flex justify-center">
@@ -629,22 +682,7 @@ const ShaktiKendraDetailSlide = ({
               <div className={`${booth.assigned ? 'bg-green-50' : 'bg-white'} p-3 sm:p-4`}>
                 <div className="flex items-center">
                   <div className={`w-8 h-8 sm:w-10 sm:h-10 ${booth.assigned ? 'bg-green-100' : 'bg-gray-100'} rounded-full flex items-center justify-center mr-3`}>
-                    {isPhoto && booth.photoPath ? (
-                      <img 
-                        src={booth.photoPath} 
-                        alt="Profile" 
-                        className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none'
-                          e.target.nextSibling.style.display = 'flex'
-                        }}
-                      />
-                    ) : null}
-                    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${isPhoto && booth.photoPath ? 'hidden' : 'flex'}`}>
-                      <span className="text-sm sm:text-base font-bold text-gray-600">
-                        {boothNumber ? boothNumber.toString().slice(-2) : 'B'}
-                      </span>
-                    </div>
+                    {renderProfileImage(booth, 'w-6 h-6 sm:w-8 sm:h-8')}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-gray-800 font-semibold text-sm sm:text-base">बूथ नं. {boothNumber}</h3>
@@ -733,7 +771,6 @@ const ShaktiKendraDetailSlide = ({
     <div className="space-y-2 sm:space-y-3">
       {filteredBooths.map((booth) => {
         const boothNumber = booth.number || booth.id
-        const isPhoto = Boolean(booth.photoPath && booth.photoPath.trim() !== '')
         
         return (
           <div
@@ -749,22 +786,7 @@ const ShaktiKendraDetailSlide = ({
                 {/* Profile Image */}
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center overflow-hidden"
                      style={{backgroundColor: booth.assigned ? '#e6f7ff' : '#f5f5f5'}}>
-                  {isPhoto && booth.photoPath ? (
-                    <img 
-                      src={booth.photoPath} 
-                      alt="Profile" 
-                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = 'none'
-                        e.target.nextSibling.style.display = 'flex'
-                      }}
-                    />
-                  ) : null}
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${isPhoto && booth.photoPath ? 'hidden' : 'flex'}`}>
-                    <span className="text-xs sm:text-sm font-bold text-gray-600">
-                      {boothNumber ? boothNumber.toString().slice(-2) : 'B'}
-                    </span>
-                  </div>
+                  {renderProfileImage(booth, 'w-8 h-8 sm:w-10 sm:h-10')}
                 </div>
                 
                 {/* Booth Info */}
@@ -944,8 +966,7 @@ const ShaktiKendraDetailSlide = ({
           </div>
         </div>
       ) : (
-        <div className="flex justify-center">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md sm:max-w-lg">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 pb-8 w-full">
           {filteredVoterData.map((voter) => {
             // Find corresponding booth data from boothData array
             const boothInfo = boothData.find(booth => 
@@ -977,7 +998,6 @@ const ShaktiKendraDetailSlide = ({
             )
           })}
           </div>
-        </div>
       )}
     </div>
     )
@@ -1030,17 +1050,7 @@ const ShaktiKendraDetailSlide = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2 sm:space-x-3">
                   <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {mainPramukhData.photoPath ? (
-                      <img 
-                        src={mainPramukhData.photoPath} 
-                        alt={mainPramukhData.name}
-                        className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover"
-                      />
-                    ) : (
-                      <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                      </svg>
-                    )}
+                    {renderProfileImage(mainPramukhData, 'w-8 h-8 sm:w-12 sm:h-12')}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-gray-800 text-xs sm:text-base truncate">{mainPramukhData.name}</h3>
@@ -1116,17 +1126,7 @@ const ShaktiKendraDetailSlide = ({
                 <div key={coPramukh.adminId || index} className="flex items-center justify-between bg-white rounded-lg p-2 sm:p-3 shadow-sm">
                   <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                     <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {coPramukh.photoPath ? (
-                        <img 
-                          src={coPramukh.photoPath} 
-                          alt={coPramukh.name}
-                          className="w-8 h-8 sm:w-12 sm:h-12 rounded-full object-cover"
-                        />
-                      ) : (
-                        <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                        </svg>
-                      )}
+                      {renderProfileImage(coPramukh, 'w-8 h-8 sm:w-12 sm:h-12')}
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-gray-800 text-xs sm:text-base truncate">{coPramukh.name}</h3>

@@ -22,6 +22,9 @@ import MasterSearchResults from './components/admindasbord/dashboard/MasterSearc
 import AgeSlide from './components/admindasbord/dashboard/AgeSlide'
 import CallSurveyUser from './components/admindasbord/lists/CallSurveyUser'
 import BoothList from './components/admindasbord/dashboard/BoothList'
+import LadkiBaheno from './components/admindasbord/lists/LadkiBaheno'
+import LadkiBahenoVoterList from './components/admindasbord/lists/LadkiBahenoVoterList'
+import StarKaryakarta from './components/admindasbord/lists/StarKaryakarta'
 import VoterList from './components/admindasbord/dashboard/VoterList'
 import CadreSurveyReport from './components/admindasbord/dashboard/report/CadreSurveyReport'
 import BuildingHeadSurvey from './components/admindasbord/dashboard/report/BuildingHeadSurvey'
@@ -346,6 +349,30 @@ function BoothListWrapper() {
   return (
     <NavigationProvider>
       <BoothList />
+    </NavigationProvider>
+  )
+}
+
+function LadkiBahenoWrapper() {
+  return (
+    <NavigationProvider>
+      <LadkiBaheno />
+    </NavigationProvider>
+  )
+}
+
+function LadkiBahenoVoterListWrapper() {
+  return (
+    <NavigationProvider>
+      <LadkiBahenoVoterList />
+    </NavigationProvider>
+  )
+}
+
+function StarKaryakartaWrapper() {
+  return (
+    <NavigationProvider>
+      <StarKaryakarta />
     </NavigationProvider>
   )
 }
@@ -823,6 +850,9 @@ function App() {
           <Route path="/booth-detail" element={<BoothDetailWrapper />} />
           <Route path="/call-survey-user" element={<CallSurveyUserWrapper />} />
           <Route path="/booth-list" element={<BoothListWrapper />} />
+          <Route path="/ladki-baheno" element={<LadkiBahenoWrapper />} />
+          <Route path="/ladki-baheno-voters" element={<LadkiBahenoVoterListWrapper />} />
+          <Route path="/star-karyakarta" element={<StarKaryakartaWrapper />} />
           <Route path="/voter-list" element={<VoterListWrapper />} />
           <Route path="/cadre-survey-report" element={<CadreSurveyReportWrapper />} />
           <Route path="/building-head-survey" element={<BuildingHeadSurveyWrapper />} />

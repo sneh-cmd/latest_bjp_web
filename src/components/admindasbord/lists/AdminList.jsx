@@ -400,25 +400,60 @@ const AdminList = ({ navigation }) => {
     admin.phoneNumber.includes(searchQuery)
   )
 
+  const isLikelyValidUrl = (v) => {
+    if (!v) return false
+    const s = String(v).trim()
+    if (!s) return false
+    const lower = s.toLowerCase()
+    if (lower === 'null' || lower === 'n/a' || lower === '-') return false
+    return /^(https?:\/\/|data:|\/)\S+/i.test(s)
+  }
+
+  const getInitials = (name) => {
+    if (!name) return ''
+    const parts = String(name).trim().split(/\s+/).filter(Boolean)
+    if (parts.length >= 3) return (parts[0][0] + parts[1][0] + parts[2][0]).toUpperCase()
+    if (parts.length === 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+    return String(name).slice(0, 2).toUpperCase()
+  }
+
   const renderProfileImage = (admin, size = 'w-12 h-12') => {
-    if (admin.isPhoto && admin.profileImage) {
-      return (
-        <img
-          src={admin.profileImage}
-          alt={admin.name}
-          className={`${size} rounded-full object-cover border-2 border-gray-200`}
-        />
-      )
-    } else {
-      // Show initials when no photo is available (same as other roles)
-      return (
-        <div className={`${size} rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200`}>
-          <span className="text-white text-sm font-bold">
-            {admin.profileImage}
-          </span>
-        </div>
-      )
-    }
+    const candidates = [
+      admin.profileImage,
+      admin.photoPath,
+      admin.photo,
+      admin.image,
+      admin.photoUrl,
+      admin.photo_url
+    ]
+    const src = candidates.find(isLikelyValidUrl)
+    const initials = getInitials(admin.name || admin.fullName || admin.profileImage || '')
+
+    return (
+      <div className={`${size} rounded-full flex items-center justify-center overflow-hidden border-2 border-gray-200`}>
+        {src ? (
+          <>
+            <img
+              src={src}
+              alt={admin.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+                const sib = e.currentTarget.nextSibling
+                if (sib) sib.style.display = 'flex'
+              }}
+            />
+            <div style={{ display: 'none' }} className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+              <span className="text-white text-sm font-bold">{initials}</span>
+            </div>
+          </>
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+            <span className="text-white text-sm font-bold">{initials}</span>
+          </div>
+        )}
+      </div>
+    )
   }
 
   // List View Render
