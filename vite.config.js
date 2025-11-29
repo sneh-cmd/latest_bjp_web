@@ -50,7 +50,7 @@ export default defineConfig({
         },
       },
       '/corporation-api': {
-        target: 'http://corporationcentral.mhbjplok.com', // Corporation Central 2 API server
+        target: 'http://corporationcentral2.mhbjplok.com', // Corporation Central 2 API server
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/corporation-api/, ''),
@@ -67,7 +67,7 @@ export default defineConfig({
         },
       },
       '/corporation-panel-api': {
-        target: 'http://corporationcentral.mhbjplok.com', // Corporation Central 2 API server for panel data
+        target: 'http://corporationcentral2.mhbjplok.com', // Corporation Central 2 API server for panel data
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/corporation-panel-api/, ''),

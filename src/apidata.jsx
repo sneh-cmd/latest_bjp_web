@@ -66,10 +66,10 @@ export const API_ENDPOINTS = {
   DISPLAY_ALL_COPY_PER: WEB_SERVICE_URL,
   
   // Display all corporation
-  DISPLAY_ALL_CORPORATION: import.meta.env.DEV ? '/corporation-api/webservice.asmx' : 'http://corporationcentral.mhbjplok.com/webservice.asmx',
+  DISPLAY_ALL_CORPORATION: import.meta.env.DEV ? '/corporation-api/webservice.asmx' : 'http://corporationcentral2.mhbjplok.com/webservice.asmx',
   
   // Display corporation wise panel
-  DISPLAY_CORPORATION_WISE_PANEL: import.meta.env.DEV ? '/corporation-panel-api/webservice.asmx' : 'http://corporationcentral.mhbjplok.com/webservice.asmx',
+  DISPLAY_CORPORATION_WISE_PANEL: import.meta.env.DEV ? '/corporation-panel-api/webservice.asmx' : 'http://corporationcentral2.mhbjplok.com/webservice.asmx',
   
   // Select copy
   SELECT_COPY: WEB_SERVICE_URL,
