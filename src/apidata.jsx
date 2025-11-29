@@ -39,7 +39,7 @@ const getAdminEndpoint = (panelApiUrl) => {
     } catch (error) {
       // Fallback if no API URL found in localStorage
       console.warn('No API URL in localStorage, using fallback:', error.message);
-      return import.meta.env.DEV ? '/panel-api/webservice.asmx' : 'http://ntmc2.mhbjplok.com/webservice.asmx';
+      return import.meta.env.DEV ? '/panel-api/webservice.asmx' : 'http://bmc1.mhbjplok.com/webservice.asmx';
     }
   }
 };
@@ -66,10 +66,10 @@ export const API_ENDPOINTS = {
   DISPLAY_ALL_COPY_PER: WEB_SERVICE_URL,
   
   // Display all corporation
-  DISPLAY_ALL_CORPORATION: import.meta.env.DEV ? '/corporation-api/webservice.asmx' : 'http://corporationcentral2.mhbjplok.com/webservice.asmx',
+  DISPLAY_ALL_CORPORATION: import.meta.env.DEV ? '/corporation-api/webservice.asmx' : 'http://corporationcentral.mhbjplok.com/webservice.asmx',
   
   // Display corporation wise panel
-  DISPLAY_CORPORATION_WISE_PANEL: import.meta.env.DEV ? '/corporation-panel-api/webservice.asmx' : 'http://corporationcentral2.mhbjplok.com/webservice.asmx',
+  DISPLAY_CORPORATION_WISE_PANEL: import.meta.env.DEV ? '/corporation-panel-api/webservice.asmx' : 'http://corporationcentral.mhbjplok.com/webservice.asmx',
   
   // Select copy
   SELECT_COPY: WEB_SERVICE_URL,
@@ -1786,15 +1786,21 @@ export const apiService = {
               callCenterModule: panel.call_center_module,
               videoLink: panel.video_link,
               prachar: panel.prachar,
+              ladkiBenModule: panel.ladki_ben_module,
               active: panel.active,
-              status: panel.status
+              status: panel.status,
             }));
             
-            // Save the first panel's API URL to localStorage for future use
+            // Save the first panel's API URL to localStorage for future use (only if session exists)
             if (transformedPanels.length > 0 && transformedPanels[0].apiUrl) {
               try {
-                localStorageManager.updateSession({ apiUrl: transformedPanels[0].apiUrl });
-                console.log('API URL saved to localStorage:', transformedPanels[0].apiUrl);
+                // Only update session if one exists (user is logged in)
+                if (localStorageManager.isLoggedIn()) {
+                  localStorageManager.updateSession({ apiUrl: transformedPanels[0].apiUrl });
+                  console.log('API URL saved to localStorage:', transformedPanels[0].apiUrl);
+                } else {
+                  console.log('Skipping API URL save - no active session yet');
+                }
               } catch (error) {
                 console.warn('Failed to save API URL to localStorage:', error);
               }
@@ -3706,7 +3712,7 @@ export const displayUserWiseSurveyVoter = async function(adminId, surveyFrom = '
   // If panelApiUrl is not provided, use the fixed endpoint for this API
   const adminEndpoint = panelApiUrl 
     ? getAdminEndpoint(panelApiUrl)
-    : (import.meta.env.DEV ? '/panel-api/webservice.asmx' : 'http://ntmc2.mhbjplok.com/webservice.asmx');
+    : (import.meta.env.DEV ? '/panel-api/webservice.asmx' : 'http://bmc1.mhbjplok.com/webservice.asmx');
 
   return apiService.makeRequest(
     adminEndpoint,

@@ -1,8 +1,13 @@
 import React from 'react'
 import bjpLogo from '../../../assets/image/ic_app_logo.png'
+import localStorageManager from '../../../utils/localStorage.js'
 
 const StarKaryakartaDetailModal = ({ isOpen, onClose, person }) => {
   if (!isOpen || !person) return null
+
+  // Get corporation name from localStorage
+  const userData = localStorageManager.getUserData()
+  const corporationName = userData?.corporation?.name || userData?.panel?.corporationName || 'ठाणे महानगरपालिका'
 
   const getInitials = (name) => {
     if (!name) return 'U'
@@ -44,9 +49,11 @@ const StarKaryakartaDetailModal = ({ isOpen, onClose, person }) => {
         <div className="p-3 md:p-6">
           {/* Crown Icons */}
           <div className="flex justify-center items-center gap-4 md:gap-8 mb-2 md:mb-0">
-            <div className="w-10 h-10 md:w-16 md:h-16">
-              <img src="https://img.icons8.com/emoji/96/crown-emoji.png" alt="crown" className="w-full h-full object-contain" />
-            </div>
+            {person.rank === 1 && (
+              <div className="w-10 h-10 md:w-16 md:h-16">
+                <img src="https://img.icons8.com/emoji/96/crown-emoji.png" alt="crown" className="w-full h-full object-contain" />
+              </div>
+            )}
             
             {/* Profile Avatar */}
             <div className="relative">
@@ -55,9 +62,11 @@ const StarKaryakartaDetailModal = ({ isOpen, onClose, person }) => {
               </div>
             </div>
 
-            <div className="w-10 h-10 md:w-16 md:h-16">
-              <img src="https://img.icons8.com/emoji/96/crown-emoji.png" alt="crown" className="w-full h-full object-contain" />
-            </div>
+            {person.rank === 1 && (
+              <div className="w-10 h-10 md:w-16 md:h-16">
+                <img src="https://img.icons8.com/emoji/96/crown-emoji.png" alt="crown" className="w-full h-full object-contain" />
+              </div>
+            )}
           </div>
 
           {/* Name */}
@@ -88,11 +97,11 @@ const StarKaryakartaDetailModal = ({ isOpen, onClose, person }) => {
             <div className="grid grid-cols-2">
               <div className="bg-blue-900 text-white p-1.5 md:p-2 text-center border-r border-b border-white">
                 <p className="text-xs md:text-base font-semibold mb-0.5">सर्वे</p>
-                <p className="text-sm md:text-md font-bold">{person.stats?.survey || 1}</p>
+                <p className="text-sm md:text-md font-bold">{person.stats?.survey || 0}</p>
               </div>
               <div className="bg-blue-900 text-white p-1.5 md:p-2 text-center border-b border-white">
                 <p className="text-xs md:text-base font-semibold mb-0.5">स्लीप</p>
-                <p className="text-sm md:text-md font-bold">{person.stats?.slip || 13}</p>
+                <p className="text-sm md:text-md font-bold">{person.stats?.slip || 0}</p>
               </div>
             </div>
 
@@ -104,11 +113,11 @@ const StarKaryakartaDetailModal = ({ isOpen, onClose, person }) => {
               </div>
               <div className="bg-blue-900 text-white p-1.5 md:p-2 text-center border-r border-b border-white">
                 <p className="text-xs md:text-sm font-semibold mb-0.5">फोटो</p>
-                <p className="text-sm md:text-md font-bold">{person.stats?.photo || 1}</p>
+                <p className="text-sm md:text-md font-bold">{person.stats?.photo || 0}</p>
               </div>
               <div className="bg-blue-900 text-white p-1.5 md:p-2 text-center border-b border-white">
                 <p className="text-xs md:text-sm font-semibold mb-0.5">कॉन्टेक्ट अपडेट</p>
-                <p className="text-sm md:text-md font-bold">{person.stats?.contactUpdate || 1}</p>
+                <p className="text-sm md:text-md font-bold">{person.stats?.contactUpdate || 0}</p>
               </div>
             </div>
 
@@ -132,11 +141,11 @@ const StarKaryakartaDetailModal = ({ isOpen, onClose, person }) => {
             <div className="grid grid-cols-3">
               <div className="bg-blue-900 text-white p-1.5 md:p-2 text-center border-r border-white">
                 <p className="text-xs md:text-sm font-semibold mb-0.5">कॉल</p>
-                <p className="text-sm md:text-md font-bold">{person.stats?.call || 3}</p>
+                <p className="text-sm md:text-md font-bold">{person.stats?.call || 0}</p>
               </div>
               <div className="bg-blue-900 text-white p-1.5 md:p-2 text-center border-r border-white">
                 <p className="text-xs md:text-sm font-semibold mb-0.5">एस.एम.एस.</p>
-                <p className="text-sm md:text-md font-bold">{person.stats?.sms || 2}</p>
+                <p className="text-sm md:text-md font-bold">{person.stats?.sms || 0}</p>
               </div>
               <div className="bg-blue-900 text-white p-1.5 md:p-2 text-center">
                 <p className="text-xs md:text-sm font-semibold mb-0.5">प्रिन्ट</p>
@@ -151,7 +160,7 @@ const StarKaryakartaDetailModal = ({ isOpen, onClose, person }) => {
               <img src={bjpLogo} alt="BJP Logo" className="w-full h-full object-cover" />
             </div>
             <div>
-              <p className="text-orange-600 font-bold text-sm md:text-lg">{person.panel?.name || 'ठाणे महानगरपालिका'}</p>
+              <p className="text-orange-600 font-bold text-sm md:text-lg">{corporationName}</p>
               <p className="text-gray-600 text-xs md:text-sm">{person.panel?.number || 'Panel 2'}</p>
             </div>
           </div>

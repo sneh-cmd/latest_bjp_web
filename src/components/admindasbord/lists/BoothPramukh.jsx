@@ -886,7 +886,7 @@ const BoothPramukh = ({ navigation }) => {
       </div>
       
       {/* Custom CSS for Scrollbar */}
-      <style jsx>{`
+      <style>{`
         /* Custom Scrollbar Styling */
         .overflow-y-auto::-webkit-scrollbar {
           width: 8px;

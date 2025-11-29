@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import PageHeader from '../common/PageHeader.jsx'
 import StarKaryakartaDetailModal from '../modals/StarKaryakartaDetailModal.jsx'
+import ContactActionModal from '../modals/ContactActionModal.jsx'
 import { displayStarKarykarta } from '../../../apidata.jsx'
 import localStorageManager from '../../../utils/localStorage.js'
+import * as XLSX from 'xlsx-js-style'
 
 const StarKaryakarta = ({ navigation }) => {
   const { navigate } = navigation
   const [isVisible, setIsVisible] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [karyakartaData, setKaryakartaData] = useState([])
+  const [designations, setDesignations] = useState([])
   const [selectedFilter, setSelectedFilter] = useState('all')
   const [viewMode, setViewMode] = useState('grid') // 'list' or 'grid'
   const [selectedPerson, setSelectedPerson] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
+  const [selectedPersonForContact, setSelectedPersonForContact] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -43,17 +48,18 @@ const StarKaryakarta = ({ navigation }) => {
               points: item.total_point,
               avatar: item.image || null,
               mobile: item.mobile_no,
+              adminId: item.admin_id,
               stats: {
                 survey: item.sr || 0,
-                slip: item.s || 0,
-                message: item.w || 0,
+                slip: item.w || 0,
+                message: item.tp || 0,
                 photo: item.ip || 0,
-                contactUpdate: item.c || 0,
+                contactUpdate: item.mbc || 0,
                 audio: item.ap || 0,
                 video: item.vp || 0,
-                selfie: item.tp || 0,
-                call: item.mbc || 0,
-                sms: item.shr || 0,
+                selfie: item.sp || 0,
+                call: item.c || 0,
+                sms: item.s || 0,
                 print: item.ps || 0
               },
               panel: {
@@ -62,8 +68,13 @@ const StarKaryakarta = ({ navigation }) => {
               }
             }))
           setKaryakartaData(sortedData)
+          
+          // Extract unique designations for filter dropdown
+          const uniqueDesignations = [...new Set(data.map(item => item.designation).filter(Boolean))]
+          setDesignations(uniqueDesignations)
         } else {
           setKaryakartaData([])
+          setDesignations([])
         }
       } catch (err) {
         console.error('Error fetching Star Karyakarta data:', err)
@@ -83,8 +94,110 @@ const StarKaryakarta = ({ navigation }) => {
   }
 
   const handleCall = (person) => {
-    // Handle call functionality
-    console.log('Call:', person)
+    setSelectedPersonForContact(person)
+    setIsContactModalOpen(true)
+  }
+
+  const handleContactAction = (actionType) => {
+    const phoneNumber = selectedPersonForContact?.mobile || ''
+    
+    switch (actionType) {
+      case 'call':
+        if (phoneNumber) {
+          window.open(`tel:${phoneNumber}`, '_self')
+        }
+        break
+      case 'whatsapp':
+        if (phoneNumber) {
+          window.open(`https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}`, '_blank')
+        }
+        break
+      case 'sms':
+        if (phoneNumber) {
+          window.open(`sms:${phoneNumber}`, '_self')
+        }
+        break
+      default:
+        break
+    }
+    
+    setIsContactModalOpen(false)
+    setSelectedPersonForContact(null)
+  }
+
+  const handleExport = () => {
+    try {
+      // Use filtered data (includes search and designation filter)
+      if (filteredData.length === 0) {
+        alert('No data to export')
+        return
+      }
+
+      // Transform data to Excel format with required fields
+      const excelData = filteredData.map((person, index) => ({
+        'Sr. No.': index + 1,
+        'Name': person.name || '',
+        'Mobile': person.mobile || '',
+        'Designation': person.role || '',
+        'Point': person.points || 0
+      }))
+
+      // Create a new workbook
+      const wb = XLSX.utils.book_new()
+      
+      // Create worksheet with title and headers
+      const ws = XLSX.utils.aoa_to_sheet([])
+      const title = 'Star Karyakarta'
+      XLSX.utils.sheet_add_aoa(ws, [[title]], { origin: 'A1' })
+      ws['!merges'] = ws['!merges'] || []
+      ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } })
+      ws['A1'].s = {
+        font: { bold: true, sz: 16 },
+        alignment: { horizontal: 'center', vertical: 'center' }
+      }
+
+      const headers = [['Sr. No.', 'Name', 'Mobile', 'Designation', 'Point']]
+      XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A2' })
+      headers[0].forEach((_, colIndex) => {
+        const cellRef = XLSX.utils.encode_cell({ r: 1, c: colIndex })
+        if (ws[cellRef]) {
+          ws[cellRef].s = {
+            font: { bold: true, color: { rgb: 'FFFFFF' } },
+            fill: { fgColor: { rgb: '4472C4' } },
+            alignment: { horizontal: 'center', vertical: 'center' },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } }
+            }
+          }
+        }
+      })
+      XLSX.utils.sheet_add_json(ws, excelData, { origin: 'A3', skipHeader: true })
+       
+      // Set column widths for better readability
+      const colWidths = [
+        { wch: 8 },   // Sr. No.
+        { wch: 25 },  // Name
+        { wch: 15 },  // Mobile
+        { wch: 20 },  // Designation
+        { wch: 10 }   // Point
+      ]
+      ws['!cols'] = colWidths
+      
+      // Add the worksheet to the workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Star Karyakarta')
+      
+      // Generate Excel file and download
+      const fileName = `Star_Karyakarta_${new Date().toISOString().split('T')[0]}.xlsx`
+      XLSX.writeFile(wb, fileName)
+      
+      console.log('Export successful:', fileName)
+    } catch (error) {
+      console.error('Error exporting data:', error)
+      alert('Failed to export data. Please try again.')
+    }
   }
 
   const handleCardClick = (person) => {
@@ -97,10 +210,16 @@ const StarKaryakarta = ({ navigation }) => {
     setTimeout(() => setSelectedPerson(null), 300)
   }
 
-  const filteredData = karyakartaData.filter(person =>
-    person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    person.role.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredData = karyakartaData.filter(person => {
+    // Search filter
+    const matchesSearch = person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         person.role.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    // Designation filter
+    const matchesDesignation = selectedFilter === 'all' || person.role === selectedFilter
+    
+    return matchesSearch && matchesDesignation
+  })
 
   if (loading) {
     return (
@@ -160,6 +279,7 @@ const StarKaryakarta = ({ navigation }) => {
           key={person.id}
           className="bg-white rounded-lg overflow-hidden border transition-all"
           style={{ borderColor: '#e6f0ff' }}
+          onClick={() => handleCardClick(person)}
         >
           {/* Points Badge at Top - Only visible on screens smaller than 640px */}
           <div className="block sm:hidden">
@@ -363,9 +483,11 @@ const StarKaryakarta = ({ navigation }) => {
                 style={{ color: '#102463' }}
               >
                 <option value="all">कार्यकर्ता के अनुसार</option>
-                <option value="admin">एडमिन</option>
-                <option value="building">बिल्डिंग प्रमुख</option>
-                <option value="shakti">शक्ति केंद्र प्रमुख</option>
+                {designations.map((designation) => (
+                  <option key={designation} value={designation}>
+                    {designation}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -412,7 +534,7 @@ const StarKaryakarta = ({ navigation }) => {
         <div className="px-2 sm:px-4 py-3 sm:py-4 flex items-center justify-end flex-shrink-0 shadow-lg" style={{ backgroundColor: '#102463' }}>
             {/* Export Button */}
           <button 
-            // onClick={handleExport}
+            onClick={handleExport}
             className="w-auto px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-sm hover:shadow-md"
             style={{backgroundColor: 'rgba(220, 38, 38, 0.87)'}}
             onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(185, 28, 28, 0.85)'}
@@ -432,6 +554,16 @@ const StarKaryakarta = ({ navigation }) => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         person={selectedPerson}
+      />
+
+      {/* Contact Action Modal */}
+      <ContactActionModal
+        isOpen={isContactModalOpen}
+        onClose={() => {
+          setIsContactModalOpen(false)
+          setSelectedPersonForContact(null)
+        }}
+        onSelect={handleContactAction}
       />
     </div>
   )

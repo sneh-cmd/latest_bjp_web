@@ -1256,18 +1256,25 @@ const AdminDashboard = ({ navigation }) => {
               <span className="text-base font-medium">कॉल सर्वे यूज़र</span>
             </button>
 
-            {/* Ladki Baheno (new menu) */}
-            <button
-              onClick={() => navigation?.navigate ? navigation.navigate('/ladki-baheno') : null}
-              className="w-full px-6 py-4 flex items-center space-x-3 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
-            >
-              <div className="w-6 h-6 flex items-center justify-center text-gray-600">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM8 11c1.657 0 3-1.343 3-3S9.657 5 8 5 5 6.343 5 8s1.343 3 3 3zM2 20c0-2.761 2.686-5 6-5s6 2.239 6 5v1H2v-1zM14 20c0-2.761 2.686-5 6-5s6 2.239 6 5v1h-12v-1z" />
-                </svg>
-              </div>
-              <span className="text-base font-medium">लाड़की बहनो</span>
-            </button>
+            {/* Ladki Baheno (new menu) - Only show if ladki_ben_module is enabled */}
+            {(userData?.panel?.ladkiBenModule === true || 
+              userData?.panel?.ladki_ben_module === true || 
+              userData?.panel?.ladkiBenModule === 1 || 
+              userData?.panel?.ladki_ben_module === 1 ||
+              userData?.panel?.ladkiBenModule === "1" || 
+              userData?.panel?.ladki_ben_module === "1") && (
+              <button
+                onClick={() => navigation?.navigate ? navigation.navigate('/ladki-baheno') : null}
+                className="w-full px-6 py-4 flex items-center space-x-3 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+              >
+                <div className="w-6 h-6 flex items-center justify-center text-gray-600">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM8 11c1.657 0 3-1.343 3-3S9.657 5 8 5 5 6.343 5 8s1.343 3 3 3zM2 20c0-2.761 2.686-5 6-5s6 2.239 6 5v1H2v-1zM14 20c0-2.761 2.686-5 6-5s6 2.239 6 5v1h-12v-1z" />
+                  </svg>
+                </div>
+                <span className="text-base font-medium">लाड़की बहनो</span>
+              </button>
+            )}
 
             {/* Star Karyakarta */}
             <button
