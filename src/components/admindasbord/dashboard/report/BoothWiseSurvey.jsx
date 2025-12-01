@@ -154,7 +154,24 @@ const BoothWiseSurvey = ({ navigation }) => {
                   </div>
                 </div>
               </div>
+                {/* Availability Section */}
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-3 mb-2 sm:mb-3">
+                {/* उपलब्ध */}
+                <div className="rounded-md sm:rounded-lg p-1 text-center border">
+                  <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">उपलब्ध</div>
+                  <div className="text-sm sm:text-lg md:text-xl font-bold">
+                    {(Number(item.positive ?? 0) + Number(item.negative ?? 0) + Number(item.doubtful ?? 0) + Number(item.nothing ?? 0))}
+                  </div>
+                </div>
 
+                {/* अनुपलब्ध */}
+                <div className="rounded-md sm:rounded-lg p-1 text-center border">
+                  <div className="text-[10px] sm:text-sm text-gray-700 mb-0.5 sm:mb-1">अनुपलब्ध</div>
+                  <div className="text-sm sm:text-lg md:text-xl font-bold">
+                    {Number(item.UA ?? 0)}
+                  </div>
+                </div>
+              </div>
               {/* Bottom Section - Survey Breakdown */}
               <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
                 <div className="bg-green-50 rounded-md sm:rounded-lg p-1.5 sm:p-3 text-center">

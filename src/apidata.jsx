@@ -947,6 +947,7 @@ export const apiService = {
               doubtful: item.D || 0,
               cant_say: item.C || 0,
               nothing: item.C || 0, // For backward compatibility
+              UA: item.UA || 0, // <-- Add UA parameter here
               totalSurvey: item.total || 0,
               total: item.total || 0
             }));
@@ -1231,7 +1232,8 @@ export const apiService = {
                 positive: positive,
                 negative: negative,
                 doubtful: doubtful,
-                nothing: cantSay
+                nothing: cantSay,
+                 UA: item.UA || 0, // <-- Add UA parameter here
               }
               
               console.log(`Mapped item ${index}:`, mappedItem)
