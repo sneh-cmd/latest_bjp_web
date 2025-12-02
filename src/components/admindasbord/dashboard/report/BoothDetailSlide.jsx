@@ -132,8 +132,23 @@ const BoothDetailSlide = ({ navigation }) => {
       'doubtful': 'd',
       'nothing': 'c'
     }
-    
     const expectedStatus = statusMap[activeTab]
+    // For अनुपलब्ध tab
+    if (activeTab === 'unavailable') {
+      return voters.filter(voter => {
+        const va = voter.voter_available
+        const nas = voter.not_available_status
+        return (
+          (
+            va === false ||
+            va === 'false' ||
+            va === 0 ||
+            va === '0'
+          ) &&
+          nas && nas.toString().trim() !== ''
+        )
+      })
+    }
     
     // Filter voters based on active tab
     const filtered = voters.filter(voter => {
@@ -187,7 +202,20 @@ const BoothDetailSlide = ({ navigation }) => {
     positive: voters.filter(v => v.voterStatus?.toLowerCase() === 'p').length,
     negative: voters.filter(v => v.voterStatus?.toLowerCase() === 'n').length,
     doubtful: voters.filter(v => v.voterStatus?.toLowerCase() === 'd').length,
-    nothing: voters.filter(v => v.voterStatus?.toLowerCase() === 'c').length
+    nothing: voters.filter(v => v.voterStatus?.toLowerCase() === 'c').length,
+    unavailable: voters.filter(voter => {
+      const va = voter.voter_available
+      const nas = voter.not_available_status
+      return (
+        (
+          va === false ||
+          va === 'false' ||
+          va === 0 ||
+          va === '0'
+        ) &&
+        nas && nas.toString().trim() !== ''
+      )
+    }).length
   }
 
   // Get current voter data to display
@@ -336,6 +364,16 @@ const BoothDetailSlide = ({ navigation }) => {
                 }`}
               >
                 कुछ नहीं-{tabCounts.nothing || categoryData.nothing || 0}
+              </button>
+              <button
+                onClick={() => setActiveTab('unavailable')}
+                className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  activeTab === 'unavailable' 
+                    ? 'bg-gray-500 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                अनुपलब्ध-{tabCounts.unavailable}
               </button>
             </div>
           </div>

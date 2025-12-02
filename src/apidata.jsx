@@ -1346,17 +1346,50 @@ export const apiService = {
           console.log('Processing dis_date_wise_survey_voter response...')
           console.log('parsedData:', parsedData)
           console.log('parsedData.result:', parsedData.result)
-          
+
           // Return the result array directly - contains voter details
           if (Array.isArray(parsedData.result)) {
-            return parsedData.result.map(item => {
+            return parsedData.result.map((item, index) => {
               // Combine first name and surname for full name
               const firstName = item.eng_f_name || item.first_name || item.f_name || ''
               const surname = item.eng_surname || item.surname || item.s_name || ''
               const fullName = `${firstName} ${surname}`.trim() || 'N/A'
-              
+
+              // Normalize voter status
+              let voterStatus = item.voter_status || item.voterStatus || item.status || item.voter_status_code || ''
+              if (voterStatus) {
+                voterStatus = String(voterStatus).toLowerCase().trim()
+              }
+
+              // Normalize availability for अनुपलब्ध logic
+              const rawVoterAvailable =
+                item.voter_available !== undefined
+                  ? item.voter_available
+                  : item.voterAvailable !== undefined
+                  ? item.voterAvailable
+                  : item.available !== undefined
+                  ? item.available
+                  : item.is_available !== undefined
+                  ? item.is_available
+                  : ''
+
+              const vaStr = String(rawVoterAvailable).toLowerCase().trim()
+              const normalizedVoterAvailable =
+                vaStr === '0' || vaStr === 'false' || vaStr === 'no' || vaStr === '' ? '0' : '1'
+
+              const rawNotAvailableStatus =
+                item.not_available_status !== undefined
+                  ? item.not_available_status
+                  : item.notAvailableStatus !== undefined
+                  ? item.notAvailableStatus
+                  : item.na_status !== undefined
+                  ? item.na_status
+                  : ''
+
+              const normalizedNotAvailableStatus = String(rawNotAvailableStatus || '').trim()
+
               return {
-                id: item.id || item.voter_id || item.admin_id,
+                id: item.id || item.voter_id || item.admin_id || index,
                 voter_id: item.id || item.voter_id,
                 voterId: item.idcard_no || item.id_card_no || item.epic_no || item.voter_id || '',
                 name: fullName,
@@ -1371,11 +1404,13 @@ export const apiService = {
                 pollingStation: item.eng_polling_location || item.polling_station || item.polling_location || '',
                 otherAddress: item.other_address || item.dusra_pata || '-',
                 serialNumber: item.slnoinpart || item.serial_no || item.serial_number || item.kramank || '',
-                voterStatus: item.voter_status || item.voterStatus || '', // p, n, d, c (positive, negative, doubtful, cant_say)
+                voterStatus: voterStatus,
                 surveyId: item.survey_id || item.surveyId || '',
                 latLong: item.lat_long || item.latLong || '',
                 visitLocation: item.visit_location || item.visitLocation || '',
-                location: item.location || item.visit_location || item.visitLocation || ''
+                location: item.location || item.visit_location || item.visitLocation || '',
+                voter_available: normalizedVoterAvailable,
+                not_available_status: normalizedNotAvailableStatus
               }
             });
           }
@@ -1387,24 +1422,46 @@ export const apiService = {
           console.log('Processing dis_user_wise_survey_voter response...')
           console.log('parsedData:', parsedData)
           console.log('parsedData.result:', parsedData.result)
-          
-          // Return the result array directly - contains voter details
+
           if (Array.isArray(parsedData.result)) {
             return parsedData.result.map((item, index) => {
-              // Combine first name and surname for full name
               const firstName = item.eng_f_name || item.first_name || item.f_name || ''
               const surname = item.f_eng_surname || item.eng_surname || item.surname || item.s_name || ''
               const fullName = `${firstName} ${surname}`.trim() || 'N/A'
-              
-              // Extract voter status - try multiple field names and normalize
+
+              // Normalize voter status
               let voterStatus = item.voter_status || item.voterStatus || item.status || item.voter_status_code || ''
-              // Convert to lowercase string for consistent comparison
               if (voterStatus) {
                 voterStatus = String(voterStatus).toLowerCase().trim()
               }
-              
-              console.log(`Voter ${index} - Name: ${fullName}, Status: ${voterStatus} (raw: ${item.voter_status || item.voterStatus})`)
-              
+
+              // Normalize availability for अनुपलब्ध logic
+              const rawVoterAvailable =
+                item.voter_available !== undefined
+                  ? item.voter_available
+                  : item.voterAvailable !== undefined
+                  ? item.voterAvailable
+                  : item.available !== undefined
+                  ? item.available
+                  : item.is_available !== undefined
+                  ? item.is_available
+                  : ''
+
+              const vaStr = String(rawVoterAvailable).toLowerCase().trim()
+              const normalizedVoterAvailable =
+                vaStr === '0' || vaStr === 'false' || vaStr === 'no' || vaStr === '' ? '0' : '1'
+
+              const rawNotAvailableStatus =
+                item.not_available_status !== undefined
+                  ? item.not_available_status
+                  : item.notAvailableStatus !== undefined
+                  ? item.notAvailableStatus
+                  : item.na_status !== undefined
+                  ? item.na_status
+                  : ''
+
+              const normalizedNotAvailableStatus = String(rawNotAvailableStatus || '').trim()
+
               return {
                 id: item.id || item.voter_id || item.admin_id || index,
                 voter_id: item.id || item.voter_id,
@@ -1434,22 +1491,17 @@ export const apiService = {
                 add_add: item.add_add || item.other_address || item.dusra_pata || item.secondAddress || '-',
                 secondAddress: item.add_add || item.other_address || item.dusra_pata || item.secondAddress || '-',
                 voter_status: voterStatus,
-                voterStatus: voterStatus, // p, n, d, c (positive, negative, doubtful, cant_say)
-                voter_status1: voterStatus, // for backward compatibility
+                voterStatus: voterStatus,
+                voter_status1: voterStatus,
+                voter_available: normalizedVoterAvailable,
+                not_available_status: normalizedNotAvailableStatus,
                 surveyId: item.survey_id || item.surveyId || '',
                 visitLocation: item.visit_location || item.visitLocation || '',
                 location: item.location || item.visit_location || item.visitLocation || ''
               }
-            });
+            })
           }
-          return parsedData.result || [];
-        }
 
-        // Special handling for voter survey log endpoint
-        if (soapAction === 'display_voter_survey_log') {
-          if (Array.isArray(parsedData.result)) {
-            return parsedData.result
-          }
           return parsedData.result || []
         }
 
@@ -1656,18 +1708,51 @@ export const apiService = {
           console.log('Processing dis_booth_wise_survey_voter response...')
           console.log('parsedData:', parsedData)
           console.log('parsedData.result:', parsedData.result)
-          
+
           // Return the result array directly - contains voter details
           if (Array.isArray(parsedData.result)) {
             console.log('Processing array of', parsedData.result.length, 'voters')
             const mappedVoters = parsedData.result.map((item, index) => {
               console.log(`Processing voter ${index}:`, item)
-              
+
               // Combine first name and surname for full name
               const firstName = item.eng_f_name || item.first_name || item.f_name || ''
               const surname = item.eng_surname || item.surname || item.s_name || ''
               const fullName = `${firstName} ${surname}`.trim() || 'N/A'
-              
+
+              // Normalize voter status (p, n, d, c)
+              let voterStatus = item.voter_status || item.voterStatus || item.status || item.voter_status_code || ''
+              if (voterStatus) {
+                voterStatus = String(voterStatus).toLowerCase().trim()
+              }
+
+              // Normalize availability for अनुपलब्ध logic
+              const rawVoterAvailable =
+                item.voter_available !== undefined
+                  ? item.voter_available
+                  : item.voterAvailable !== undefined
+                  ? item.voterAvailable
+                  : item.available !== undefined
+                  ? item.available
+                  : item.is_available !== undefined
+                  ? item.is_available
+                  : ''
+
+              const vaStr = String(rawVoterAvailable).toLowerCase().trim()
+              const normalizedVoterAvailable =
+                vaStr === '0' || vaStr === 'false' || vaStr === 'no' || vaStr === '' ? '0' : '1'
+
+              const rawNotAvailableStatus =
+                item.not_available_status !== undefined
+                  ? item.not_available_status
+                  : item.notAvailableStatus !== undefined
+                  ? item.notAvailableStatus
+                  : item.na_status !== undefined
+                  ? item.na_status
+                  : ''
+
+              const normalizedNotAvailableStatus = String(rawNotAvailableStatus || '').trim()
+
               const mappedVoter = {
                 id: item.id || item.voter_id || item.admin_id || `voter-${index}`,
                 voter_id: item.id || item.voter_id,
@@ -1683,20 +1768,22 @@ export const apiService = {
                 pollingStation: item.eng_polling_location || item.polling_station || item.polling_location || item.polling || '',
                 otherAddress: item.other_address || item.dusra_pata || item.second_address || '-',
                 serialNumber: item.slnoinpart || item.serial_no || item.serial_number || item.kramank || item.slno || '',
-                voterStatus: item.voter_status || item.status || '', // p, n, d, c (positive, negative, doubtful, cant_say)
+                voterStatus: voterStatus,
                 surveyId: item.survey_id || '',
                 latLong: item.lat_long || '',
-                visitLocation: item.visit_location || ''
+                visitLocation: item.visit_location || '',
+                voter_available: normalizedVoterAvailable,
+                not_available_status: normalizedNotAvailableStatus
               }
-              
+
               console.log(`Mapped voter ${index}:`, mappedVoter)
               return mappedVoter
-            });
-            
+            })
+
             console.log('Mapped voters:', mappedVoters)
             return mappedVoters
           }
-          
+
           console.warn('parsedData.result is not an array:', parsedData.result)
           return parsedData.result || [];
         }

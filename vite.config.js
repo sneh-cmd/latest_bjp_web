@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://corporationcentral.mhbjplok.com", // The URL of the API server
+        target: "https://corporationcentral2.mhbjplok.com", // The URL of the API server
         changeOrigin: true, // Ensures the API sees the correct origin
         secure: false, // For allowing requests over HTTP (not HTTPS)
         rewrite: (path) => path.replace(/^\/api/, ""), // Remove /api prefix
@@ -29,7 +29,7 @@ export default defineConfig({
         },
       },
       '/panel-api': {
-        target: 'http://bmc1.mhbjplok.com', // Default panel API server
+        target: 'http://ntmc2.mhbjplok.com', // Default panel API server
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/panel-api/, ""),
@@ -50,7 +50,7 @@ export default defineConfig({
         },
       },
       '/corporation-api': {
-        target: 'https://corporationcentral.mhbjplok.com', // Corporation Central 2 API server
+        target: 'https://corporationcentral2.mhbjplok.com', // Corporation Central 2 API server
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/corporation-api/, ''),
@@ -67,7 +67,7 @@ export default defineConfig({
         },
       },
       '/corporation-panel-api': {
-        target: 'https://corporationcentral.mhbjplok.com', // Corporation Central 2 API server for panel data
+        target: 'https://corporationcentral2.mhbjplok.com', // Corporation Central 2 API server for panel data
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/corporation-panel-api/, ''),

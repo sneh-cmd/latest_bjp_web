@@ -111,13 +111,23 @@ const DateDetailSlide = ({ navigation }) => {
       'doubtful': 'd',
       'nothing': 'c'
     }
-    
     const expectedStatus = statusMap[activeTab]
-    
-    console.log(`=== Filtering Voters ===`)
-    console.log(`Active Tab: ${activeTab}`)
-    console.log(`Expected Status: ${expectedStatus}`)
-    console.log(`Total Voters: ${voters.length}`)
+    // For अनुपलब्ध tab
+    if (activeTab === 'unavailable') {
+      return voters.filter(voter => {
+        const va = voter.voter_available
+        const nas = voter.not_available_status
+        return (
+          (
+            va === false ||
+            va === 'false' ||
+            va === 0 ||
+            va === '0'
+          ) &&
+          nas && nas.toString().trim() !== ''
+        )
+      })
+    }
     
     const filtered = voters.filter(voter => {
       // Only show voters with exact status match; skip missing/empty status
@@ -159,29 +169,41 @@ const DateDetailSlide = ({ navigation }) => {
   // Calculate counts for each tab from fetched voters - strict matching
   const tabCounts = useMemo(() => {
     if (!voters || voters.length === 0) {
-      return { positive: 0, negative: 0, doubtful: 0, nothing: 0 }
+      return { positive: 0, negative: 0, doubtful: 0, nothing: 0, unavailable: 0 }
     }
-    
     const counts = {
       positive: voters.filter(v => {
         if (!v.voterStatus) return false
         const status = String(v.voterStatus).toLowerCase().trim()
-        return status === 'p' // Only exact 'p' status
+        return status === 'p'
       }).length,
       negative: voters.filter(v => {
         if (!v.voterStatus) return false
         const status = String(v.voterStatus).toLowerCase().trim()
-        return status === 'n' // Only exact 'n' status
+        return status === 'n'
       }).length,
       doubtful: voters.filter(v => {
         if (!v.voterStatus) return false
         const status = String(v.voterStatus).toLowerCase().trim()
-        return status === 'd' // Only exact 'd' status
+        return status === 'd'
       }).length,
       nothing: voters.filter(v => {
         if (!v.voterStatus) return false
         const status = String(v.voterStatus).toLowerCase().trim()
-        return status === 'c' // Only exact 'c' status
+        return status === 'c'
+      }).length,
+      unavailable: voters.filter(voter => {
+        const va = voter.voter_available
+        const nas = voter.not_available_status
+        return (
+          (
+            va === false ||
+            va === 'false' ||
+            va === 0 ||
+            va === '0'
+          ) &&
+          nas && nas.toString().trim() !== ''
+        )
       }).length
     }
     
@@ -305,12 +327,13 @@ const DateDetailSlide = ({ navigation }) => {
             </div>
 
             <div className="flex items-center space-x-1.5 sm:space-x-4 overflow-x-auto">
-              {['positive', 'negative', 'doubtful', 'nothing'].map((tab) => {
+              {['positive', 'negative', 'doubtful', 'nothing', 'unavailable'].map((tab) => {
                 const config = {
                   positive: { label: 'पॉजिटिव', color: 'bg-green-500' },
                   negative: { label: 'नेगेटिव', color: 'bg-red-500' },
                   doubtful: { label: 'डाउटफुल', color: 'bg-orange-500' },
-                  nothing: { label: 'कुछ नहीं', color: 'bg-blue-500' }
+                  nothing: { label: 'कुछ नहीं', color: 'bg-blue-500' },
+                  unavailable: { label: 'अनुपलब्ध', color: 'bg-gray-500' }
                 }[tab]
 
                 return (

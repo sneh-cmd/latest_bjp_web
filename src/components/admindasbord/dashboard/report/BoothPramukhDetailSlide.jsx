@@ -145,9 +145,14 @@ const BoothPramukhDetailSlide = ({ navigation }) => {
     return voters.filter(voter => {
       // Get voter status - try multiple field names
       const rawStatus = voter.voter_status || voter.voter_status1 || voter.voterStatus
-      
-      // Handle null, undefined, empty string, or whitespace-only strings
       const status = rawStatus ? String(rawStatus).toLowerCase().trim() : ''
+      // For अनुपलब्ध tab
+      if (activeTab === 'unavailable') {
+        const va = voter.voter_available
+        const nas = voter.not_available_status
+        const isUnavailable = (va === '0' || va === false) && nas && nas.toString().trim() !== ''
+        if (!isUnavailable) return false
+      }
       let statusMatch = false
       switch(activeTab) {
         case 'positive':
@@ -160,8 +165,10 @@ const BoothPramukhDetailSlide = ({ navigation }) => {
           statusMatch = status === 'd'
           break
         case 'nothing':
-          // Show voters with status 'c' (cant say) only
           statusMatch = status === 'c'
+          break
+        case 'unavailable':
+          statusMatch = true // already filtered above
           break
         default:
           statusMatch = true
@@ -186,9 +193,8 @@ const BoothPramukhDetailSlide = ({ navigation }) => {
   // Calculate counts for each tab
   const tabCounts = useMemo(() => {
     if (!voters || voters.length === 0) {
-      return { positive: 0, negative: 0, doubtful: 0, nothing: 0 }
+      return { positive: 0, negative: 0, doubtful: 0, nothing: 0, unavailable: 0 }
     }
-    
     return {
       positive: voters.filter(v => {
         const rawStatus = v.voter_status || v.voter_status1 || v.voterStatus
@@ -208,8 +214,12 @@ const BoothPramukhDetailSlide = ({ navigation }) => {
       nothing: voters.filter(v => {
         const rawStatus = v.voter_status || v.voter_status1 || v.voterStatus
         const status = rawStatus ? String(rawStatus).toLowerCase().trim() : ''
-        // Count voters with status 'c' (cant say) only
         return status === 'c'
+      }).length,
+      unavailable: voters.filter(v => {
+        const va = v.voter_available
+        const nas = v.not_available_status
+        return (va === '0' || va === false) && nas && nas.toString().trim() !== ''
       }).length
     }
   }, [voters])
@@ -316,6 +326,17 @@ const BoothPramukhDetailSlide = ({ navigation }) => {
               }`}
             >
               कुछ नहीं-{tabCounts.nothing}
+            </button>
+            {/* New Unavailable Tab */}
+            <button
+              onClick={() => setActiveTab('unavailable')}
+              className={`px-2 sm:px-4 py-1 sm:py-2 rounded-md sm:rounded-lg text-[10px] sm:text-sm font-semibold whitespace-nowrap transition-colors ${
+                activeTab === 'unavailable' 
+                  ? 'bg-gray-500 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              अनुपलब्ध-{tabCounts.unavailable}
             </button>
           </div>
         </div>
