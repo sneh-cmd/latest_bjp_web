@@ -242,12 +242,12 @@ const ProfileModal = ({ isOpen, onClose }) => {
 
   return (
     <>
-      <div className={`fixed inset-0 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm z-50 transition-opacity duration-300 ${
+      <div className={`fixed inset-0 flex items-center justify-center p-1 sm:p-4 bg-black/60 backdrop-blur-sm z-50 transition-opacity duration-300 ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}>
-        <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div className="relative w-full max-w-xs sm:max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="sticky top-0 bg-[#102463] px-4 py-3 flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-[#102463] px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between z-10">
             <button
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center text-white hover:bg-white/20 rounded-lg transition-colors"
@@ -268,21 +268,21 @@ const ProfileModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div className="p-3 sm:p-6">
             {/* Profile Picture Section */}
-            <div className="relative flex flex-col items-center mb-6 pt-8">
+            <div className="relative flex flex-col items-center mb-4 sm:mb-6 pt-4 sm:pt-8">
               {/* Update Profile Button - Only show when NOT in edit mode */}
               {!isEditMode && (
                 <button
                   onClick={() => setIsEditMode(true)}
-                  className="absolute top-0 right-0 bg-white text-[#102463] text-sm font-semibold px-4 py-1.5 rounded-full shadow-md border border-[#102463]/10 hover:bg-[#f0f4ff] transition-colors"
+                  className="absolute top-0 right-0 bg-white text-[#102463] text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1 sm:py-1.5 rounded-full shadow-md border border-[#102463]/10 hover:bg-[#f0f4ff] transition-colors"
                 >
                   अपडेट प्रोफ़ाइल
                 </button>
               )}
               <div className="relative">
                 {/* Profile Picture */}
-                <div className="w-32 h-32 bg-yellow-200 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
+                <div className="w-20 h-20 sm:w-32 sm:h-32 bg-yellow-200 rounded-full flex items-center justify-center overflow-hidden shadow-lg">
                   {photoPreview ? (
                     <img 
                       src={photoPreview} 
@@ -290,34 +290,32 @@ const ProfileModal = ({ isOpen, onClose }) => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-4xl font-bold text-yellow-700">
+                    <span className="text-2xl sm:text-4xl font-bold text-yellow-700">
                       {name.charAt(0).toUpperCase() || 'U'}
                     </span>
                   )}
                 </div>
-                
                 {/* Camera Icon Overlay - Only show in edit mode */}
                 {isEditMode && (
-                  <label className="absolute bottom-0 right-0 w-10 h-10 bg-[#102463] rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-[#0a1a4a] transition-colors">
+                  <label className="absolute bottom-0 right-0 w-8 h-8 sm:w-10 sm:h-10 bg-[#102463] rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-[#0a1a4a] transition-colors">
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handlePhotoUpload}
                       className="hidden"
                     />
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </label>
                 )}
               </div>
-
               {/* Remove Photo Link - Only show in edit mode */}
               {isEditMode && (photoPreview || existingPhotoUrl) && (
                 <button
                   onClick={handleRemovePhotoClick}
-                  className="mt-3 text-red-600 text-sm font-medium hover:underline"
+                  className="mt-2 sm:mt-3 text-red-600 text-xs sm:text-sm font-medium hover:underline"
                 >
                   X Remove Photo
                 </button>
@@ -325,8 +323,8 @@ const ProfileModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* Name Field */}
-            <div className="mb-4">
-              <label className="block text-gray-900 text-sm font-medium mb-2">
+            <div className="mb-3 sm:mb-4">
+              <label className="block text-gray-900 text-xs sm:text-sm font-medium mb-1 sm:mb-2">
                 नाम
               </label>
               <input
@@ -334,7 +332,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
                 value={name}
                 onChange={handleNameChange}
                 disabled={!isEditMode}
-                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102463] focus:border-transparent text-gray-900 ${
+                className={`w-full px-2 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102463] focus:border-transparent text-gray-900 ${
                   !isEditMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
                 }`}
                 placeholder="नाम दर्ज करें"
@@ -342,8 +340,8 @@ const ProfileModal = ({ isOpen, onClose }) => {
             </div>
 
             {/* Mobile Field */}
-            <div className="mb-6">
-              <label className="block text-gray-900 text-sm font-medium mb-2">
+            <div className="mb-4 sm:mb-6">
+              <label className="block text-gray-900 text-xs sm:text-sm font-medium mb-1 sm:mb-2">
                 मोबाइल
               </label>
               <input
@@ -352,7 +350,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
                 onChange={handleMobileChange}
                 maxLength={10}
                 disabled={!isEditMode}
-                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102463] focus:border-transparent text-gray-900 ${
+                className={`w-full px-2 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102463] focus:border-transparent text-gray-900 ${
                   !isEditMode ? 'bg-gray-50 cursor-not-allowed' : 'bg-white'
                 }`}
                 placeholder="मोबाइल नंबर दर्ज करें"
@@ -364,11 +362,11 @@ const ProfileModal = ({ isOpen, onClose }) => {
               <button
                 onClick={handleUpdateProfile}
                 disabled={loading}
-                className="w-full bg-[#102463] hover:bg-[#0a1a4a] text-white font-semibold py-3 px-4 rounded-lg transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[#102463] hover:bg-[#0a1a4a] text-white font-semibold py-2 sm:py-3 px-2 sm:px-4 rounded-lg transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-base"
               >
                 {loading ? (
                   <div className="flex items-center">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                     <span>अपडेट हो रहा है...</span>
                   </div>
                 ) : (

@@ -734,16 +734,7 @@ const CadreSurveyReport = ({ navigation }) => {
         {/* Summary Cards - 2x2 Grid */}
         {!loading && dashboardData && (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 w-full">
-            {/* बिल्डिंग प्रमुख सर्वे (AP - Address Pramukh) */}
-            <div 
-              onClick={() => navigate('/building-head-survey')}
-              className="bg-gradient-to-br from-white to-gray-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 lg:p-7 shadow-lg w-full border-2 border-gray-200 hover:border-blue-300 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer group"
-            >
-              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-2 sm:mb-3 group-hover:text-blue-600 transition-colors duration-300">
-                {dashboardData?.address_pramukh || '0'}
-              </div>
-              <div className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 break-words group-hover:text-gray-900 font-semibold transition-colors leading-tight">बिल्डिंग प्रमुख सर्वे</div>
-            </div>
+          
 
             {/* शक्ति केन्द्र सर्वे (SP) */}
             <div 
@@ -766,7 +757,16 @@ const CadreSurveyReport = ({ navigation }) => {
               </div>
               <div className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 break-words group-hover:text-gray-900 font-semibold transition-colors leading-tight">बूथ प्रमुख सर्वे</div>
             </div>
-
+            {/* बिल्डिंग प्रमुख सर्वे (AP - Address Pramukh) */}
+            <div 
+              onClick={() => navigate('/building-head-survey')}
+              className="bg-gradient-to-br from-white to-gray-50 rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 lg:p-7 shadow-lg w-full border-2 border-gray-200 hover:border-blue-300 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer group"
+            >
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-2 sm:mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                {dashboardData?.address_pramukh || '0'}
+              </div>
+              <div className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 break-words group-hover:text-gray-900 font-semibold transition-colors leading-tight">बिल्डिंग प्रमुख सर्वे</div>
+            </div>
             {/* फोनबूक सर्वे (PH) */}
             <div 
               onClick={() => navigate('/phonebook-survey')}

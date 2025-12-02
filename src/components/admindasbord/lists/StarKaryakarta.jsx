@@ -286,7 +286,7 @@ const StarKaryakarta = ({ navigation }) => {
             <div className={`w-full ${person.rank === 1 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' : 'bg-gray-200'} flex items-center`}>
               {/* Rank Badge Section */}
               <div className="flex items-center justify-center px-3 py-2 border-r-2" style={{ borderColor: person.rank === 1 ? '#d4af37' : '#999999' }}>
-                <span className="text-white font-bold text-lg">
+                <span className={`${person.rank === 1 ? 'text-white' : 'text-gray-700'} font-bold text-lg`}>
                   {person.rank}
                 </span>
               </div>
@@ -464,9 +464,9 @@ const StarKaryakarta = ({ navigation }) => {
 
         {/* Filter/Summary Bar */}
         <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0" style={{ backgroundColor: '#e5e8ff' }}>
-          <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <div className="flex items-center justify-between gap-1 sm:gap-1">
             {/* Total count */}
-              <div className="px-2 py-1 rounded-lg inline-block">
+              <div className="px-1 py-1 rounded-lg inline-block">
                 <span className="text-sm font-bold" style={{ color: '#102463' }}>
                   टोटल : {filteredData.length}
                 </span>

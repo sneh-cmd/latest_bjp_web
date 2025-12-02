@@ -86,8 +86,17 @@ const VoterCard = ({
         </div>
       )}
       {/* Name - add padding-top when badge is present to avoid overlap */}
-      <div className={`text-base font-extrabold tracking-wide mb-3 ${topBadge ? 'pt-8' : ''}`}>
-        {index + 1}.&nbsp;&nbsp;{voterName}
+      <div
+        className={`text-base font-semibold tracking-wide mb-3 ${topBadge ? 'pt-8' : ''} 
+          sm:text-base sm:mb-3
+          text-sm mb-2
+        `}
+        style={{
+          lineHeight: '1.2',
+          wordBreak: 'break-word'
+        }}
+      >
+        <span className="sm:inline block">{index + 1}.&nbsp;&nbsp;{voterName}</span>
       </div>
 
       {/* Information Fields */}

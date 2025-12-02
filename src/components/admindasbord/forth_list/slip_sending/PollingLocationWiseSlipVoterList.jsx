@@ -200,6 +200,15 @@ const PollingLocationWiseSlipVoterList = ({ navigation }) => {
           onSearchClear={() => setSearchQuery('')}
           uppercase={false}
         />
+          <div className="px-2 sm:px-4 py-2 sm:py-3 flex-shrink-0" style={{ backgroundColor: '#e5e8ff' }}>
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <div className="px-2 py-1 rounded-lg inline-block">
+            <span className="text-sm font-bold" style={{ color: '#102463' }}>
+              टोटल : {filteredVoters.length}
+            </span>
+          </div>
+        </div>
+      </div>
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-4 pb-20 sm:pb-24 md:pb-28">

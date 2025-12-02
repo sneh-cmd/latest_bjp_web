@@ -220,11 +220,11 @@ const SurnameSlide = ({ navigation, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 px-4 py-3 bg-white border-t border-gray-200">
+        <div className="flex-shrink-0 px-4 py-2 bg-white border-t border-gray-200">
           <div className="flex flex-row flex-wrap sm:flex-nowrap sm:items-center sm:justify-end gap-2 sm:gap-6">
             <button
               onClick={handleFilterCancel}
-              className="flex-1 sm:flex-initial px-3 py-3 rounded-2xl border text-sm sm:text-base font-semibold"
+              className="flex-1 sm:flex-initial px-3 py-2 rounded-2xl border text-sm sm:text-base font-semibold"
               style={{
                 borderColor: '#d7dbe7',
                 color: '#102463',
@@ -244,7 +244,7 @@ const SurnameSlide = ({ navigation, onClose }) => {
             <button
               onClick={handleViewVoters}
               disabled={selectedSurnames.length === 0}
-              className={`flex-1 sm:flex-initial px-3 py-3 rounded-2xl font-semibold text-sm sm:text-base transition-colors ${
+              className={`flex-1 sm:flex-initial px-3 py-2 rounded-2xl font-semibold text-sm sm:text-base transition-colors ${
                 selectedSurnames.length === 0 ? 'cursor-not-allowed' : 'hover:opacity-90'
               }`}
               style={
