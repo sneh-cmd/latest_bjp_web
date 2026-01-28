@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import BJPSplashScreen from './components/BJPSplashScreen'
 import CorporationSelectionSlide from './components/CorporationSelectionSlide'
 import PanelSelectionSlide from './components/PanelSelectionSlide'
@@ -819,7 +819,7 @@ function DateDetailSlideWrapper() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="app-container">
         <Routes>
           <Route path="/" element={<SplashScreenWrapper />} />
@@ -913,7 +913,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
